@@ -1,0 +1,21 @@
+#summary Make your Android phone control a robot with Python!
+#labels Featured
+
+= Introduction =
+
+Video of an early prototype in action:
+http://www.youtube.com/watch?v=disdtsNSn7Q
+
+An initial set of code is up for you to play with. It includes Python code to run in the [http://code.google.com/p/android-scripting/ Android Scripting Environment], as well as code to run on your Arduino. See [http://www.instructables.com/id/Android-G1-Serial-To-Arduino/ this Instructable] for getting your Android phone connected to the Arduino physically over serial.
+
+The ability to point the robot at a compass heading is still in progress, as is the GPS locating and audio recording. The other functions should be working for you.
+
+
+
+= Details =
+
+
+Some other projects you may be interested in:
+  * Java version of Android to serial port API http://code.google.com/p/android-serialport-api/
+  * Java code for talking to an Arduino via BlueTooh http://code.google.com/p/android-firmata/
+  * Java Android to Arduino project http://code.google.com/p/amarino/
