@@ -1,0 +1,26 @@
+#labels Synapticspiking
+=Synaptic Spiking Interface Project=
+
+= Introduction =
+
+Synaptic spiking is how biological systems communicate.  Millions of years of evolution have created this system of communication.  Understanding it is to understand engineering perfection.
+
+
+= Overview of Electronic Interface for Reading Synaptic Spikes =
+
+  # Signal goes into the pins
+  #Signal is initially amplified by the Instrumentation amp 5x)
+  # Signal is then amplified again by another op amp
+  # Signal is then put through filters (filtering is needed to reduce noise, fluorescent lights for example)
+  # Signal is then amplified a third time by another op amp
+  # Signal is then fed to an audio out that sends +- 1 volt to represent the spikes
+
+If the audio out jack is put into a computer the raw audio out can be converted from analog to a digital wav file!  From this wave file synaptic spikes can be studied.
+
+= Details =
+
+Parts Needed:
+  * AD623N (5x Gain Instrumentation Amp) <br> http://www.analog.com/en/amplifiers-and-comparators/instrumentation-amplifiers/ad627/products/product.html  <br> http://www.analog.com/static/imported-files/packages/PKG_PDF/PDIP(N)/N_8.pdf
+  * TLC2272344P  (213x Gain Amp (Bandpass 700Hz - 3000Hz)
+  * HLM386MJ (200x Gain Audio Ampliﬁer)
+  * Sewing needle for the electrode interface
