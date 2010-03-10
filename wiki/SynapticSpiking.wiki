@@ -32,6 +32,14 @@ http://cgi.ebay.com/AD623-Instrumentation-Amplifier_W0QQitemZ250440498203QQcmdZV
 
 http://cgi.ebay.com/AD627-Micro-power-Instrumentation-Amplifier-Offers-Supe_W0QQitemZ150420211813QQcmdZViewItemQQptZLH_DefaultDomain_0?hash=item2305be4865#ht_718wt_940
 
+Possible Digikey versions of analog device chips:
+
+http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name=AD623ANZ-ND 
+
+http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name=AD627BNZ-ND
+
+
+
 TLC2272344P
 
 http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name=296-1306-1-ND
