@@ -24,3 +24,16 @@ Parts Needed:
   * TLC2272344P  (213x Gain Amp (Bandpass 700Hz - 3000Hz)
   * HLM386MJ (200x Gain Audio Ampliﬁer)
   * Sewing needle for the electrode interface
+
+Parts can be ordered here:
+
+http://cgi.ebay.com/AD623-Instrumentation-Amplifier_W0QQitemZ250440498203QQcmdZViewItemQQptZLH_DefaultDomain_0?hash=item3a4f6abc1b#ht_555wt_940
+
+
+http://cgi.ebay.com/AD627-Micro-power-Instrumentation-Amplifier-Offers-Supe_W0QQitemZ150420211813QQcmdZViewItemQQptZLH_DefaultDomain_0?hash=item2305be4865#ht_718wt_940
+
+TLC2272344P
+
+http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name=296-1306-1-ND
+ 
+$2.50 for a chip with all 4 of those op amps in one chip
