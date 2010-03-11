@@ -42,6 +42,7 @@ http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name=AD627BNZ-ND
 
 TLC2272344P
 
-http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name=296-1306-1-ND
+http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name=296-7132-5-ND
+
  
 $2.50 for a chip with all 4 of those op amps in one chip
