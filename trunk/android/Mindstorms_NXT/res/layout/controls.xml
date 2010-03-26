@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical" android:layout_width="fill_parent"
+  android:layout_height="fill_parent" android:padding="20px">
+
+  <LinearLayout 
+    android:orientation="horizontal" android:layout_width="fill_parent"
+    android:layout_height="wrap_content" android:padding="20px">
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+    <Button android:id="@+id/forwardsButton" android:text=" ^ "
+      android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1"/>
+
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+  </LinearLayout>
+
+  <LinearLayout 
+    android:orientation="horizontal" android:layout_width="fill_parent"
+    android:layout_height="wrap_content" android:padding="20px">
+    <Button android:id="@+id/leftButton" android:text="&lt;- "
+      android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1"/>
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+    <Button android:id="@+id/rightButton" android:text=" ->"
+      android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1"/>
+  </LinearLayout>
+
+  <LinearLayout 
+    android:orientation="horizontal" android:layout_width="fill_parent"
+    android:layout_height="wrap_content" android:padding="20px">
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+    <Button android:id="@+id/backwardsButton" android:text=" v "
+      android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1"/>
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+  </LinearLayout>
+  
+  <Button android:id="@+id/stopButton" android:text="STOP!"
+      android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1"/>
+
+
+  <LinearLayout 
+    android:orientation="horizontal" android:layout_width="fill_parent"
+    android:layout_height="wrap_content" android:padding="0px">
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="Sensor 1: " android:layout_weight="1"/>
+  
+    <TextView android:id="@+id/sensor1Text" android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+  </LinearLayout>
+  <LinearLayout 
+    android:orientation="horizontal" android:layout_width="fill_parent"
+    android:layout_height="wrap_content" android:padding="0px">
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="Sensor 3: " android:layout_weight="1"/>
+  
+    <TextView android:id="@+id/sensor3Text" android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+  </LinearLayout>
+  <LinearLayout 
+    android:orientation="horizontal" android:layout_width="fill_parent"
+    android:layout_height="wrap_content" android:padding="0px">
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="Sensor 4: " android:layout_weight="1"/>
+  
+    <TextView android:id="@+id/sensor4Text" android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="   " android:layout_weight="1"/>
+  </LinearLayout>
+</LinearLayout>
