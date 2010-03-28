@@ -26,34 +26,35 @@ import select
 import sys
 import android
 import math
+import shlex
+import netip
 
-audioOn=True
-audioRecordingOn=False
-cardinalMargin=10
-cardinals={}
-cardinals['n']=('North','0')
-cardinals['e']=('East','90')
-cardinals['w']=('West','270')
-cardinals['s']=('South','180')
+# Command input via speech recognition
+def commandByVoice(mode='continuous'):
+  try:
+    listen = droid.recognizeSpeech()
+    voiceCommands = str(listen['result'])
+  except:
+    voiceCommands = ""
+  print "Voice commands: %s" % voiceCommands
+  commandParse(voiceCommands)
+  if mode == 'continuous':
+    commandByVoice()
 
-droid = android.Android()
-svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# The main loop that fires up a telnet socket and processes inputs
-def main():
+# Command input via open telnet port
+def commandByTelnet():
   rs = []
   telnet_port = 9002
 
-  droid.makeToast("Firing up telnet socket...")
-  svr_sock.bind(('', telnet_port))
-  svr_sock.listen(3)
-  svr_sock.setblocking(0)
-
-  print "Ready to accept telnet. Use this device's IP on port %s\n" % telnet_port
-  print "Send the letter 'q' to quit the program.\n"
-  droid.makeToast("Ready!")
-  droid.startSensing()
-  droid.startLocating()
+  print "Firing up telnet socket..."
+  try:
+    svr_sock.bind(('', telnet_port))
+    svr_sock.listen(3)
+    svr_sock.setblocking(0)
+    print "Ready to accept telnet. Use %s on port %s\n" % (phoneIP, telnet_port)
+  except socket.error, (value,message):
+    print "Could not open socket: " + message
+    print "You can try using %s on port %s\n" % (phoneIP, telnet_port)
 
   while 1:
     r,w,_ = select.select([svr_sock] + rs, [], [])
@@ -66,16 +67,21 @@ def main():
         input = cli.recv(1024)
         input = input.replace('\r','')
         input = input.replace('\n','')
-        print "received: %s" % input
-        commandParse(input)
+        if input != '': 
+          print "Received: '%s'" % input
+          commandParse(input)
 
 
 # Speak using TTS or make toasts
 def speak(msg):
-  if audioOn:
+  global previousMsg
+  if audioOn and msg != previousMsg:
     droid.speak(msg)
-  else:
+  elif msg != previousMsg:
     droid.makeToast(msg)
+  else:
+    print msg
+  previousMsg=msg
 
 # Point towards a specific compass heading
 def orientToAzimuth(azimuth):
@@ -98,6 +104,7 @@ def orientToAzimuth(azimuth):
       adjustmentAbs = math.fabs(adjustment)
       if adjustmentAbs < cardinalMargin:
         msg = "Goal achieved! Facing %d degrees, which is within the %d degree margin of %d!" % (currentHeading, cardinalMargin, azimuth)
+        print msg
         speak(msg)
         commandOut('s')
         onTarget = True
@@ -108,7 +115,7 @@ def orientToAzimuth(azimuth):
         if adjustment < (cardinalMargin * -1):
           print "Moving %d left." % adjustmentAbs
           commandOut('l')
-        time.sleep(adjustmentAbs/90)
+        time.sleep(adjustmentAbs/180)
         commandOut('s')
         time.sleep(1)
     else:
@@ -121,66 +128,116 @@ def commandOut(msg):
 
 # Parse the first character of incoming commands to determine what action to take
 def commandParse(input):
-  command = input[:1]
-  commandValue = input[2:]
-  if command == 'a':
+  try:
+    commandList = shlex.split(input)
+  except:
+    commandList = []
+    print "Could not parse command"
+  try:
+    command = commandList[0].lower()
+  except IndexError:
+    command = ""
+  try:
+    commandValue = commandList[1]
+  except IndexError:
+    commandValue = ""
+
+  if command in ["a", "audio", "record"]:
     global audioRecordingOn
     audioRecordingOn = not audioRecordingOn
+    fileName=time.strftime("/sdcard/cellbot_%Y-%m-%d_%H-%M-%S.3gp")
     if audioRecordingOn:
       speak("Starting audio recording")
-      droid.startAudioRecording("/sdcard/cellbot.3gp")
+      droid.startAudioRecording(fileName)
     else:
       droid.stopAudioRecording()
       speak("Stopping audio recording")
-      print "Audio file located on /sdcard/cellbot.3gp"
-  elif command == 'b':
+      print "Audio file located at %s" % fileName
+  elif command  in ["b", "back", "backward", "backwards"]:
     speak("Moving backward")
     commandOut('b')
   elif command == 'c':
     orientToAzimuth(int(commandValue[:3]))
-  elif command == 'd':
-    speak(time.strftime("Current time is %_I %M %p on %A, %B %_e, %Y "))
-  elif command == 'f':
+  elif command in ["d", "date"]:
+    speak(time.strftime("Current time is %_I %M %p on %A, %B %_e, %Y"))
+  elif command in ["f", "forward", "forwards", "scoot"]:
     speak("Moving forward")
     commandOut('f')
-  elif command == 'h':
-    speak("Hello. I am ready to play!")
-  elif command == 'l':
+  elif command in ["h", "hi", "hello"]:
+    speak("Hello. Let's play.")
+  elif command in ["l", "left"]:
     speak("Moving left")
     commandOut('l')
-  elif command == 'm':
+  elif command in ["m", "mute"]:
     global audioOn
     audioOn = not audioOn
     speak("Audio mute toggled")
-  elif command == 'p':
+  elif command in ["p", "point", "pointe", "face", "facing"]:
     msg = "Orienting %s" % cardinals[commandValue[:1]][0]
     speak(msg)
-    orientToAzimuth(int(cardinals[commandValue[:1]][1]))
-  elif command == 'q':
+    try:
+      orientToAzimuth(int(cardinals[commandValue[:1]][1]))
+    except:
+      print "Could not orient towards " + commandValue
+  elif command in ["q", "quit"]:
     speak("Bye bye!")
     svr_sock.close()
     droid.stopSensing()
     droid.stopLocating()
     sys.exit("Exiting program after receiving 'q' command.")
-  elif command == 'r':
+  elif command in ["r", "right"]:
     speak("Moving right")
     commandOut('r')
-  elif command == 's':
+  elif command in ["s", "stop"]:
     commandOut('s')
-  elif command == 't':
+  elif command in ["t", "talk", "speak", "say"]:
     speak(commandValue)
-  elif command == 'x':
-    location = droid.readLocation()['result']
-    addresses = droid.geocode(location['latitude'], location['longitude'])
-    firstAddr = addresses['result']['result'][0]
-    if firstAddr['postal_code'] is None:
-      speak("Failed to find location.")
-    else:
+  elif command in ["v", "voice", "listen", "speech"]:
+    droid.makeToast("Launching voice recognition")
+    voiceCommand("onceOnly")
+  elif command in ["x", "location", "gps"]:
+    try:
+      location = droid.readLocation()['result']
+      addresses = droid.geocode(location['latitude'], location['longitude'])
+      firstAddr = addresses['result']['result'][0]
       msg = 'You are in %(locality)s, %(admin_area)s' % firstAddr
-      speak(msg)
+    except:
+      msg = "Failed to find location."
+    speak(msg)
+  elif command in ["0","1","2","3","4","5","6","7","8","9"]:
+    msg = "Changing speed to %s" % command
+    speak(msg)
+    commandOut(command)
+  elif command in ["move", "go", "turn"]:
+    commandParse(commandValue)
+  elif command in ["send", "pass"]:
+    commandOut(commandValue)
   else:
-    droid.makeToast("Unknown command")
+    print "Unknown command: '%s'" % command
 
+audioOn=False
+audioRecordingOn=False
+inputMethod=commandByVoice
+previousMsg=""
+phoneIP=netip.displayNoLo()
+currentSpeed=1
+cardinalMargin=10
+cardinals={}
+cardinals['n']=('North','0')
+cardinals['e']=('East','90')
+cardinals['w']=('West','270')
+cardinals['s']=('South','180')
+svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+droid = android.Android()
+
+# The main loop that fires up a telnet socket and processes inputs
+def main():
+
+  print "Send the letter 'q' or say 'quit' to quit the program.\n"
+  droid.startSensing()
+  droid.startLocating()
+  droid.makeToast("Ready to begin!")
+  globals()['inputMethod']()
 
 if __name__ == '__main__':
     main()

@@ -34,7 +34,7 @@ R = right turn
 S = stop servos
 T = talk (usage:t=Hello World)
 U
-V
+V = execute a single voice command
 W
 X = "x marks the spot" - announce GPS location
 Y
