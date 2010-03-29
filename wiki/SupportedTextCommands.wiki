@@ -5,10 +5,10 @@
 The following single character commands can be sent into the phone. 
 See the source code for a full set of word based commands to use.
 
-* A = audio recording toggle (saves to SD card)
-* B = backward movement
-* C = compass heading (usage:c 45 [options:0-360])
-* D = date and time spoken
+ * A = audio recording toggle (saves to SD card)
+ * B = backward movement
+ * C = compass heading (usage:c 45 [options:0-360])
+ *D = date and time spoken
 * E
 * F = forward movement
 * G
