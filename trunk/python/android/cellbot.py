@@ -81,8 +81,21 @@ def speak(msg):
     droid.makeToast(msg)
   else:
     print msg
+
   previousMsg=msg
 
+# Handle changing the speed setting  on the robot
+def changeSpeed(newSpeed):
+  global currentSpeed
+  if newSpeed >=0 and newSpeed <=9:
+    msg = "Changing speed to %s" % newSpeed
+    commandOut(newSpeed)
+    currentSpeed=newSpeed
+  else:
+    msg = "Speed %s is out of range [0-9]" % newSpeed
+
+  speak(msg)
+    
 # Point towards a specific compass heading
 def orientToAzimuth(azimuth):
   onTarget = False
@@ -179,7 +192,7 @@ def commandParse(input):
       orientToAzimuth(int(cardinals[commandValue[:1]][1]))
     except:
       print "Could not orient towards " + commandValue
-  elif command in ["q", "quit"]:
+  elif command in ["q", "quit", "exit"]:
     speak("Bye bye!")
     svr_sock.close()
     droid.stopSensing()
@@ -204,10 +217,15 @@ def commandParse(input):
     except:
       msg = "Failed to find location."
     speak(msg)
-  elif command in ["0","1","2","3","4","5","6","7","8","9"]:
-    msg = "Changing speed to %s" % command
-    speak(msg)
-    commandOut(command)
+  elif command == "speed":
+    if commandValue in ["0","1","2","3","4","5","6","7","8","9"]:
+      changeSpeed(commandValue)
+    else:
+      print "Invalid speed setting: '%s'" % command
+  elif command in ["faster", "hurry", "fast", "quicker"]:
+    changeSpeed(currentSpeed + 1)
+  elif command in ["slower", "slow", "chill"]:
+    changeSpeed(currentSpeed - 1)
   elif command in ["move", "go", "turn"]:
     commandParse(commandValue)
   elif command in ["send", "pass"]:
@@ -215,27 +233,34 @@ def commandParse(input):
   else:
     print "Unknown command: '%s'" % command
 
-audioOn=False
-audioRecordingOn=False
-inputMethod=commandByVoice
-previousMsg=""
-phoneIP=netip.displayNoLo()
-currentSpeed=1
-cardinalMargin=10
+#Non-configurable options
+droid = android.Android()
 cardinals={}
 cardinals['n']=('North','0')
 cardinals['e']=('East','90')
 cardinals['w']=('West','270')
 cardinals['s']=('South','180')
+previousMsg=""
+audioRecordingOn=False
+phoneIP=netip.displayNoLo()
 svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-droid = android.Android()
+
+#Configurable options
+audioOn=False
+currentSpeed=5
+cardinalMargin=10
+
+#Current input methods are 'commandByVoice' or 'commandByTelnet'
+inputMethod=commandByVoice
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
 
-  print "Send the letter 'q' or say 'quit' to quit the program.\n"
+  print "Send the letter 'q' or say 'quit' to exit the program.\n"
   droid.startSensing()
   droid.startLocating()
+  global currentSpeed
+  commandOut(currentSpeed)
   droid.makeToast("Ready to begin!")
   globals()['inputMethod']()
 
