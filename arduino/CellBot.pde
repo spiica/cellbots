@@ -3,7 +3,7 @@
  
  Looks for a set of ASCII characters in the signal to send
  commands to a set of servos to drive a small robot. LED pin #13
- will remain lit during servo movement.
+ will remain lit during servo movement and blink for speed changes.
  
  
  The circuit:
@@ -37,7 +37,7 @@ Servo myservoLeft;
 Servo myservoRight;
 
 // No config required for these parameters
-int speedMultiplier = 1; // uses a range from 1-10
+int speedMultiplier = 5; // uses a range from 1-10
 boolean servosActive = false; // assume servos are not moving when we begin
 unsigned long stopTime=millis(); // used for calculating the run time for servos
 char incomingByte; // Holds incoming serial values
@@ -96,7 +96,7 @@ unsigned long  moveBot(char* commandLeft, char* commandRight) {
   Serial.print(" and right servo ");
   Serial.println(valueRight, DEC);
   
-  stopTime=millis() + maxRunTime; // set up allowable running time in ms
+  stopTime=millis() + maxRunTime; // Configure up allowable running time in ms
 
   return stopTime;
 }
@@ -105,7 +105,7 @@ unsigned long  moveBot(char* commandLeft, char* commandRight) {
 void stopBot() {
   myservoLeft.detach();
   myservoRight.detach();
-  digitalWrite(ledPin, LOW);    // set the LED off
+  digitalWrite(ledPin, LOW);  // Turn the LED off
   Serial.println("Stopping both servos");
 }
 
@@ -125,9 +125,7 @@ void loop()
       incomingByte = Serial.read();
 
       switch(incomingByte) {
-      case 'd':
-      case 'D':
-        // Do a little demo
+      case 'd': // Do a little demo
         speedMultiplier = 1;
         moveBot("forward","backward"); 
         delay(500); 
@@ -156,38 +154,39 @@ void loop()
         delay(3000); 
         stopBot();
         break;
-      case 'f':
-      case 'F': // Forward
+      case 'f': // Forward
         stopTime = moveBot("forward","forward");
         servosActive = true;
         break;
-      case 'r':
-      case 'R': // Right
+      case 'r': // Right
         stopTime = moveBot("forward","backward");
         servosActive = true;
         break;   
-      case 'l':
-      case 'L': // Left
+      case 'l': // Left
         stopTime = moveBot("backward","forward");
         servosActive = true;
         break;   
-      case 'b':
-      case 'B':  // Backward
+      case 'b': // Backward
         stopTime = moveBot("backward","backward");
         servosActive = true;
         break;
-      case 's':
-      case 'S':  // Stop
+      case 's': // Stop
         stopBot();
         servosActive = false;
         break;
-        // If it ain't one of the above test if it is a number:
-      default:
+      default: // If it isn't one of the above, test if it is a number:
         // If it's an ASCII character between 49 and 57, which is numbers 1-9
         if (incomingByte >= 49 and incomingByte <= 57){
           Serial.print("Changing speed to ");
           Serial.println(incomingByte);
           speedMultiplier = incomingByte - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
+          // Blink the LED to confirm the new speed setting
+          for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
+            digitalWrite(ledPin, HIGH);   // set the LED on           
+            delay(250);
+            digitalWrite(ledPin, LOW);   // set the LED off
+            delay(250);
+          }          
         }
         else {
           Serial.print("Unrecognized input value: ");
@@ -197,6 +196,4 @@ void loop()
     }
   }
 }
-
-
 
