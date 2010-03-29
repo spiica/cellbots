@@ -1,0 +1,13 @@
+#summary Configuration settings.
+
+= Optional Settings =
+
+Feel free to modify as little or much code as you wish but these are the main settings you'll want to explore:
+
+ * audioOn=False
+ * currentSpeed=1
+ * cardinalMargin=10
+ * inputMethod=commandByVoice
+ (Current input methods are 'commandByVoice' or 'commandByTelnet')
+
+
