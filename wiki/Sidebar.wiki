@@ -1,14 +1,13 @@
 #summary One-sentence summary of this page.
 
-== Cellbots ==
-
- * [http://www.cellbots.com Cellbots.com]
- * [http://www.youtube.com/cellbots YouTube channel]
-
-
 == Popular Wiki Pages ==
 
  * [Overview Overview]
  * [ConfigurableOptions Configuration Settings]
  * [SupportedTextCommands Supported Text Commands]
  * [http://code.google.com/p/cellbots/wiki/ more wiki pages...]
+
+== External Links ==
+
+ * [http://www.cellbots.com Cellbots.com]
+ * [http://www.youtube.com/cellbots YouTube channel]
