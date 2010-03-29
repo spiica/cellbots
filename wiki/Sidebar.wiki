@@ -3,8 +3,12 @@
 = Cellbots =
 
 [http://www.cellbots.com Cellbots.com]
+[http://www.youtube.com/cellbots YouTube channel]
 
 
 = Popular Wiki Pages =
 
 [http://code.google.com/p/cellbots/wiki/Overview Overview]
+[http://code.google.com/p/cellbots/wiki/ConfigurableOptions Configuration Settings]
+[http://code.google.com/p/cellbots/wiki/SupportedTextCommands Supported Text Commands]
+[http://code.google.com/p/cellbots/wiki/ more wiki pages...]
