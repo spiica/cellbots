@@ -10,11 +10,7 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 #
-# What is does:
-# 1. Opens a socket for incoming telnet commands to be pushed out via serial.
-# 2. Parses the first character of the input tring to take an action.
-#
-# See README.txt for a full description of each command option.
+# See http://www.cellbots.com for more information
 
 __author__ = 'Ryan Hickman <rhickman@gmail.com>'
 __license__ = 'Apache License, Version 2.0'
@@ -28,33 +24,23 @@ import android
 import math
 import shlex
 import netip
-
-# Command input via speech recognition
-def commandByVoice(mode='continuous'):
-  try:
-    listen = droid.recognizeSpeech()
-    voiceCommands = str(listen['result'])
-  except:
-    voiceCommands = ""
-  print "Voice commands: %s" % voiceCommands
-  commandParse(voiceCommands)
-  if mode == 'continuous':
-    commandByVoice()
+import xmpp
+import ConfigParser
+import string
 
 # Command input via open telnet port
 def commandByTelnet():
   rs = []
-  telnet_port = 9002
 
   print "Firing up telnet socket..."
   try:
-    svr_sock.bind(('', telnet_port))
+    svr_sock.bind(('', telnetPort))
     svr_sock.listen(3)
     svr_sock.setblocking(0)
-    print "Ready to accept telnet. Use %s on port %s\n" % (phoneIP, telnet_port)
+    print "Ready to accept telnet. Use %s on port %s\n" % (phoneIP, telnetPort)
   except socket.error, (value,message):
     print "Could not open socket: " + message
-    print "You can try using %s on port %s\n" % (phoneIP, telnet_port)
+    print "You can try using %s on port %s\n" % (phoneIP, telnetPort)
 
   while 1:
     r,w,_ = select.select([svr_sock] + rs, [], [])
@@ -71,17 +57,59 @@ def commandByTelnet():
           print "Received: '%s'" % input
           commandParse(input)
 
+# Command input via XMPP chat
+def commandByXMPP():
+  global xmppUsername
+  global xmppPassword
+  if not xmppUsername:
+    xmppUsername = droid.getInput('Username')['result']
+  if not xmppPassword:
+    xmppPassword = droid.getInput('Password')['result']
+  jid = xmpp.protocol.JID(xmppUsername)
+  client = xmpp.Client(jid.getDomain(), debug=[])
+  client.connect(server=(xmppServer, xmppPort))
+  client.RegisterHandler('message', XMPP_message_cb)
+  if not client:
+    print 'Connection failed!'
+    return
+  auth = client.auth(jid.getNode(), xmppPassword, 'botty')
+  if not auth:
+    print 'Authentication failed!'
+    return
+  client.sendInitPresence()
+  try:
+    while True:
+      client.Process(1)
+  except KeyboardInterrupt:
+    pass
+
+# Handle XMPP messages coming from commandByXMPP
+def XMPP_message_cb(session, message):
+  jid = xmpp.protocol.JID(message.getFrom())
+  command = message.getBody()
+  commandParse(str(command))
+
+# Command input via speech recognition
+def commandByVoice(mode='continuous'):
+  try:
+    listen = droid.recognizeSpeech()
+    voiceCommands = str(listen['result'])
+  except:
+    voiceCommands = ""
+  print "Voice commands: %s" % voiceCommands
+  commandParse(voiceCommands)
+  if mode == 'continuous':
+    commandByVoice()
 
 # Speak using TTS or make toasts
-def speak(msg):
+def speak(msg,override=False):
   global previousMsg
-  if audioOn and msg != previousMsg:
+  if (audioOn and msg != previousMsg) or override:
     droid.speak(msg)
   elif msg != previousMsg:
     droid.makeToast(msg)
   else:
     print msg
-
   previousMsg=msg
 
 # Handle changing the speed setting  on the robot
@@ -93,14 +121,13 @@ def changeSpeed(newSpeed):
     currentSpeed=newSpeed
   else:
     msg = "Speed %s is out of range [0-9]" % newSpeed
-
   speak(msg)
     
 # Point towards a specific compass heading
 def orientToAzimuth(azimuth):
   onTarget = False
   stopTime = time.time() + 5000
-  while not onTarget or time.time() > stopTime:
+  while not onTarget and time.time() < stopTime:
     results = droid.readSensors()
 
     if results['result'] is not None:
@@ -181,7 +208,7 @@ def commandParse(input):
   elif command in ["l", "left"]:
     speak("Moving left")
     commandOut('l')
-  elif command in ["m", "mute"]:
+  elif command in ["m", "mute", "silence"]:
     global audioOn
     audioOn = not audioOn
     speak("Audio mute toggled")
@@ -204,10 +231,10 @@ def commandParse(input):
   elif command in ["s", "stop"]:
     commandOut('s')
   elif command in ["t", "talk", "speak", "say"]:
-    speak(commandValue)
+    speak(commandValue,True)
   elif command in ["v", "voice", "listen", "speech"]:
     droid.makeToast("Launching voice recognition")
-    voiceCommand("onceOnly")
+    commandByVoice("onceOnly")
   elif command in ["x", "location", "gps"]:
     try:
       location = droid.readLocation()['result']
@@ -233,25 +260,31 @@ def commandParse(input):
   else:
     print "Unknown command: '%s'" % command
 
-#Non-configurable options
+#Non-configurable settings
 droid = android.Android()
-cardinals={}
+cardinals = {}
 cardinals['n']=('North','0')
 cardinals['e']=('East','90')
 cardinals['w']=('West','270')
 cardinals['s']=('South','180')
-previousMsg=""
-audioRecordingOn=False
-phoneIP=netip.displayNoLo()
+previousMsg = ""
+audioRecordingOn = False
+phoneIP = netip.displayNoLo()
 svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-#Configurable options
-audioOn=False
-currentSpeed=5
-cardinalMargin=10
-
-#Current input methods are 'commandByVoice' or 'commandByTelnet'
-inputMethod=commandByVoice
+# Get configurable options from the ini file
+config = ConfigParser.ConfigParser()
+config.read("/sdcard/ase/scripts/cellbotConfig.ini")
+audioOn = config.getboolean("basics", "audioOn")
+currentSpeed = config.getint("basics", "currentSpeed")
+cardinalMargin = config.getint("basics", "cardinalMargin")
+telnetPort = config.getint("control", "port")
+inputMethod = config.get("control", "inputMethod")
+xmppServer = config.get("xmpp", "server")
+xmppPort = config.getint("xmpp", "port")
+xmppUsername = config.get("xmpp", "username")
+xmppPassword = config.get("xmpp", "password")
+print "username is: " + xmppUsername
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
@@ -261,8 +294,8 @@ def main():
   droid.startLocating()
   global currentSpeed
   commandOut(currentSpeed)
-  droid.makeToast("Ready to begin!")
-  globals()['inputMethod']()
+  droid.makeToast("Initiating input method...")
+  globals()[inputMethod]()
 
 if __name__ == '__main__':
     main()
