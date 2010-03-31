@@ -30,7 +30,10 @@ const int servoPinRight = 4;
 const int servoDirectionLeft = 1; // Use either 1 or -1 for reverse
 const int servoDirectionRight = -1; // Use either 1 or -1 for reverse
 const int ledPin = 13; // LED turns on while running servos
-const long maxRunTime = 2000; // maximum run time for servos without additional command
+//const long maxRunTime = 2000; // maximum run time for servos without additional command
+const long maxRunTime = 235; // Shorter for Glen's big wheels. Should use a command to set this. 
+const int pingPin = 8; //The range finder
+long dist, cm, inches; //The range finder
 
 // Create servo objects to control the servos
 Servo myservoLeft;
@@ -53,9 +56,9 @@ void setup()
     Serial.begin(9600);
 
     // Print out some basic instructions when monitoring over serial connection
-    Serial.println("Ready to listen to commands! Try ome of these:");
-    Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
-    Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
+    ////Serial.println("Ready to listen to commands! Try ome of these:");
+    //Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
+    //Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
   }
 } 
 
@@ -70,7 +73,7 @@ int directionValue(char* directionCommand, int servoDirection){
     servoValue = (-10 * speedMultiplier * servoDirection);
   }
   else {
-    Serial.println("Houston, we have a problem!");
+    //Serial.println("Houston, we have a problem!");
     servoValue = 0; // attemp to set value to center - this shouldn't be needed
   }
 
@@ -91,10 +94,10 @@ unsigned long  moveBot(char* commandLeft, char* commandRight) {
   myservoRight.write(valueRight);
 
   // Spit out some diagnosis info over serial
-  Serial.print("Moving left servo ");
-  Serial.print(valueLeft, DEC);
-  Serial.print(" and right servo ");
-  Serial.println(valueRight, DEC);
+  //Serial.print("Moving left servo ");
+  //Serial.print(valueLeft, DEC);
+  //Serial.print(" and right servo ");
+  //Serial.println(valueRight, DEC);
   
   stopTime=millis() + maxRunTime; // Configure up allowable running time in ms
 
@@ -106,7 +109,45 @@ void stopBot() {
   myservoLeft.detach();
   myservoRight.detach();
   digitalWrite(ledPin, LOW);  // Turn the LED off
-  Serial.println("Stopping both servos");
+  //Serial.println("Stopping both servos");
+}
+
+
+long getDistanceSensor()
+{
+  // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
+  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+  pinMode(pingPin, OUTPUT);
+  digitalWrite(pingPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pingPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pingPin, LOW);
+ 
+  // The same pin is used to read the signal from the PING))): a HIGH
+  // pulse whose duration is the time (in microseconds) from the sending
+  // of the ping to the reception of its echo off of an object.
+  pinMode(pingPin, INPUT);
+  // convert the time into a distance
+  return pulseIn(pingPin, HIGH);
+}
+
+long microsecondsToCentimeters(long microseconds)
+{
+  // The speed of sound is 340 m/s or 29 microseconds per centimeter.
+  // The ping travels out and back, so to find the distance of the
+  // object we take half of the distance travelled.
+  return microseconds / 29 / 2;
+}
+
+long microsecondsToInches(long microseconds)
+{
+  // According to Parallax's datasheet for the PING))), there are
+  // 73.746 microseconds per inch (i.e. sound travels at 1130 feet per
+  // second).  This gives the distance travelled by the ping, outbound
+  // and return, so we divide by 2 to get the distance of the obstacle.
+  // See: http://www.parallax.com/dl/docs/prod/acc/28015-PING-v1.3.pdf
+  return microseconds / 74 / 2;
 }
 
 // Main loop running at all times
@@ -114,7 +155,7 @@ void loop()
 {
   // Check to see if enough time has elapsed to stop the bot if not stopped already
   if(stopTime < millis() and servosActive) {
-    Serial.print("Running time expired - ");
+    //Serial.print("Running time expired - ");
     stopBot();
     servosActive = false;
   }
@@ -174,11 +215,21 @@ void loop()
         stopBot();
         servosActive = false;
         break;
+      case 'z': // Read and print distance sensor
+        dist = getDistanceSensor();
+        cm = microsecondsToCentimeters(dist);
+        inches = microsecondsToCentimeters(dist);
+        Serial.println(cm); //there seems to be a duplicate /n
+        //Wait for the serial debugger to shut up
+        delay(100); //this is a magic number
+        Serial.flush(); //clears all incoming data
+        break;
+        
       default: // If it isn't one of the above, test if it is a number:
         // If it's an ASCII character between 49 and 57, which is numbers 1-9
         if (incomingByte >= 49 and incomingByte <= 57){
-          Serial.print("Changing speed to ");
-          Serial.println(incomingByte);
+          //Serial.print("Changing speed to ");
+          //Serial.println(incomingByte);
           speedMultiplier = incomingByte - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
           // Blink the LED to confirm the new speed setting
           for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
@@ -189,8 +240,8 @@ void loop()
           }          
         }
         else {
-          Serial.print("Unrecognized input value: ");
-          Serial.println(incomingByte);
+          //Serial.print("Unrecognized input value: ");
+          //Serial.println(incomingByte);
         }
       }
     }
