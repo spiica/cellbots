@@ -29,6 +29,7 @@ import ConfigParser
 import string
 from threading import Thread
 
+#This thread is not 100% stable. Reason unknown. 
 class serialReader(Thread):
    def __init__ (self):
       Thread.__init__(self)
