@@ -30,8 +30,8 @@ const int servoPinRight = 4;
 const int servoDirectionLeft = 1; // Use either 1 or -1 for reverse
 const int servoDirectionRight = -1; // Use either 1 or -1 for reverse
 const int ledPin = 13; // LED turns on while running servos
-//const long maxRunTime = 2000; // maximum run time for servos without additional command
-const long maxRunTime = 235; // Shorter for Glen's big wheels. Should use a command to set this. 
+const long maxRunTime = 2000; // maximum run time for servos without additional command
+//const long maxRunTime = 235; // Shorter for Glen's big wheels. Should use a command to set this. 
 const int pingPin = 8; //The range finder
 long dist, cm, inches; //The range finder
 
