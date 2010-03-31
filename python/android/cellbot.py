@@ -27,6 +27,19 @@ import netip
 import xmpp
 import ConfigParser
 import string
+from threading import Thread
+
+class serialReader(Thread):
+   def __init__ (self):
+      Thread.__init__(self)
+   def run(self):
+     process = os.popen('cat /dev/ttyMSM2')
+     while process:
+       try:
+         speak(" %s centimeters" % process.readline())
+       except:
+         print "errored"
+
 
 # Command input via open telnet port
 def commandByTelnet():
@@ -224,6 +237,8 @@ def commandParse(input):
     svr_sock.close()
     droid.stopSensing()
     droid.stopLocating()
+    global readerThread
+    readerThread.join()
     sys.exit("Exiting program after receiving 'q' command.")
   elif command in ["r", "right"]:
     speak("Moving right")
@@ -231,7 +246,7 @@ def commandParse(input):
   elif command in ["s", "stop"]:
     commandOut('s')
   elif command in ["t", "talk", "speak", "say"]:
-    speak(commandValue,True)
+    speak(input.replace(command, ''),True)
   elif command in ["v", "voice", "listen", "speech"]:
     droid.makeToast("Launching voice recognition")
     commandByVoice("onceOnly")
@@ -257,6 +272,10 @@ def commandParse(input):
     commandParse(commandValue)
   elif command in ["send", "pass"]:
     commandOut(commandValue)
+  elif command in ["range", "distance", "z"]: 
+    global serialIn
+    commandOut("z")
+    #A thread will handle the response.
   else:
     print "Unknown command: '%s'" % command
 
@@ -271,6 +290,9 @@ previousMsg = ""
 audioRecordingOn = False
 phoneIP = netip.displayNoLo()
 svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+serialIn = os.popen('cat /dev/ttyMSM2')
+readerThread = serialReader()
+
 
 # Get configurable options from the ini file
 config = ConfigParser.ConfigParser()
@@ -288,7 +310,7 @@ print "username is: " + xmppUsername
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
-
+  readerThread.start()
   print "Send the letter 'q' or say 'quit' to exit the program.\n"
   droid.startSensing()
   droid.startLocating()
