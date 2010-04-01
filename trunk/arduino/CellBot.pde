@@ -32,6 +32,7 @@ const int servoDirectionRight = -1; // Use either 1 or -1 for reverse
 const int ledPin = 13; // LED turns on while running servos
 const long maxRunTime = 2000; // maximum run time for servos without additional command
 //const long maxRunTime = 235; // Shorter for Glen's big wheels. Should use a command to set this. 
+const boolean DEBUGGING = false;
 const int pingPin = 8; //The range finder
 long dist, cm, inches; //The range finder
 
@@ -56,9 +57,9 @@ void setup()
     Serial.begin(9600);
 
     // Print out some basic instructions when monitoring over serial connection
-    ////Serial.println("Ready to listen to commands! Try ome of these:");
-    //Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
-    //Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
+    if (DEBUGGING) { Serial.println("Ready to listen to commands! Try ome of these:"); }
+    if (DEBUGGING) { Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo)."); }
+    if (DEBUGGING) { Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast)."); }
   }
 } 
 
@@ -73,7 +74,7 @@ int directionValue(char* directionCommand, int servoDirection){
     servoValue = (-10 * speedMultiplier * servoDirection);
   }
   else {
-    //Serial.println("Houston, we have a problem!");
+    if (DEBUGGING) { Serial.println("Houston, we have a problem!"); }
     servoValue = 0; // attemp to set value to center - this shouldn't be needed
   }
 
@@ -94,10 +95,10 @@ unsigned long  moveBot(char* commandLeft, char* commandRight) {
   myservoRight.write(valueRight);
 
   // Spit out some diagnosis info over serial
-  //Serial.print("Moving left servo ");
-  //Serial.print(valueLeft, DEC);
-  //Serial.print(" and right servo ");
-  //Serial.println(valueRight, DEC);
+  if (DEBUGGING) { Serial.print("Moving left servo "); }
+  if (DEBUGGING) { Serial.print(valueLeft, DEC); }
+  if (DEBUGGING) { Serial.print(" and right servo "); }
+  if (DEBUGGING) { Serial.println(valueRight, DEC); }
   
   stopTime=millis() + maxRunTime; // Configure up allowable running time in ms
 
@@ -109,7 +110,7 @@ void stopBot() {
   myservoLeft.detach();
   myservoRight.detach();
   digitalWrite(ledPin, LOW);  // Turn the LED off
-  //Serial.println("Stopping both servos");
+  if (DEBUGGING) { Serial.println("Stopping both servos"); }
 }
 
 
@@ -155,7 +156,7 @@ void loop()
 {
   // Check to see if enough time has elapsed to stop the bot if not stopped already
   if(stopTime < millis() and servosActive) {
-    //Serial.print("Running time expired - ");
+    if (DEBUGGING) { Serial.print("Running time expired - "); }
     stopBot();
     servosActive = false;
   }
@@ -228,8 +229,8 @@ void loop()
       default: // If it isn't one of the above, test if it is a number:
         // If it's an ASCII character between 49 and 57, which is numbers 1-9
         if (incomingByte >= 49 and incomingByte <= 57){
-          //Serial.print("Changing speed to ");
-          //Serial.println(incomingByte);
+          if (DEBUGGING) { Serial.print("Changing speed to "); }
+          if (DEBUGGING) { Serial.println(incomingByte); }
           speedMultiplier = incomingByte - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
           // Blink the LED to confirm the new speed setting
           for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
@@ -240,8 +241,8 @@ void loop()
           }          
         }
         else {
-          //Serial.print("Unrecognized input value: ");
-          //Serial.println(incomingByte);
+          if (DEBUGGING) { Serial.print("Unrecognized input value: "); }
+          if (DEBUGGING) { Serial.println(incomingByte); }
         }
       }
     }
