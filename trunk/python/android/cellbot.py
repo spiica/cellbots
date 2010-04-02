@@ -75,31 +75,35 @@ def commandByTelnet():
 def commandByXMPP():
   global xmppUsername
   global xmppPassword
+  global xmppClient
   if not xmppUsername:
     xmppUsername = droid.getInput('Username')['result']
   if not xmppPassword:
     xmppPassword = droid.getInput('Password')['result']
   jid = xmpp.protocol.JID(xmppUsername)
-  client = xmpp.Client(jid.getDomain(), debug=[])
-  client.connect(server=(xmppServer, xmppPort))
-  client.RegisterHandler('message', XMPP_message_cb)
-  if not client:
+  xmppClient = xmpp.Client(jid.getDomain(), debug=[])
+  xmppClient.connect(server=(xmppServer, xmppPort))
+  xmppClient.RegisterHandler('message', XMPP_message_cb)
+  if not xmppClient:
     print 'Connection failed!'
     return
-  auth = client.auth(jid.getNode(), xmppPassword, 'botty')
+  auth = xmppClient.auth(jid.getNode(), xmppPassword, 'botty')
   if not auth:
     print 'Authentication failed!'
     return
-  client.sendInitPresence()
+  xmppClient.sendInitPresence()
+  print "XMPP username for the robot is: " + xmppUsername
   try:
     while True:
-      client.Process(1)
+      xmppClient.Process(1)
   except KeyboardInterrupt:
     pass
 
 # Handle XMPP messages coming from commandByXMPP
 def XMPP_message_cb(session, message):
   jid = xmpp.protocol.JID(message.getFrom())
+  global operator
+  operator = jid.getNode() + '@' + jid.getDomain()
   command = message.getBody()
   commandParse(str(command))
 
@@ -110,7 +114,7 @@ def commandByVoice(mode='continuous'):
     voiceCommands = str(listen['result'])
   except:
     voiceCommands = ""
-  print "Voice commands: %s" % voiceCommands
+  outputToOperator("Voice commands: %s" % voiceCommands)
   commandParse(voiceCommands)
   if mode == 'continuous':
     commandByVoice()
@@ -122,8 +126,7 @@ def speak(msg,override=False):
     droid.speak(msg)
   elif msg != previousMsg:
     droid.makeToast(msg)
-  else:
-    print msg
+  outputToOperator(msg)
   previousMsg=msg
 
 # Handle changing the speed setting  on the robot
@@ -158,16 +161,16 @@ def orientToAzimuth(azimuth):
       adjustmentAbs = math.fabs(adjustment)
       if adjustmentAbs < cardinalMargin:
         msg = "Goal achieved! Facing %d degrees, which is within the %d degree margin of %d!" % (currentHeading, cardinalMargin, azimuth)
-        print msg
+        outputToOperator(msg)
         speak(msg)
         commandOut('s')
         onTarget = True
       else:
         if adjustment > cardinalMargin:
-          print "Moving %d right." % adjustmentAbs
+          outputToOperator("Moving %d right." % adjustmentAbs)
           commandOut('r')
         if adjustment < (cardinalMargin * -1):
-          print "Moving %d left." % adjustmentAbs
+          outputToOperator("Moving %d left." % adjustmentAbs)
           commandOut('l')
         time.sleep(adjustmentAbs/180)
         commandOut('s')
@@ -180,13 +183,19 @@ def orientToAzimuth(azimuth):
 def commandOut(msg):
   os.system("echo '%s\n' > /dev/ttyMSM2" % msg)
 
+# Display information on screen and/or reply to the human operator
+def outputToOperator(msg):
+  print msg
+  if inputMethod == 'commandByXMPP':
+    xmppClient.send(xmpp.Message(operator, msg))
+
 # Parse the first character of incoming commands to determine what action to take
 def commandParse(input):
   try:
     commandList = shlex.split(input)
   except:
     commandList = []
-    print "Could not parse command"
+    outputToOperator("Could not parse command")
   try:
     command = commandList[0].lower()
   except IndexError:
@@ -201,12 +210,13 @@ def commandParse(input):
     audioRecordingOn = not audioRecordingOn
     fileName=time.strftime("/sdcard/cellbot_%Y-%m-%d_%H-%M-%S.3gp")
     if audioRecordingOn:
-      speak("Starting audio recording")
+      outputToOperator("Starting audio recording")
+      droid.makeToast("Starting audio recording")
       droid.startAudioRecording(fileName)
     else:
       droid.stopAudioRecording()
-      speak("Stopping audio recording")
-      print "Audio file located at %s" % fileName
+      droid.makeToast("Stopping audio recording")
+      outputToOperator("Stopped audio recording. Audio file located at '%s'" % fileName)
   elif command  in ["b", "back", "backward", "backwards"]:
     speak("Moving backward")
     commandOut('b')
@@ -232,7 +242,7 @@ def commandParse(input):
     try:
       orientToAzimuth(int(cardinals[commandValue[:1]][1]))
     except:
-      print "Could not orient towards " + commandValue
+      outputToOperator("Could not orient towards " + commandValue)
   elif command in ["q", "quit", "exit"]:
     speak("Bye bye!")
     svr_sock.close()
@@ -246,10 +256,12 @@ def commandParse(input):
     commandOut('r')
   elif command in ["s", "stop"]:
     commandOut('s')
+    outputToOperator("Stopping")
   elif command in ["t", "talk", "speak", "say"]:
     speak(input.replace(command, ''),True)
   elif command in ["v", "voice", "listen", "speech"]:
     droid.makeToast("Launching voice recognition")
+    outputToOperator("Launching voice recognition")
     commandByVoice("onceOnly")
   elif command in ["x", "location", "gps"]:
     try:
@@ -264,7 +276,7 @@ def commandParse(input):
     if commandValue in ["0","1","2","3","4","5","6","7","8","9"]:
       changeSpeed(commandValue)
     else:
-      print "Invalid speed setting: '%s'" % command
+      outputToOperator("Invalid speed setting: '%s'" % command)
   elif command in ["faster", "hurry", "fast", "quicker"]:
     changeSpeed(currentSpeed + 1)
   elif command in ["slower", "slow", "chill"]:
@@ -278,7 +290,7 @@ def commandParse(input):
     commandOut("z")
     #A thread will handle the response.
   else:
-    print "Unknown command: '%s'" % command
+    outputToOperator("Unknown command: '%s'" % command)
 
 #Non-configurable settings
 droid = android.Android()
@@ -307,12 +319,11 @@ xmppServer = config.get("xmpp", "server")
 xmppPort = config.getint("xmpp", "port")
 xmppUsername = config.get("xmpp", "username")
 xmppPassword = config.get("xmpp", "password")
-print "username is: " + xmppUsername
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
   readerThread.start()
-  print "Send the letter 'q' or say 'quit' to exit the program.\n"
+  outputToOperator("Send the letter 'q' or say 'quit' to exit the program.\n")
   droid.startSensing()
   droid.startLocating()
   global currentSpeed
