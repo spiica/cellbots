@@ -1,0 +1,17 @@
+#summary Web-based protocol for remote robot control.
+
+= Introduction =
+
+In order to provide a richer and more extensible way to control a Cellbot, I am proposing the following high-level protocol for communicating between the bot and a web-based interface.  The goal of the protocol is provide a device independent (on either side of the communication) way to both direct the bot, but also probe the bots onboard sensors and provide feedback that the operator can use to correct for the intended path.  This method would hopefully lead to a framework that supports flexibility and is ideal for prototyping and testing new algorithms as they develop.
+
+= Commands =
+----
+|| *COMMAND* || *DESCRIPTION* || *PARAMETERS* || *RETURN VALUES* || *NOTES* ||
+|| *FORWARD* or *FD* || Moves bot forward. || <± number of meters> || forward_complete | forward_error <error message> | forward_not_supported || ||
+
+
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
