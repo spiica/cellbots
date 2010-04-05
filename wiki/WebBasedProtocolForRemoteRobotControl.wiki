@@ -6,8 +6,15 @@ In order to provide a richer and more extensible way to control a Cellbot, I am 
 
 = Commands =
 ----
-|| *COMMAND* || *DESCRIPTION* || *PARAMETERS* || *RETURN VALUES* || *NOTES* ||
-|| *FORWARD* or *FD* || Moves bot forward. || <± number of meters> || forward_complete | forward_error <error message> | forward_not_supported || ||
+|| *COMMAND* || *DESCRIPTION* || *PARAMETERS* || *RETURN VALUES* || *NOTES* || *VERSION* ||
+|| *FORWARD* or *F* || Moves bot forward. || <± number of meters> || forward_complete | forward_error <error message> | forward_not_supported || FORWARD can accept negative values to propel the bot in reverse || 1 ||
+|| *ROTATE* or *R* || Rotates the bot. || <± number of degrees from current heading> || rotate_complete | rotate_error <error message> | rotate_not_supported || ROTATE is specified as positive values in the clockwise direction || 1 ||
+|| *NAVIGATE* or *N* || Initiates autonomous navigation. || <± x displacement in meters> <± y displacement in meters> || navigate_complete | navigate_error <error message> | navigate_not_supported || || 1 ||
+|| *SPEAK* or *S* || Causes txt2speech of string on bot. || <text of string to speak> || speak_complete | speak_error <error message> | speak_not_supported || || 1 ||
+|| *POSE* or *P* || Returns current pose of bot according to sensors. || None || pose_complete <x> <y> <yaw> | pose_error <error message> | pose_not_supported || <x> <y> values of pose are measured from last point <0,0> was initiated. || 1 ||
+|| *RESET* || Resets internal representation of x,y,yaw on bot. || <± x meters> <± y meters> <± degrees> || reset_complete | reset_error <error message> | reset_not_supported || || 1 ||
+|| *VERSION* or *V* || Returns protocol version supported by bot. || None. || <version number> || Always supported. || 1 ||
+
 
 
 
