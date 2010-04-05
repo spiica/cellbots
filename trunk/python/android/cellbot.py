@@ -27,20 +27,22 @@ import netip
 import xmpp
 import ConfigParser
 import string
+import re
 from threading import Thread
 
 #This thread is not 100% stable. Reason unknown. 
 class serialReader(Thread):
-   def __init__ (self):
-      Thread.__init__(self)
-   def run(self):
-     process = os.popen('cat /dev/ttyMSM2')
-     while process:
-       try:
-         speak(" %s centimeters" % process.readline())
-       except:
-         print "errored"
-
+  def __init__ (self):
+    Thread.__init__(self)
+  def run(self):
+    process = os.popen('cat /dev/ttyMSM2')
+    while process:
+      try:
+        botReply = process.readline()
+        print "Bot says %s" % botReply
+        outputToOperator(botReply)
+      except:
+        outputToOperator("Errored")
 
 # Command input via open telnet port
 def commandByTelnet():
@@ -83,16 +85,19 @@ def commandByXMPP():
   jid = xmpp.protocol.JID(xmppUsername)
   xmppClient = xmpp.Client(jid.getDomain(), debug=[])
   xmppClient.connect(server=(xmppServer, xmppPort))
-  xmppClient.RegisterHandler('message', XMPP_message_cb)
+  try:
+    xmppClient.RegisterHandler('message', XMPP_message_cb)
+  except:
+    exitCellbot('XMPP error. You sure the phone has an internet connection?')
   if not xmppClient:
-    print 'Connection failed!'
+    exitCellbot('XMPP Connection failed!')
     return
   auth = xmppClient.auth(jid.getNode(), xmppPassword, 'botty')
   if not auth:
-    print 'Authentication failed!'
+    exitCellbot('XMPP Authentication failed!')
     return
   xmppClient.sendInitPresence()
-  print "XMPP username for the robot is: " + xmppUsername
+  print "XMPP username for the robot is:\n" + xmppUsername
   try:
     while True:
       xmppClient.Process(1)
@@ -186,8 +191,20 @@ def commandOut(msg):
 # Display information on screen and/or reply to the human operator
 def outputToOperator(msg):
   print msg
-  if inputMethod == 'commandByXMPP':
-    xmppClient.send(xmpp.Message(operator, msg))
+  try:
+    if (inputMethod == 'commandByXMPP'):
+      xmppClient.send(xmpp.Message(operator, msg))
+  except:
+    pass
+
+# Shut down sensing and other open items and quit
+def exitCellbot(msg='Exiting'):
+  svr_sock.close()
+  droid.stopSensing()
+  droid.stopLocating()
+  global readerThread
+  readerThread.join()
+  sys.exit(msg)
 
 # Parse the first character of incoming commands to determine what action to take
 def commandParse(input):
@@ -245,12 +262,7 @@ def commandParse(input):
       outputToOperator("Could not orient towards " + commandValue)
   elif command in ["q", "quit", "exit"]:
     speak("Bye bye!")
-    svr_sock.close()
-    droid.stopSensing()
-    droid.stopLocating()
-    global readerThread
-    readerThread.join()
-    sys.exit("Exiting program after receiving 'q' command.")
+    exitCellbot("Exiting program after receiving 'q' command.")
   elif command in ["r", "right"]:
     speak("Moving right")
     commandOut('r')
@@ -285,9 +297,10 @@ def commandParse(input):
     commandParse(commandValue)
   elif command in ["send", "pass"]:
     commandOut(commandValue)
-  elif command in ["range", "distance", "z"]: 
+  elif command in ["range", "distance", "dist", "z"]: 
     global serialIn
-    commandOut("z")
+    commandOut(commandValue)
+    outputToOperator("Checking distance")
     #A thread will handle the response.
   else:
     outputToOperator("Unknown command: '%s'" % command)
@@ -305,7 +318,7 @@ phoneIP = netip.displayNoLo()
 svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serialIn = os.popen('cat /dev/ttyMSM2')
 readerThread = serialReader()
-
+serialReader.lifeline = re.compile(r"(\d) received")
 
 # Get configurable options from the ini file
 config = ConfigParser.ConfigParser()
