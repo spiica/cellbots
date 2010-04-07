@@ -30,7 +30,7 @@ import string
 import re
 from threading import Thread
 
-#This thread is not 100% stable. Reason unknown. 
+#If this thread stops working, try rebooting. 
 class serialReader(Thread):
   def __init__ (self):
     Thread.__init__(self)
@@ -39,10 +39,11 @@ class serialReader(Thread):
     while process:
       try:
         botReply = process.readline()
-        print "Bot says %s" % botReply
-        outputToOperator(botReply)
+        if botReply:
+          if len(botReply.strip()) > 1:
+            outputToOperator("Bot says %s " % botReply)
       except:
-        outputToOperator("Errored")
+        outputToOperator("Reader Thread Errored")
 
 # Command input via open telnet port
 def commandByTelnet():
@@ -65,11 +66,11 @@ def commandByTelnet():
       if cli == svr_sock:
         new_cli,addr = svr_sock.accept()
         rs = [new_cli]
-      else:   
+      else:  
         input = cli.recv(1024)
         input = input.replace('\r','')
         input = input.replace('\n','')
-        if input != '': 
+        if input != '':
           print "Received: '%s'" % input
           commandParse(input)
 
@@ -144,7 +145,7 @@ def changeSpeed(newSpeed):
   else:
     msg = "Speed %s is out of range [0-9]" % newSpeed
   speak(msg)
-    
+   
 # Point towards a specific compass heading
 def orientToAzimuth(azimuth):
   onTarget = False
@@ -297,9 +298,8 @@ def commandParse(input):
     commandParse(commandValue)
   elif command in ["send", "pass"]:
     commandOut(commandValue)
-  elif command in ["range", "distance", "dist", "z"]: 
-    global serialIn
-    commandOut(commandValue)
+  elif command in ["range", "distance", "dist", "z"]:
+    commandOut('z')
     outputToOperator("Checking distance")
     #A thread will handle the response.
   else:
@@ -316,9 +316,9 @@ previousMsg = ""
 audioRecordingOn = False
 phoneIP = netip.displayNoLo()
 svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serialIn = os.popen('cat /dev/ttyMSM2')
-readerThread = serialReader()
 serialReader.lifeline = re.compile(r"(\d) received")
+readerThread = serialReader()
+readerThread.start()
 
 # Get configurable options from the ini file
 config = ConfigParser.ConfigParser()
@@ -335,7 +335,6 @@ xmppPassword = config.get("xmpp", "password")
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
-  readerThread.start()
   outputToOperator("Send the letter 'q' or say 'quit' to exit the program.\n")
   droid.startSensing()
   droid.startLocating()
