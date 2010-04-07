@@ -139,6 +139,7 @@ long getDistanceSensor(int ultrasonicPin){
   // Take multiple readings and average them
   microseconds = 0;
   for(int sample = 1 ; sample <= rangeSampleCount; sample ++) {
+    
     microseconds += pulseIn(ultrasonicPin, HIGH);
     delayMicroseconds(5); // Very short pause between readings
   }
@@ -172,8 +173,8 @@ long microsecondsToInches(long microseconds){
 }
 
 // Replies out over serial and handles pausing and flushing the data to deal with Android serial comms
-void serialReply(char* msg){
-  Serial.println(msg); // Send the message back out the serial line
+void serialReply(char* tmpmsg){
+  Serial.println(tmpmsg); // Send the message back out the serial line
   //Wait for the serial debugger to shut up
   delay(100); //this is a magic number
   Serial.flush(); //clears all incoming data
@@ -271,9 +272,29 @@ void loop()
         serialReply(msg); // Send the distance out the serial line
         break;
       case 'z': // Read and print ground facing distance sensor
+        pinMode(rangePinForwardGround, OUTPUT);
+        digitalWrite(rangePinForwardGround, LOW);
+        delayMicroseconds(2);
+        digitalWrite(rangePinForwardGround, HIGH);
+        delayMicroseconds(5);
+        digitalWrite(rangePinForwardGround, LOW);
+        pinMode(rangePinForwardGround, INPUT);
+        dist = pulseIn(rangePinForwardGround, HIGH);
+        cm = microsecondsToCentimeters(dist);
+        inches = microsecondsToCentimeters(dist);
+        Serial.println(cm);
+        //Wait for the serial debugger to shut up
+        delay(100); //this is a magic number
+        Serial.flush(); //clears all incoming data
+        
+        //This block does not work for Glen's robot.
+        //TODO: make it work for everyone's robots. 
+        //Too tired to fix it right now.
+        
         dist = getDistanceSensor(rangePinForwardGround);
         itoa(dist, msg, 10); // Turn the dist int into a char
         serialReply(msg); // Send the distance out the serial line
+        
         break;
       case 'h': // Help mode - debugging toggle
          // Print out some basic instructions when first turning on debugging
