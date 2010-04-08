@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.googlecode.cellbots" android:versionCode="1" android:versionName="1.0">
+
+  <uses-sdk android:minSdkVersion="5" />
+
+  <uses-permission android:name="android.permission.BLUETOOTH" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+  <application android:icon="@drawable/icon" android:label="@string/app_name">
+
+    <activity android:name=".LegoRC" android:label="@string/app_name">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+
+    <service android:enabled="true" android:name=".nxt.NxtConnectionService"
+      android:label="@string/app_name" android:icon="@drawable/icon">
+      <intent-filter>
+        <action android:name="com.googlecode.cellbots.nxt.intent.action.NxtConnection_SERVICE" />
+        <category android:name="com.googlecode.cellbots.nxt.intent.category.NxtConnection" />
+      </intent-filter>
+    </service>
+
+  </application>
+
+
+</manifest> 
