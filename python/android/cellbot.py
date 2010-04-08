@@ -187,7 +187,8 @@ def orientToAzimuth(azimuth):
 
 # Send command out of the device (currently serial but other protocals could be added)
 def commandOut(msg):
-  os.system("echo '%s\n' > /dev/ttyMSM2" % msg)
+  #added the ';' char because arduino isnt picking up the '/n'
+  os.system("echo '%s;\n' > /dev/ttyMSM2" % msg)
 
 # Display information on screen and/or reply to the human operator
 def outputToOperator(msg):
