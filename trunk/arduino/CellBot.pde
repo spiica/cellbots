@@ -28,6 +28,7 @@
  */
 
 #include <Servo.h> 
+#define BUFFERSIZE 20
 
 // ** GENERAL SETTINGS ** - General preference settings
 boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
@@ -58,6 +59,9 @@ boolean servosActive = false; // assume servos are not moving when we begin
 unsigned long stopTime=millis(); // used for calculating the run time for servos
 char incomingByte; // Holds incoming serial values
 char msg[8]; // For passing back serial messages
+char inBytes[BUFFERSIZE]; //Buffer for serial in messages
+int serialIndex = 0; 
+int serialAvail = 0;
 
 void setup() 
 {
@@ -122,24 +126,23 @@ void stopBot() {
 
 // Read and process the values from an ultrasonic range finder (you can leave this code in even if you don't have one)
 long getDistanceSensor(int ultrasonicPin){
-  // The Parallax PING))) is triggered by a HIGH pulse of 2 or more microseconds.
-  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
-  // The Maxsonar does not seem to need this part but it does not hurt either
-  pinMode(ultrasonicPin, OUTPUT);
-  digitalWrite(ultrasonicPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(ultrasonicPin, HIGH);
-  delayMicroseconds(5);
-  digitalWrite(ultrasonicPin, LOW);
-  
-  // The same pin is used to read the signal from the ultrasonic detector: a HIGH
-  // pulse whose duration is the time (in microseconds) from the sending
-  // of the ping to the reception of its echo off of an object.
-  pinMode(ultrasonicPin, INPUT);
   // Take multiple readings and average them
   microseconds = 0;
   for(int sample = 1 ; sample <= rangeSampleCount; sample ++) {
-    
+	// The Parallax PING))) is triggered by a HIGH pulse of 2 or more microseconds.
+	// Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+	// The Maxsonar does not seem to need this part but it does not hurt either
+	pinMode(ultrasonicPin, OUTPUT);
+	digitalWrite(ultrasonicPin, LOW);
+	delayMicroseconds(2);
+	digitalWrite(ultrasonicPin, HIGH);
+	delayMicroseconds(5);
+	digitalWrite(ultrasonicPin, LOW);
+
+	// The same pin is used to read the signal from the ultrasonic detector: a HIGH
+	// pulse whose duration is the time (in microseconds) from the sending
+	// of the ping to the reception of its echo off of an object.
+	pinMode(ultrasonicPin, INPUT);
     microseconds += pulseIn(ultrasonicPin, HIGH);
     delayMicroseconds(5); // Very short pause between readings
   }
@@ -202,129 +205,126 @@ boolean safeToProceed(){
   return safe;
 }
 
-// Main loop running at all times
-void loop() 
+// Check if enough time has elapsed to stop the bot and if it is safe to proceed
+void checkIfStopBot()
 {
-  // Check if enough time has elapsed to stop the bot and if it is safe to proceed
   if (servosActive and (stopTime < millis() or not safeToProceed())) {
     stopBot();
     servosActive = false;
   }
-  else {
-    // See if there's incoming serial data
-    if (Serial.available() > 0) {
-      // Read the oldest byte in the serial buffer
-      incomingByte = Serial.read();
+}
 
-      switch(incomingByte) {
-      case 'd': // Do a little demo
-        speedMultiplier = 1;
-        moveBot("forward","backward"); 
-        delay(500); 
-        stopBot();
-        moveBot("backward","forward"); 
-        delay(500); 
-        stopBot();
-        moveBot("forward","forward"); 
-        delay(2000); 
-        stopBot();
-        moveBot("backward","backward"); 
-        delay(3000); 
-        stopBot();
-        speedMultiplier = 1; 
-        moveBot("forward","forward"); 
-        delay(1000);
-        speedMultiplier = 3; 
-        moveBot("forward","forward"); 
-        delay(1000);
-        speedMultiplier = 5; 
-        moveBot("forward","forward"); 
-        delay(2000); 
-        stopBot();
-        speedMultiplier = 3; 
-        moveBot("backward","backward"); 
-        delay(3000); 
-        stopBot();
-        break;
-      case 'f': // Forward
-        stopTime = moveBot("forward","forward");
-        servosActive = true;
-        break;
-      case 'r': // Right
-        stopTime = moveBot("forward","backward");
-        servosActive = true;
-        break;   
-      case 'l': // Left
-        stopTime = moveBot("backward","forward");
-        servosActive = true;
-        break;   
-      case 'b': // Backward
-        stopTime = moveBot("backward","backward");
-        servosActive = true;
-        break;
-      case 's': // Stop
-        stopBot();
-        servosActive = false;
-        break;
-      case 'x': // Read and print forward facing distance sensor
-        dist = getDistanceSensor(rangePinForward);
-        itoa(dist, msg, 10); // Turn the dist int into a char
-        serialReply(msg); // Send the distance out the serial line
-        break;
-      case 'z': // Read and print ground facing distance sensor
-        pinMode(rangePinForwardGround, OUTPUT);
-        digitalWrite(rangePinForwardGround, LOW);
-        delayMicroseconds(2);
-        digitalWrite(rangePinForwardGround, HIGH);
-        delayMicroseconds(5);
-        digitalWrite(rangePinForwardGround, LOW);
-        pinMode(rangePinForwardGround, INPUT);
-        dist = pulseIn(rangePinForwardGround, HIGH);
-        cm = microsecondsToCentimeters(dist);
-        inches = microsecondsToCentimeters(dist);
-        Serial.println(cm);
-        //Wait for the serial debugger to shut up
-        delay(100); //this is a magic number
-        Serial.flush(); //clears all incoming data
-        
-        //This block does not work for Glen's robot.
-        //TODO: make it work for everyone's robots. 
-        //Too tired to fix it right now.
-        
-        dist = getDistanceSensor(rangePinForwardGround);
-        itoa(dist, msg, 10); // Turn the dist int into a char
-        serialReply(msg); // Send the distance out the serial line
-        
-        break;
-      case 'h': // Help mode - debugging toggle
-         // Print out some basic instructions when first turning on debugging
-         if (not DEBUGGING) {
-           Serial.println("Ready to listen to commands! Try ome of these:");
-           Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
-           Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
-           }
-        DEBUGGING = !DEBUGGING;
-        break;
-      default: // If it isn't one of the above, test if it is a number:
-        // If it's an ASCII character between 49 and 57, which is numbers 1-9
-        if (incomingByte >= 49 and incomingByte <= 57){
-          if (DEBUGGING) { Serial.print("Changing speed to "); }
-          if (DEBUGGING) { Serial.println(incomingByte); }
-          speedMultiplier = incomingByte - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
-          // Blink the LED to confirm the new speed setting
-          for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
-            digitalWrite(ledPin, HIGH);   // set the LED on           
-            delay(250);
-            digitalWrite(ledPin, LOW);   // set the LED off
-            delay(250);
-          }          
-        }
-        else {
-          if (DEBUGGING) { Serial.print("Unrecognized input value: "); }
-          if (DEBUGGING) { Serial.println(incomingByte); }
-        }
-      }
+// Reads serial input if available and parses command when full command has been sent. 
+void readSerialInput()
+{
+  serialAvail = Serial.available();
+  //Read what is available
+  for (int i = 0; i < serialAvail; i++) {
+    //Store into buffer.
+    inBytes[i + serialIndex] = Serial.read();
+    //Check for command end. 
+    
+    if (inBytes[i + serialIndex] == '\n' || inBytes[i + serialIndex] == ';') { //Use ; when using Serial Monitor
+       inBytes[i + serialIndex] = '\0'; //end of string char
+       parseCommand(inBytes); 
+       serialIndex = 0;
     }
+    else {
+      //expecting more of the command to come later.
+      serialIndex += serialAvail;
+    }
+  }  
+}
+
+// Parses the command string
+void parseCommand(char* com) {
+  if (strcmp(com, "d") == 0) { // Do a little demo
+	speedMultiplier = 1;
+	moveBot("forward","backward"); 
+	delay(500); 
+	stopBot();
+	moveBot("backward","forward"); 
+	delay(500); 
+	stopBot();
+	moveBot("forward","forward"); 
+	delay(2000); 
+	stopBot();
+	moveBot("backward","backward"); 
+	delay(3000); 
+	stopBot();
+	speedMultiplier = 1; 
+	moveBot("forward","forward"); 
+	delay(1000);
+	speedMultiplier = 3; 
+	moveBot("forward","forward"); 
+	delay(1000);
+	speedMultiplier = 5; 
+	moveBot("forward","forward"); 
+	delay(2000); 
+	stopBot();
+	speedMultiplier = 3; 
+	moveBot("backward","backward"); 
+	delay(3000); 
+	stopBot();
+  } else if (strcmp(com, "f") == 0) { // Forward
+	stopTime = moveBot("forward","forward");
+	servosActive = true;
+  } else if (strcmp(com, "r") == 0) { // Right
+	stopTime = moveBot("forward","backward");
+	servosActive = true;  
+  } else if (strcmp(com, "l") == 0) { // Left
+	stopTime = moveBot("backward","forward");
+	servosActive = true;  
+  } else if (strcmp(com, "b") == 0) { // Backward
+	stopTime = moveBot("backward","backward");
+	servosActive = true;
+  } else if (strcmp(com, "s") == 0) { // Stop
+	stopBot();
+	servosActive = false;
+  } else if (strcmp(com, "x") == 0) { // Read and print forward facing distance sensor
+	dist = getDistanceSensor(rangePinForward);
+	itoa(dist, msg, 10); // Turn the dist int into a char
+	serialReply(msg); // Send the distance out the serial line
+  } else if (strcmp(com, "z") == 0) { // Read and print ground facing distance sensor
+	dist = getDistanceSensor(rangePinForwardGround);
+	itoa(dist, msg, 10); // Turn the dist int into a char
+	serialReply(msg); // Send the distance out the serial line
+  } else if (strcmp(com, "h") == 0) { // Help mode - debugging toggle
+	 // Print out some basic instructions when first turning on debugging
+	 if (not DEBUGGING) {
+	   Serial.println("Ready to listen to commands! Try ome of these:");
+	   Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
+	   Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
+	   }
+	DEBUGGING = !DEBUGGING;
+  } else if (strcmp(com, "1") == 0 || strcmp(com, "2") == 0 || strcmp(com, "3") == 0 || strcmp(com, "4") == 0 || strcmp(com, "5") == 0 || strcmp(com, "6") == 0 || strcmp(com, "7") == 0 || strcmp(com, "8") == 0 || strcmp(com, "9") == 0 || strcmp(com, "0") == 0) {
+    //I know the preceeding condition is dodgy but it will change soon 
+	
+    if (DEBUGGING) { Serial.print("Changing speed to "); }
+	int i = com[0];
+	speedMultiplier = i - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
+	if (DEBUGGING) { Serial.println(speedMultiplier); }
+        // Blink the LED to confirm the new speed setting
+	for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
+		digitalWrite(ledPin, HIGH);   // set the LED on           
+		delay(250);
+		digitalWrite(ledPin, LOW);   // set the LED off
+		delay(250);
+	}  
+  } else if (strcmp(com, "long") == 0) { //try on the android "send long"
+    serialReply("worked");
+  } else if (strcmp(com, "longcom") == 0) { //try on the android "send longcom"
+    serialReply("also worked");
+  } else { 
+    serialReply("Unrecognized:");
+    serialReply(com);
   }
+}
+
+// Main loop running at all times
+void loop() 
+{
+  readSerialInput();
+  checkIfStopBot();
 }
 
