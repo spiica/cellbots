@@ -13,6 +13,7 @@
 # See http://www.cellbots.com for more information
 
 __author__ = 'Ryan Hickman <rhickman@gmail.com>'
+#Contributers = Glen Arrowsmith glen@cellbots.com
 __license__ = 'Apache License, Version 2.0'
 
 import os
@@ -188,7 +189,7 @@ def orientToAzimuth(azimuth):
 # Send command out of the device (currently serial but other protocals could be added)
 def commandOut(msg):
   #added the ';' char because arduino isnt picking up the '/n'
-  os.system("echo '%s;\n' > /dev/ttyMSM2" % msg)
+  os.system("echo '<%s>' > /dev/ttyMSM2" % msg)
 
 # Display information on screen and/or reply to the human operator
 def outputToOperator(msg):
@@ -302,7 +303,17 @@ def commandParse(input):
   elif command in ["range", "distance", "dist", "z"]:
     commandOut('z')
     outputToOperator("Checking distance")
-    #A thread will handle the response.
+    #ReaderThread thread will handle the response.
+  elif command in ["config"]:
+    commandOut("l99")
+    commandOut("r94")
+    outputToOperator("attempting slow straight")
+  elif command in ["fleft"]:
+    commandOut("l%s" % commandValue)
+    outputToOperator("l%s" % commandValue)
+  elif command in ["fright"]:
+    commandOut("r%s"  % commandValue) 
+    outputToOperator("r%s"  % commandValue)
   else:
     outputToOperator("Unknown command: '%s'" % command)
 
