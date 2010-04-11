@@ -45,7 +45,7 @@ int speedMultiplier = 5; // Default speed setting. Uses a range from 1-10
 // ** RANGE FINDING *** - The following settings are for ultrasonic range finders. OK to lave as-is if you don't have them on your robot
 long dist, microseconds, cm, inches; // Used by the range finder for calculating distances
 const int rangePinForward = 7; // Digital pin for the forward facing range finder (for object distance in front of bot)
-const int rangeToObjectMargin = 25; // Range in cm to forward object (bot will stop when distance closer than this - set to 0 if no sensor)
+const int rangeToObjectMargin = 0; // Range in cm to forward object (bot will stop when distance closer than this - set to 0 if no sensor)
 const int rangePinForwardGround = 8; // Digital pin for downward facing range finder on the front (for edge of table detection)
 const int rangeToGroundMargin = 0; // Range in cm to the table (bot will stop when distance is greater than this  set to 0 if no sensor)
 const int rangeSampleCount = 3; // Number of range readings to take and average for a more stable value
@@ -56,6 +56,7 @@ Servo myservoRight;
 
 // No config required for these parameters
 boolean servosActive = false; // assume servos are not moving when we begin
+boolean servosForcedActive = false; // will only stop when considered dangerous
 unsigned long stopTime=millis(); // used for calculating the run time for servos
 char incomingByte; // Holds incoming serial values
 char msg[8]; // For passing back serial messages
@@ -63,34 +64,27 @@ char inBytes[BUFFERSIZE]; //Buffer for serial in messages
 int serialIndex = 0; 
 int serialAvail = 0;
 
-void setup() 
-{
-  if(1){
-    pinMode(servoPinLeft, OUTPUT);
-    pinMode(servoPinRight, OUTPUT);
-    pinMode(ledPin, OUTPUT);
-    digitalWrite(servoPinLeft,0);
-    digitalWrite(servoPinRight,0);
-    Serial.begin(9600);
-  }
+void setup() {
+  pinMode(servoPinLeft, OUTPUT);
+  pinMode(servoPinRight, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(servoPinLeft,0);
+  digitalWrite(servoPinRight,0);
+  Serial.begin(9600);
 } 
 
 // Convert directional text commands ("forward"/"backward") into calculated servo speed
-int directionValue(char* directionCommand, int servoDirection){
-  int servoValue;
-
-  if (directionCommand == "forward"){
-    servoValue = (10 * speedMultiplier * servoDirection);
+int directionValue(char* directionCommand, int servoDirection) {
+  if (directionCommand == "forward") {
+    return (10 * speedMultiplier * servoDirection) + 90;
   }
   else if (directionCommand == "backward") {
-    servoValue = (-10 * speedMultiplier * servoDirection);
+    return (-10 * speedMultiplier * servoDirection) + 90;
   }
   else {
     if (DEBUGGING) { Serial.println("Houston, we have a problem!"); }
-    servoValue = 0; // Attemp to set value to center - this shouldn't be needed
+    return 0; // Attemp to set value to center - this shouldn't be needed
   }
-  servoValue+=90;
-  return servoValue;
 }
 
 // Command the bot to move (left servo command, right servo command)
@@ -121,11 +115,11 @@ void stopBot() {
   myservoRight.detach();
   digitalWrite(ledPin, LOW);  // Turn the LED off
   if (DEBUGGING) { Serial.println("Stopping both servos"); }
-  serialReply("stopped"); // Tell the phone that the robot stopped
+  serialReply("st"); // Tell the phone that the robot stopped
 }
 
 // Read and process the values from an ultrasonic range finder (you can leave this code in even if you don't have one)
-long getDistanceSensor(int ultrasonicPin){
+long getDistanceSensor(int ultrasonicPin) {
   // Take multiple readings and average them
   microseconds = 0;
   for(int sample = 1 ; sample <= rangeSampleCount; sample ++) {
@@ -158,14 +152,14 @@ long getDistanceSensor(int ultrasonicPin){
   return cm;
 }
 
-long microsecondsToCentimeters(long microseconds){
+long microsecondsToCentimeters(long microseconds) {
   // The speed of sound is 340 m/s or 29 microseconds per centimeter.
   // The ping travels out and back, so to find the distance of the
   // object we take half of the distance travelled.
   return microseconds / 29 / 2;
 }
 
-long microsecondsToInches(long microseconds){
+long microsecondsToInches(long microseconds) {
   // According to Parallax's datasheet for the PING))), there are
   // 73.746 microseconds per inch (i.e. sound travels at 1130 feet per
   // second).  This gives the distance travelled by the ping, outbound
@@ -175,11 +169,37 @@ long microsecondsToInches(long microseconds){
   return microseconds / 74 / 2;
 }
 
+//Converts a string to integer. ignores first non numbers. handles - sign.
+int strToInt(char* str) {
+  int sum = 0;
+  int i = 0;
+  //find the end of the string
+  while (str[i] != '\0'){i++;}
+  int multiplier = 0;
+  int tens = 0;
+  int num = 0;
+  //convert to integer
+  for (i = i-1; i >= 0; i--) {
+    if (str[i] == '-') {
+      sum = sum * -1;
+    } else if (str[i] >= 48 && str[i] < 58) { //ensures its a number
+      num = str[i] - 48; //ascii to int
+      tens = pow(10,multiplier); //pow is slightly inaccurate but good enough
+      num = num * tens;
+      sum += num;
+      multiplier++;
+    }
+  }  
+  return sum;
+}
+
 // Replies out over serial and handles pausing and flushing the data to deal with Android serial comms
-void serialReply(char* tmpmsg){
-  Serial.println(tmpmsg); // Send the message back out the serial line
+void serialReply(char* tmpmsg) {
+  Serial.print("<");
+  Serial.print(tmpmsg); // Send the message back out the serial line
+  Serial.println(">");
   //Wait for the serial debugger to shut up
-  delay(100); //this is a magic number
+  delay(200); //this is a magic number
   Serial.flush(); //clears all incoming data
 }
 
@@ -197,26 +217,29 @@ boolean safeToProceed(){
   // Check the distance to the ground in front of the bot to make sure the table is still there
   if (rangeToGroundMargin != 0){  // Don't bother sending if margin set to zero because it hangs when no sensor present
     dist = getDistanceSensor(rangePinForwardGround);
-    if (dist < rangeToGroundMargin) {
+    if (dist > rangeToGroundMargin) {
       safe = true;
     }
     else if (DEBUGGING) {Serial.print("End of surface reached - ");}
   }
+  if (rangeToGroundMargin == 0 && rangeToObjectMargin == 0) {return true;}
   return safe;
 }
 
 // Check if enough time has elapsed to stop the bot and if it is safe to proceed
-void checkIfStopBot()
-{
+void checkIfStopBot() {
   if (servosActive and (stopTime < millis() or not safeToProceed())) {
     stopBot();
     servosActive = false;
+  } else if (servosForcedActive and not safeToProceed()) {
+    stopBot();
+    servosActive = false;
+    servosForcedActive = false;
   }
 }
 
 // Reads serial input if available and parses command when full command has been sent. 
-void readSerialInput()
-{
+void readSerialInput() {
   serialAvail = Serial.available();
   //Read what is available
   for (int i = 0; i < serialAvail; i++) {
@@ -224,7 +247,7 @@ void readSerialInput()
     inBytes[i + serialIndex] = Serial.read();
     //Check for command end. 
     
-    if (inBytes[i + serialIndex] == '\n' || inBytes[i + serialIndex] == ';') { //Use ; when using Serial Monitor
+    if (inBytes[i + serialIndex] == '\n' || inBytes[i + serialIndex] == ';' || inBytes[i + serialIndex] == '>') { //Use ; when using Serial Monitor
        inBytes[i + serialIndex] = '\0'; //end of string char
        parseCommand(inBytes); 
        serialIndex = 0;
@@ -236,88 +259,122 @@ void readSerialInput()
   }  
 }
 
-// Parses the command string
+// Dance
+void showOff() {
+  speedMultiplier = 1;
+  moveBot("forward","backward"); 
+  delay(500); 
+  stopBot();
+  moveBot("backward","forward"); 
+  delay(500); 
+  stopBot();
+  moveBot("forward","forward"); 
+  delay(2000); 
+  stopBot();
+  moveBot("backward","backward"); 
+  delay(3000); 
+  stopBot();
+  speedMultiplier = 1; 
+  moveBot("forward","forward"); 
+  delay(1000);
+  speedMultiplier = 3; 
+  moveBot("forward","forward"); 
+  delay(1000);
+  speedMultiplier = 5; 
+  moveBot("forward","forward"); 
+  delay(2000); 
+  stopBot();
+  speedMultiplier = 3; 
+  moveBot("backward","backward"); 
+  delay(3000); 
+  stopBot();
+}
+
+// Cleans and parses the command
 void parseCommand(char* com) {
+  if (com[0] == '\0') { return; } //bit of error checking
+  int start = 0;
+  //get start of command
+  while (com[start] != '<'){
+    start++; 
+    if (com[start] == '\0') {
+      //its not there. Must be old version
+      start = -1;
+      break;
+    }
+  }
+  start++;
+  //Shift to beginning
+  int i = 0;
+  while (com[i + start - 1] != '\0') {
+    com[i] = com[start + i];
+    i++; 
+  } 
+  performCommand(com);
+}
+
+void performCommand(char* com) {  
   if (strcmp(com, "d") == 0) { // Do a little demo
-	speedMultiplier = 1;
-	moveBot("forward","backward"); 
-	delay(500); 
-	stopBot();
-	moveBot("backward","forward"); 
-	delay(500); 
-	stopBot();
-	moveBot("forward","forward"); 
-	delay(2000); 
-	stopBot();
-	moveBot("backward","backward"); 
-	delay(3000); 
-	stopBot();
-	speedMultiplier = 1; 
-	moveBot("forward","forward"); 
-	delay(1000);
-	speedMultiplier = 3; 
-	moveBot("forward","forward"); 
-	delay(1000);
-	speedMultiplier = 5; 
-	moveBot("forward","forward"); 
-	delay(2000); 
-	stopBot();
-	speedMultiplier = 3; 
-	moveBot("backward","backward"); 
-	delay(3000); 
-	stopBot();
+    showOff();
   } else if (strcmp(com, "f") == 0) { // Forward
-	stopTime = moveBot("forward","forward");
-	servosActive = true;
+    stopTime = moveBot("forward","forward");
+    servosActive = true;
   } else if (strcmp(com, "r") == 0) { // Right
-	stopTime = moveBot("forward","backward");
-	servosActive = true;  
+    stopTime = moveBot("forward","backward");
+    servosActive = true;  
   } else if (strcmp(com, "l") == 0) { // Left
-	stopTime = moveBot("backward","forward");
-	servosActive = true;  
+    stopTime = moveBot("backward","forward");
+    servosActive = true;  
   } else if (strcmp(com, "b") == 0) { // Backward
-	stopTime = moveBot("backward","backward");
-	servosActive = true;
+    stopTime = moveBot("backward","backward");
+    servosActive = true;
   } else if (strcmp(com, "s") == 0) { // Stop
-	stopBot();
-	servosActive = false;
+    stopBot();
+    servosActive = false;
   } else if (strcmp(com, "x") == 0) { // Read and print forward facing distance sensor
-	dist = getDistanceSensor(rangePinForward);
-	itoa(dist, msg, 10); // Turn the dist int into a char
-	serialReply(msg); // Send the distance out the serial line
+    dist = getDistanceSensor(rangePinForward);
+    itoa(dist, msg, 10); // Turn the dist int into a char
+    serialReply(msg); // Send the distance out the serial line
   } else if (strcmp(com, "z") == 0) { // Read and print ground facing distance sensor
-	dist = getDistanceSensor(rangePinForwardGround);
-	itoa(dist, msg, 10); // Turn the dist int into a char
-	serialReply(msg); // Send the distance out the serial line
+    dist = getDistanceSensor(rangePinForwardGround);
+    itoa(dist, msg, 10); // Turn the dist int into a char
+    serialReply(msg); // Send the distance out the serial line
   } else if (strcmp(com, "h") == 0) { // Help mode - debugging toggle
-	 // Print out some basic instructions when first turning on debugging
-	 if (not DEBUGGING) {
-	   Serial.println("Ready to listen to commands! Try ome of these:");
-	   Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
-	   Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
-	   }
-	DEBUGGING = !DEBUGGING;
+    // Print out some basic instructions when first turning on debugging
+    if (not DEBUGGING) {
+      Serial.println("Ready to listen to commands! Try ome of these:");
+      Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
+      Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
+    }
+    DEBUGGING = !DEBUGGING;
   } else if (strcmp(com, "1") == 0 || strcmp(com, "2") == 0 || strcmp(com, "3") == 0 || strcmp(com, "4") == 0 || strcmp(com, "5") == 0 || strcmp(com, "6") == 0 || strcmp(com, "7") == 0 || strcmp(com, "8") == 0 || strcmp(com, "9") == 0 || strcmp(com, "0") == 0) {
     //I know the preceeding condition is dodgy but it will change soon 
 	
     if (DEBUGGING) { Serial.print("Changing speed to "); }
-	int i = com[0];
-	speedMultiplier = i - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
-	if (DEBUGGING) { Serial.println(speedMultiplier); }
-        // Blink the LED to confirm the new speed setting
-	for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
-		digitalWrite(ledPin, HIGH);   // set the LED on           
-		delay(250);
-		digitalWrite(ledPin, LOW);   // set the LED off
-		delay(250);
-	}  
-  } else if (strcmp(com, "long") == 0) { //try on the android "send long"
-    serialReply("worked");
-  } else if (strcmp(com, "longcom") == 0) { //try on the android "send longcom"
-    serialReply("also worked");
+    int i = com[0];
+    speedMultiplier = i - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
+    if (DEBUGGING) { Serial.println(speedMultiplier); }
+    // Blink the LED to confirm the new speed setting
+    for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
+      digitalWrite(ledPin, HIGH);   // set the LED on           
+      delay(250);
+      digitalWrite(ledPin, LOW);   // set the LED off
+      delay(250);
+    }  
+  } else if (com[0] == 'l') { //force left servo to a value
+    digitalWrite(ledPin, HIGH);   // set the LED on
+    myservoLeft.attach(servoPinLeft);
+    myservoLeft.write(strToInt(com));
+    servosForcedActive = true; //stop only when dangerous
+    if (DEBUGGING) { Serial.println("Forced left movement"); }
+  } else if (com[0] == 'r') { //force right servo to a value
+    digitalWrite(ledPin, HIGH);   // set the LED on
+    myservoRight.attach(servoPinRight);
+    myservoRight.write(strToInt(com));
+    servosForcedActive = true; //stop only when dangerous
+    if (DEBUGGING) { Serial.println("Forced right movement"); }
   } else { 
-    serialReply("Unrecognized:");
-    serialReply(com);
+    serialReply(com);//unknown
   }
 }
 
