@@ -49,11 +49,12 @@ while 1:
     pitch+=droid.readSensors()['result']['pitch']
     ymag+=droid.readSensors()['result']['ymag']
   pitch = (pitch / repeatCount) + pitchCalibration
-  ymag = ((ymag / repeatCount) + ymagCalibration) * -1
+  ymag = ((ymag / repeatCount) + ymagCalibration)
 
   #Use current pitch, change in pitch, current speed, and the Y-axis mag value to calculate speed and direction
   angle_velocity = pitch - lastPitch
-  torque = (pitch * K1) + (angle_velocity * K2) + (lastTorque * K3) + (ymag * K4)
+  torque = (pitch * K1) + (angle_velocity * K2) + (lastTorque * K3)
+  #+ (ymag * K4)
   torque = int(min(torque, centerPWM))
   lastTorque = torque
   lastPitch = pitch
