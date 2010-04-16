@@ -39,6 +39,8 @@ const int servoPinLeft = 3;
 const int servoPinRight = 5;
 const int servoDirectionLeft = 1; // Use either 1 or -1 for reverse
 const int servoDirectionRight = -1; // Use either 1 or -1 for reverse
+const int servoCenterLeft = 90; // PWM setting for no movement on left servo
+const int servoCenterRight = 90; // PWM setting for no movement on right servo
 const long maxRunTime = 2000; // Maximum run time for servos without additional command. * Should use a command to set this. *
 int speedMultiplier = 5; // Default speed setting. Uses a range from 1-10
 
@@ -76,10 +78,10 @@ void setup() {
 // Convert directional text commands ("forward"/"backward") into calculated servo speed
 int directionValue(char* directionCommand, int servoDirection) {
   if (directionCommand == "forward") {
-    return (10 * speedMultiplier * servoDirection) + 90;
+    return (10 * speedMultiplier * servoDirection);
   }
   else if (directionCommand == "backward") {
-    return (-10 * speedMultiplier * servoDirection) + 90;
+    return (-10 * speedMultiplier * servoDirection);
   }
   else {
     if (DEBUGGING) { Serial.println("Houston, we have a problem!"); }
@@ -93,9 +95,9 @@ unsigned long  moveBot(char* commandLeft, char* commandRight) {
   // Restart the servo PWM and send them commands
   myservoLeft.attach(servoPinLeft);
   myservoRight.attach(servoPinRight);
-  int valueLeft = directionValue(commandLeft, servoDirectionLeft);
+  int valueLeft = directionValue(commandLeft, servoDirectionLeft) + servoCenterLeft;
   myservoLeft.write(valueLeft);
-  int valueRight = directionValue(commandRight, servoDirectionRight);
+  int valueRight = directionValue(commandRight, servoDirectionRight) + servoCenterRight;
   myservoRight.write(valueRight);
 
   // Spit out some diagnosis info over serial
@@ -349,7 +351,6 @@ void performCommand(char* com) {
     DEBUGGING = !DEBUGGING;
   } else if (strcmp(com, "1") == 0 || strcmp(com, "2") == 0 || strcmp(com, "3") == 0 || strcmp(com, "4") == 0 || strcmp(com, "5") == 0 || strcmp(com, "6") == 0 || strcmp(com, "7") == 0 || strcmp(com, "8") == 0 || strcmp(com, "9") == 0 || strcmp(com, "0") == 0) {
     //I know the preceeding condition is dodgy but it will change soon 
-	
     if (DEBUGGING) { Serial.print("Changing speed to "); }
     int i = com[0];
     speedMultiplier = i - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
@@ -361,23 +362,23 @@ void performCommand(char* com) {
       digitalWrite(ledPin, LOW);   // set the LED off
       delay(250);
     }  
-  } else if (com[0] == 'l') { //force left servo to a value
-    digitalWrite(ledPin, HIGH);   // set the LED on
+  } else if (strcmp(com, "c") == 0) { // Calibrate center PWM settings for both servos ex: "c 90 90"
+    sscanf (com,"c %d %d",&servoCenterLeft, &servoCenterRight);
+    if (DEBUGGING) { Serial.println("Calibrated servo center settings"); }
+  } else if (strcmp(com, "a") == 0) { // Ttoggle servo 'active' mode so it doesn't time out automatically
+    servosForcedActive = !servosForcedActive; // Stop only when dangerous
+    if (DEBUGGING) { Serial.println("Continuous rotation toggled"); }
+  } else if (com[0] == 'w') { // Handle "wheel" command and translate into PWM values ex: "w -100 100" [range is from -100 to 100]
+    int valueLeft=90, valueRight=90;
+    sscanf (com,"w %d %d",&valueLeft, &valueRight);
     myservoLeft.attach(servoPinLeft);
-    myservoLeft.write(strToInt(com));
-    servosForcedActive = true; //stop only when dangerous
-    if (DEBUGGING) { Serial.println("Forced left movement"); }
-  } else if (com[0] == 'r') { //force right servo to a value
-    digitalWrite(ledPin, HIGH);   // set the LED on
+    myservoLeft.write(map(valueLeft * servoDirectionLeft, -100, 100, 50, 129)); // Maps to a more narrow range that the servo responds to
     myservoRight.attach(servoPinRight);
-    myservoRight.write(strToInt(com));
-    servosForcedActive = true; //stop only when dangerous
-    if (DEBUGGING) { Serial.println("Forced right movement"); }
+    myservoRight.write(map(valueRight * servoDirectionRight, -100, 100, 50, 129));
   } else { 
     serialReply(com);//unknown
   }
 }
-
 // Main loop running at all times
 void loop() 
 {
