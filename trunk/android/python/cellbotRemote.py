@@ -58,14 +58,8 @@ def runRemoteControl():
   time.sleep(1.0) # give the sensors a chance to start up
   while 1:
     sensor_result = droid.readSensors()
-
-  # for N1, breaks droid
     pitch=int(sensor_result.result['pitch'])
-    roll =int(sensor_result.result['roll'])
-
-  # for Droid, breaks n1
-  # pitch=int(sensor_result['result']['pitch'])
-  # roll =int(sensor_result['result']['roll'])
+    roll=int(sensor_result.result['roll'])
 
     pitch = pitch + 60
     if pitch > 0:
