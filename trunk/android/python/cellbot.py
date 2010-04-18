@@ -224,6 +224,10 @@ def commandParse(input):
     commandValue = commandList[1]
   except IndexError:
     commandValue = ""
+  try:
+    commandValue2 = commandList[2]
+  except IndexError:
+    commandValue2 = ""
 
   if command in ["a", "audio", "record"]:
     global audioRecordingOn
@@ -240,7 +244,7 @@ def commandParse(input):
   elif command  in ["b", "back", "backward", "backwards"]:
     speak("Moving backward")
     commandOut('b')
-  elif command == 'c':
+  elif command in ["compass", "heading"]:
     orientToAzimuth(int(commandValue[:3]))
   elif command in ["d", "date"]:
     speak(time.strftime("Current time is %_I %M %p on %A, %B %_e, %Y"))
@@ -304,16 +308,17 @@ def commandParse(input):
     commandOut('z')
     outputToOperator("Checking distance")
     #ReaderThread thread will handle the response.
-  elif command in ["config"]:
-    commandOut("l99")
-    commandOut("r94")
-    outputToOperator("attempting slow straight")
-  elif command in ["fleft"]:
-    commandOut("l%s" % commandValue)
-    outputToOperator("l%s" % commandValue)
-  elif command in ["fright"]:
-    commandOut("r%s"  % commandValue) 
-    outputToOperator("r%s"  % commandValue)
+  elif command in ["c", "config", "calibrate"]:
+    commandOut("c" + commandValue + " " + commandValue2)
+    msg = "Calibrating servos to center at %s and %s" % (commandValue, commandValue2)
+    outputToOperator(msg)
+  elif command in ["w", "wheel"]:
+    commandOut("w" + commandValue + " " + commandValue2)
+    msg = "Driving servos with %s and %s" % (commandValue, commandValue2)
+    outputToOperator(msg)
+  elif command in ["i", "infinite"]:
+    commandOut("i")
+    outputToOperator("Toggled infinite rotation mode on robot")
   else:
     outputToOperator("Unknown command: '%s'" % command)
 
