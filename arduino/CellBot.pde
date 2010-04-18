@@ -39,8 +39,9 @@ const int servoPinLeft = 3;
 const int servoPinRight = 5;
 const int servoDirectionLeft = 1; // Use either 1 or -1 for reverse
 const int servoDirectionRight = -1; // Use either 1 or -1 for reverse
-const int servoCenterLeft = 90; // PWM setting for no movement on left servo
-const int servoCenterRight = 90; // PWM setting for no movement on right servo
+int servoCenterLeft = 90; // PWM setting for no movement on left servo
+int servoCenterRight = 90; // PWM setting for no movement on right servo
+int servoPowerRange = 30; // PWM range off of center that servos respond best to (set to 30 to work in the 60-120 range off center of 90)
 const long maxRunTime = 2000; // Maximum run time for servos without additional command. * Should use a command to set this. *
 int speedMultiplier = 5; // Default speed setting. Uses a range from 1-10
 
@@ -89,15 +90,20 @@ int directionValue(char* directionCommand, int servoDirection) {
   }
 }
 
-// Command the bot to move (left servo command, right servo command)
-unsigned long  moveBot(char* commandLeft, char* commandRight) {
+// Translate text commands into PWM values for the bot to move (left servo command, right servo command)
+unsigned long moveBot(char* commandLeft, char* commandRight) {
+  int valueLeft = directionValue(commandLeft, servoDirectionLeft) + servoCenterLeft;
+  int valueRight = directionValue(commandRight, servoDirectionRight) + servoCenterRight;
+  driveServos(valueLeft, valueRight);
+}
+
+// Drive servo motors to move the robot using PWM values for left and right
+unsigned long driveServos(int valueLeft, int valueRight) {
   digitalWrite(ledPin, HIGH);   // set the LED on
   // Restart the servo PWM and send them commands
   myservoLeft.attach(servoPinLeft);
   myservoRight.attach(servoPinRight);
-  int valueLeft = directionValue(commandLeft, servoDirectionLeft) + servoCenterLeft;
   myservoLeft.write(valueLeft);
-  int valueRight = directionValue(commandRight, servoDirectionRight) + servoCenterRight;
   myservoRight.write(valueRight);
 
   // Spit out some diagnosis info over serial
@@ -230,13 +236,12 @@ boolean safeToProceed(){
 
 // Check if enough time has elapsed to stop the bot and if it is safe to proceed
 void checkIfStopBot() {
-  if (servosActive and (stopTime < millis() or not safeToProceed())) {
+  if (not servosForcedActive and servosActive and (stopTime < millis() or not safeToProceed())) {
     stopBot();
     servosActive = false;
-  } else if (servosForcedActive and not safeToProceed()) {
+  } else if (not safeToProceed()) {
     stopBot();
     servosActive = false;
-    servosForcedActive = false;
   }
 }
 
@@ -362,21 +367,41 @@ void performCommand(char* com) {
       digitalWrite(ledPin, LOW);   // set the LED off
       delay(250);
     }  
-  } else if (strcmp(com, "c") == 0) { // Calibrate center PWM settings for both servos ex: "c 90 90"
-    sscanf (com,"c %d %d",&servoCenterLeft, &servoCenterRight);
-    if (DEBUGGING) { Serial.println("Calibrated servo center settings"); }
-  } else if (strcmp(com, "a") == 0) { // Ttoggle servo 'active' mode so it doesn't time out automatically
+  } else if (com[0] == 'c') { // Calibrate center PWM settings for both servos ex: "c 90 90"
+    int valueLeft=90, valueRight=90;
+    sscanf (com,"c %d %d",&valueLeft, &valueRight); // Parse the input into multiple values
+    servoCenterLeft = valueLeft;
+    servoCenterRight = valueRight;
+    stopTime = driveServos(servoCenterLeft, servoCenterRight); // Drive the servos with their center value (should result in no movement when calibrated)
+    servosActive = true;
+    if (DEBUGGING) {
+      Serial.print("Calibrated servo centers to ");
+      Serial.print(servoCenterLeft);
+      Serial.print(" and ");
+      Serial.println(servoCenterRight);
+    }
+  } else if (strcmp(com, "i") == 0) { // Toggle servo to infinite active mode so it doesn't time out automatically
     servosForcedActive = !servosForcedActive; // Stop only when dangerous
-    if (DEBUGGING) { Serial.println("Continuous rotation toggled"); }
+    if (DEBUGGING) {
+      Serial.print("Infinite rotation toggled to ");
+      if (servosForcedActive){Serial.println("on");}
+      else {Serial.println("off");}
+    }
   } else if (com[0] == 'w') { // Handle "wheel" command and translate into PWM values ex: "w -100 100" [range is from -100 to 100]
     int valueLeft=90, valueRight=90;
-    sscanf (com,"w %d %d",&valueLeft, &valueRight);
-    myservoLeft.attach(servoPinLeft);
-    myservoLeft.write(map(valueLeft * servoDirectionLeft, -100, 100, 50, 129)); // Maps to a more narrow range that the servo responds to
-    myservoRight.attach(servoPinRight);
-    myservoRight.write(map(valueRight * servoDirectionRight, -100, 100, 50, 129));
+    sscanf (com,"w %d %d",&valueLeft, &valueRight); // Parse the input into multiple values
+    valueLeft = valueLeft * servoDirectionLeft; // Flip positive to negative if needed based on servo direction value setting
+    valueRight = valueRight * servoDirectionRight;
+    valueLeft = map(valueLeft, -100, 100, (servoCenterLeft - servoPowerRange), (servoCenterLeft + servoPowerRange)); // Maps to the narrow range that the servo responds to
+    valueRight = map(valueRight, -100, 100, (servoCenterRight - servoPowerRange), (servoCenterRight + servoPowerRange));
+    stopTime = driveServos(valueLeft, valueRight);
+    servosActive = true;
   } else { 
-    serialReply(com);//unknown
+    serialReply(com);// Echo nknown command back (this may result in a loop if the other side also does this)
+    if (DEBUGGING) {
+      Serial.print("Unknown command");
+      Serial.println(com);
+    }
   }
 }
 // Main loop running at all times
