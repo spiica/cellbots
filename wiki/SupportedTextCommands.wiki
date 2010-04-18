@@ -7,13 +7,13 @@ See the source code for a full set of word based commands to use.
 
  * A = audio recording toggle (saves to SD card)
  * B = backward movement
- * C = compass heading (usage:c 45 [options:0-360])
+ * C = calibrate servo center PWM value (usage: c 85 86)
  * D = date and time spoken
  * E
  * F = forward movement
  * G
  * H = hello message spoken
- * I
+ * I = toggle infinite servo movement mode to turn auto stop on/off
  * J
  * K
  * L = left turn
@@ -27,10 +27,12 @@ See the source code for a full set of word based commands to use.
  * T = talk (usage:t "Hello World")
  * U
  * V = execute a single voice command
- * W
- * X = As in "x marks the spot" - announce GPS location
+ * W = wheel commands [range -100 to 100] (usage: w 100 100)
+ * X = as in "x marks the spot" - announce GPS location
  * Y
- * Z
+ * Z = get range sensor value
+ * Compass = compass heading (usage:c 45 [options:0-360])
+ * Pass = pass through any command to the robot (usage: pass "f")
 
 Note: Not all letter of the alphabet are used yet, leaving room for future 
 single character commands.
