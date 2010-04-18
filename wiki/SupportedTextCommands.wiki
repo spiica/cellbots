@@ -20,18 +20,18 @@ See the source code for a full set of word based commands to use.
  * M = mute audio output toggle
  * N
  * O
- * P = point to cardinal direction (usage:p n [options:n,e,w,s])
+ * P = point to cardinal direction (usage:p n options:n,e,w,s)
  * Q = quit program
  * R = right turn
  * S = stop servos
  * T = talk (usage:t "Hello World")
  * U
  * V = execute a single voice command
- * W = wheel commands [range -100 to 100] (usage: w 100 100)
+ * W = wheel commands in range -100 to 100 (usage: w 100 100)
  * X = as in "x marks the spot" - announce GPS location
  * Y
  * Z = get range sensor value
- * Compass = compass heading (usage:c 45 [options:0-360])
+ * Compass = compass heading (usage:c 45 options:0-360)
  * Pass = pass through any command to the robot (usage: pass "f")
 
 Note: Not all letter of the alphabet are used yet, leaving room for future 
