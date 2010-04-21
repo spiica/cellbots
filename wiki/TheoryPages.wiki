@@ -1,5 +1,3 @@
 #summary Math and Theory related to cellbots
 
-Math and theory related to cellbots:
-
 * [TranslatingUserControls Translating User Controls into Wheel Speeds]
