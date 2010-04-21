@@ -31,7 +31,7 @@ import string
 import re
 from threading import Thread
 
-#If this thread stops working, try rebooting. 
+# Listen for incoming serial responses. If this thread stops working, try rebooting. 
 class serialReader(Thread):
   def __init__ (self):
     Thread.__init__(self)
@@ -46,10 +46,33 @@ class serialReader(Thread):
       except:
         outputToOperator("Reader Thread Errored")
 
+# Listen for incoming Bluetooth resonses. If this thread stops working, try rebooting. 
+class bluetoothReader(Thread):
+  def __init__ (self):
+    Thread.__init__(self)
+    
+  def receiveMessage(self):
+    while True:
+      result = droid.receiveEvent()
+      if result.result is not None and result.result['name'] == 'bluetooth-read':
+        return result.result['message']
+      
+  def run(self):
+    while True:
+      botReply = self.receiveMessage()
+      outputToOperator("Bot says %s " % botReply)
+
+# Initialize Bluetooth outbound if configured for it
+def initializeBluetooth():
+  droid.toggleBluetoothState(True)
+  droid.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB") #this is a magic UUID for serial BT devices
+  droid.makeToast("Initializing Bluetooth connection")
+  time.sleep(3)
+  
 # Command input via open telnet port
 def commandByTelnet():
   rs = []
-
+  svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   print "Firing up telnet socket..."
   try:
     svr_sock.bind(('', telnetPort))
@@ -139,7 +162,7 @@ def speak(msg,override=False):
 # Handle changing the speed setting  on the robot
 def changeSpeed(newSpeed):
   global currentSpeed
-  if newSpeed >=0 and newSpeed <=9:
+  if newSpeed in ["0","1","2","3","4","5","6","7","8","9"]:
     msg = "Changing speed to %s" % newSpeed
     commandOut(newSpeed)
     currentSpeed=newSpeed
@@ -186,10 +209,12 @@ def orientToAzimuth(azimuth):
       msg = "Could not start sensors."
 
 
-# Send command out of the device (currently serial but other protocals could be added)
+# Send command out of the device via Bluetooth or serial
 def commandOut(msg):
-  #added the ';' char because arduino isnt picking up the '/n'
-  os.system("echo '<%s>' > /dev/ttyMSM2" % msg)
+  if outputMethod == "outputBluetooth":
+    droid.bluetoothWrite(msg)
+  else:
+    os.system("echo '<%s>' > /dev/ttyMSM2" % msg)
 
 # Display information on screen and/or reply to the human operator
 def outputToOperator(msg):
@@ -199,10 +224,11 @@ def outputToOperator(msg):
       xmppClient.send(xmpp.Message(operator, msg))
   except:
     pass
-
+  
 # Shut down sensing and other open items and quit
 def exitCellbot(msg='Exiting'):
-  svr_sock.close()
+  if outputMethod == "outputSerial":
+    svr_sock.close()
   droid.stopSensing()
   droid.stopLocating()
   global readerThread
@@ -332,10 +358,6 @@ cardinals['s']=('South','180')
 previousMsg = ""
 audioRecordingOn = False
 phoneIP = netip.displayNoLo()
-svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serialReader.lifeline = re.compile(r"(\d) received")
-readerThread = serialReader()
-readerThread.start()
 
 # Get configurable options from the ini file
 config = ConfigParser.ConfigParser()
@@ -345,18 +367,26 @@ currentSpeed = config.getint("basics", "currentSpeed")
 cardinalMargin = config.getint("basics", "cardinalMargin")
 telnetPort = config.getint("control", "port")
 inputMethod = config.get("control", "inputMethod")
+outputMethod = config.get("control", "outputMethod")
 xmppServer = config.get("xmpp", "server")
 xmppPort = config.getint("xmpp", "port")
 xmppUsername = config.get("xmpp", "username")
 xmppPassword = config.get("xmpp", "password")
 
-# The main loop that fires up a telnet socket and processes inputs
+# Raise the sails and fire the cannons
 def main():
   outputToOperator("Send the letter 'q' or say 'quit' to exit the program.\n")
   droid.startSensing()
   droid.startLocating()
+  if outputMethod == "outputBluetooth":
+    initializeBluetooth()
+    readerThread = bluetoothReader()
+  else:
+    serialReader.lifeline = re.compile(r"(\d) received")
+    readerThread = serialReader()
+  readerThread.start()
   global currentSpeed
-  commandOut(currentSpeed)
+  commandOut(str(currentSpeed))
   droid.makeToast("Initiating input method...")
   globals()[inputMethod]()
 
