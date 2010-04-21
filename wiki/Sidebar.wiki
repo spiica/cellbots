@@ -6,6 +6,7 @@
  * [ConfigurableOptions Configuration Settings]
  * [SupportedTextCommands Supported Text Commands]
  * [WebBasedProtocolForRemoteRobotControl Protocol Proposal]
+ * [TheoryPages Theory and Math]
  * [http://code.google.com/p/cellbots/wiki/ more wiki pages...]
 
 == External Links ==
