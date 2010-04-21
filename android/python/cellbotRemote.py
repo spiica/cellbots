@@ -61,50 +61,81 @@ def runRemoteControl():
     pitch=int(sensor_result.result['pitch'])
     roll=int(sensor_result.result['roll'])
 
+    # Assumes the phone is held in portrait orientation
+
+    # People naturally hold the phone slightly pitched forward.
+    # Translate and scale a bit to keep the values mostly in -100:100
     pitch = pitch + 60
     if pitch > 0:
-      pitch_speed = int(2 * pitch)
+      speed = int(2 * pitch)
     else:
-      pitch_speed = -int(25.0 + pitch)
+      speed = int(25.0 + pitch)
 
-    direction = -roll * 4
+    # Gutter near upright
+    if pitch > -25 and pitch < 5:
+      speed = 0
+
+    # Some empirical values, and also a gutter (dead spot) in the middle.
+    direction = int(-roll * 4 / 2.4)
     if direction < 20 and direction > -20:
       direction = 0
 
     # clamp
-    if pitch_speed > 100:
-      pitch_speed = 100
+    if speed > 100:
+      speed = 100
+    elif speed < -100:
+      speed = 100
 
-    #print pitch_speed,direction,pitch,roll
+    if direction  > 100:
+      direction = 100
+    elif direction < -100:
+      direction = -100
 
-    if pitch in range(-100,-25):
-      wheel_value = -pitch_speed
-      command = 'pass "w %d %d;"' % (wheel_value, wheel_value)
-      print command
-      commandOut(command)
+    # Okay, speed and direction are now both in the range of -100:100.
+    # Speed=100 means to move forward at full speed.  direction=100 means
+    # to turn right as much as possible.
 
-      #commandOut('b')
+    # Treat direction as the X axis, and speed as the Y axis.
+    # If we're driving a differential-drive robot (each wheel moving forward
+    # or back), then consider the left wheel as the X axis and the right
+    # wheel as Y.
+    # If we do that, then we can translate [speed,direction] into [left,right]
+    # by rotating by -45 degrees.
+    # See the writeup at [INSERT URL HERE]
 
-    elif pitch in range(-25, 5):
+    # This actually rotates by 45 degrees and scales by 1.414, so that full
+    # forward = [100,100]
+    right = speed - direction
+    left = speed + direction
+
+    # But now that we've scaled, asking for full forward + full right turn
+    # means the motors need to go to 141.  If we're asking for > 100, scale
+    # back without changing the proportion of forward/turning
+    if abs(left) > 100 or abs(right) > 100:
+      scale = 1.0
+      # if left is bigger, use it to get the scaling amount
+      if abs(left) > abs(right):
+        scale = 100.0 / left
+      else:
+        scale = 100.0 / right
+      
+      left = int(scale * left)
+      right = int(scale * right)
+
+    # print speed,direction,left,right
+
+    if speed == 0 and direction == 0:
       print 'steady'
       commandOut('s')
 
-    elif pitch in range(5, 50):
-      wheel_value = pitch_speed
-      command = 'pass "w %d %d;"' % (wheel_value, wheel_value)
+    elif pitch > 50:
+      print 'off (or upside down)'
+      commandOut('s')
+  
+    else:
+      command = 'pass "w %d %d;"' % (left, right)
       print command
       commandOut(command)
-
-      #commandOut('f')
-
-    elif pitch in range(50,65):
-      print 'off'
-      commandOut('s')
-
-    else:
-      print 'probably upside down'
-      commandOut('s')
-      upright=False
 
     time.sleep(0.5)
 
