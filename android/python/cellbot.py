@@ -53,9 +53,10 @@ class bluetoothReader(Thread):
     
   def receiveMessage(self):
     while True:
-      result = droid.receiveEvent()
-      if result.result is not None and result.result['name'] == 'bluetooth-read':
-        return result.result['message']
+      result = droid.bluetoothReadLine().result
+      if result:
+        return result
+      time.sleep(0.5)
       
   def run(self):
     while True:
@@ -212,7 +213,7 @@ def orientToAzimuth(azimuth):
 # Send command out of the device via Bluetooth or serial
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
-    droid.bluetoothWrite(msg)
+    droid.bluetoothWrite(msg + '\r\n')
   else:
     os.system("echo '<%s>' > /dev/ttyMSM2" % msg)
 
