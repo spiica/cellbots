@@ -33,6 +33,7 @@ See the source code for a full set of word based commands to use.
  * Z = get range sensor value
  * Compass = compass heading (usage:c 45 options:0-360)
  * Pass = pass through any command to the robot (usage: pass "f")
+ * picture = takes a picture and saves to SD card. 
 
 Note: Not all letter of the alphabet are used yet, leaving room for future 
 single character commands.
