@@ -28,7 +28,13 @@
  */
 
 #include <Servo.h> 
+#include <EEPROM.h>
+
 #define BUFFERSIZE 20
+#define EEPROM_servoCenterLeft 1
+#define EEPROM_servoCenterRight 2
+#define EEPROM_speedMultiplier 3
+#define EEPROM_servosForcedActive 4
 
 // ** GENERAL SETTINGS ** - General preference settings
 boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
@@ -74,7 +80,20 @@ void setup() {
   digitalWrite(servoPinLeft,0);
   digitalWrite(servoPinRight,0);
   Serial.begin(9600);
+  servoCenterLeft = readSetting(EEPROM_servoCenterLeft, servoCenterLeft);
+  servoCenterRight = readSetting(EEPROM_servoCenterRight, servoCenterRight);
+  speedMultiplier = readSetting(EEPROM_speedMultiplier, speedMultiplier);  
+  servosForcedActive = readSetting(EEPROM_servosForcedActive, servosForcedActive);  
 } 
+
+//Safely reads EEPROM
+int readSetting(int memoryLocation, int defaultValue) {
+  int value = EEPROM.read(memoryLocation);
+  if (value == 255) { 
+    EEPROM.write(memoryLocation, defaultValue);    
+  }
+  return value;  
+}
 
 // Convert directional text commands ("forward"/"backward") into calculated servo speed
 int directionValue(char* directionCommand, int servoDirection) {
@@ -123,7 +142,7 @@ void stopBot() {
   myservoRight.detach();
   digitalWrite(ledPin, LOW);  // Turn the LED off
   if (DEBUGGING) { Serial.println("Stopping both servos"); }
-  serialReply("st"); // Tell the phone that the robot stopped
+  serialReply("e", "st"); // Tell the phone that the robot stopped
 }
 
 // Read and process the values from an ultrasonic range finder (you can leave this code in even if you don't have one)
@@ -177,35 +196,11 @@ long microsecondsToInches(long microseconds) {
   return microseconds / 74 / 2;
 }
 
-//Converts a string to integer. ignores first non numbers. handles - sign.
-int strToInt(char* str) {
-  int sum = 0;
-  int i = 0;
-  //find the end of the string
-  while (str[i] != '\0'){i++;}
-  int multiplier = 0;
-  int tens = 0;
-  int num = 0;
-  //convert to integer
-  for (i = i-1; i >= 0; i--) {
-    if (str[i] == '-') {
-      sum = sum * -1;
-    } else if (str[i] >= 48 && str[i] < 58) { //ensures its a number
-      num = str[i] - 48; //ascii to int
-      tens = pow(10,multiplier); //pow is slightly inaccurate but good enough
-      num = num * tens;
-      sum += num;
-      multiplier++;
-    }
-  }  
-  return sum;
-}
-
 // Replies out over serial and handles pausing and flushing the data to deal with Android serial comms
-void serialReply(char* tmpmsg) {
-  Serial.print("<");
+void serialReply(char* sensorname, char* tmpmsg) {
+  Serial.print(sensorname);
+  Serial.print(":");
   Serial.print(tmpmsg); // Send the message back out the serial line
-  Serial.println(">");
   //Wait for the serial debugger to shut up
   delay(200); //this is a magic number
   Serial.flush(); //clears all incoming data
@@ -321,7 +316,7 @@ void parseCommand(char* com) {
 }
 
 void performCommand(char* com) {  
-  if (strcmp(com, "d") == 0) { // Do a little demo
+  if (strcmp(com, "d") == 0) { // Do a little dance
     showOff();
   } else if (strcmp(com, "f") == 0) { // Forward
     stopTime = moveBot("forward","forward");
@@ -341,11 +336,11 @@ void performCommand(char* com) {
   } else if (strcmp(com, "x") == 0) { // Read and print forward facing distance sensor
     dist = getDistanceSensor(rangePinForward);
     itoa(dist, msg, 10); // Turn the dist int into a char
-    serialReply(msg); // Send the distance out the serial line
+    serialReply("x", msg); // Send the distance out the serial line
   } else if (strcmp(com, "z") == 0) { // Read and print ground facing distance sensor
     dist = getDistanceSensor(rangePinForwardGround);
     itoa(dist, msg, 10); // Turn the dist int into a char
-    serialReply(msg); // Send the distance out the serial line
+    serialReply("z", msg); // Send the distance out the serial line
   } else if (strcmp(com, "h") == 0) { // Help mode - debugging toggle
     // Print out some basic instructions when first turning on debugging
     if (not DEBUGGING) {
@@ -359,6 +354,7 @@ void performCommand(char* com) {
     if (DEBUGGING) { Serial.print("Changing speed to "); }
     int i = com[0];
     speedMultiplier = i - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
+    EEPROM.write(EEPROM_speedMultiplier, speedMultiplier); 
     if (DEBUGGING) { Serial.println(speedMultiplier); }
     // Blink the LED to confirm the new speed setting
     for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
@@ -374,6 +370,8 @@ void performCommand(char* com) {
     servoCenterRight = valueRight;
     stopTime = driveServos(servoCenterLeft, servoCenterRight); // Drive the servos with their center value (should result in no movement when calibrated)
     servosActive = true;
+    EEPROM.write(EEPROM_servoCenterLeft, servoCenterLeft); 
+    EEPROM.write(EEPROM_servoCenterRight, servoCenterRight); 
     if (DEBUGGING) {
       Serial.print("Calibrated servo centers to ");
       Serial.print(servoCenterLeft);
@@ -382,6 +380,7 @@ void performCommand(char* com) {
     }
   } else if (strcmp(com, "i") == 0) { // Toggle servo to infinite active mode so it doesn't time out automatically
     servosForcedActive = !servosForcedActive; // Stop only when dangerous
+    EEPROM.write(EEPROM_servosForcedActive, servosForcedActive);
     if (DEBUGGING) {
       Serial.print("Infinite rotation toggled to ");
       if (servosForcedActive){Serial.println("on");}
@@ -397,7 +396,7 @@ void performCommand(char* com) {
     stopTime = driveServos(valueLeft, valueRight);
     servosActive = true;
   } else { 
-    serialReply(com);// Echo nknown command back (this may result in a loop if the other side also does this)
+    serialReply("e", com);// Echo unknown command back (this may result in a loop if the other side also does this)
     if (DEBUGGING) {
       Serial.print("Unknown command");
       Serial.println(com);
