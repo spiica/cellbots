@@ -18,6 +18,7 @@ __license__ = 'Apache License, Version 2.0'
 
 import os
 import time
+import datetime
 import socket
 import select
 import sys
@@ -42,10 +43,47 @@ class serialReader(Thread):
         botReply = process.readline()
         if botReply:
           if len(botReply.strip()) > 1:
+            splitReply = botReply.split(':')
+            if len(splitReply) == 2:
+              addToWhiteboard(splitReply[0], splitReply[1])
             outputToOperator("Bot says %s " % botReply)
       except:
         outputToOperator("Reader Thread Errored")
 
+#Whiteboard is used to store sensor values and their history
+def addToWhiteboard(key, value):
+  global whiteboard
+  timeAdded = datetime.datetime.today()
+  valueAndTime = [value, timeAdded]
+  try:
+    #get the old values
+    values = whiteboard[key]
+  except KeyError:
+    #Its a new sensor. Create it.
+    values = []
+  values.insert(0, valueAndTime)
+  #stop memory leaks
+  while len(values) >= MAX_WHITEBOARD_LENGTH:
+    #remove the last one
+    del values[len(values)-1]
+  #add back to the whiteboard
+  whiteboard[key] = values
+
+#For debugging. 
+def WhiteboardToString(includeHistory=False):
+  global whiteboard
+  str = ""
+  for key in whiteboard:
+    str += key + '\n'
+    for history in whiteboard[key]:
+      str += '\tvalue: %s' % history[0] + '\n'
+      str += '\ttime : %s' % history[1].strftime("%A, %d. %B %Y %I:%M%p") + '\n'
+      if includeHistory == False:
+        break        
+  return str
+  
+        
+        
 # Listen for incoming Bluetooth resonses. If this thread stops working, try rebooting. 
 class bluetoothReader(Thread):
   def __init__ (self):
@@ -333,8 +371,8 @@ def commandParse(input):
   elif command in ["send", "pass"]:
     commandOut(commandValue)
   elif command in ["range", "distance", "dist", "z"]:
-    commandOut('z')
     outputToOperator("Checking distance")
+    commandOut("fr")
     #ReaderThread thread will handle the response.
   elif command in ["c", "config", "calibrate"]:
     commandOut("c" + commandValue + " " + commandValue2)
@@ -344,9 +382,20 @@ def commandParse(input):
     commandOut("w" + commandValue + " " + commandValue2)
     msg = "Driving servos with %s and %s" % (commandValue, commandValue2)
     outputToOperator(msg)
+    addToWhiteboard("w", commandValue + " " + commandValue2)
   elif command in ["i", "infinite"]:
     commandOut("i")
     outputToOperator("Toggled infinite rotation mode on robot")
+  elif command in ["picture", "takepicture", "takePicture"]:
+    fileName=time.strftime("/sdcard/cellbot_%Y-%m-%d_%H-%M-%S.jpg")
+    droid.cameraTakePicture(fileName)
+    outputToOperator("Took picture. Image file located at '%s'" % fileName)
+    addToWhiteboard("Picture", fileName)
+  elif command in ["whiteboard", "whiteboardfull"]:
+    if command == "whiteboardfull":
+      outputToOperator(WhiteboardToString(True))
+    else:
+      outputToOperator(WhiteboardToString())
   else:
     outputToOperator("Unknown command: '%s'" % command)
 
@@ -357,23 +406,39 @@ cardinals['n']=('North','0')
 cardinals['e']=('East','90')
 cardinals['w']=('West','270')
 cardinals['s']=('South','180')
+#defines the dict of sensor values and their history
+whiteboard = {}
+MAX_WHITEBOARD_LENGTH = 30
 previousMsg = ""
 audioRecordingOn = False
 phoneIP = netip.displayNoLo()
 
 # Get configurable options from the ini file
 config = ConfigParser.ConfigParser()
-config.read("/sdcard/ase/scripts/cellbotConfig.ini")
+configFilePath = "/sdcard/ase/scripts/cellbotConfig.ini"
+config.read(configFilePath)
 audioOn = config.getboolean("basics", "audioOn")
 currentSpeed = config.getint("basics", "currentSpeed")
 cardinalMargin = config.getint("basics", "cardinalMargin")
 telnetPort = config.getint("control", "port")
 inputMethod = config.get("control", "inputMethod")
-outputMethod = config.get("control", "outputMethod")
+if config.has_option("control", "outputMethod"):
+  outputMethod = config.get("control", "outputMethod")
+else:
+  dialog = droid.dialogCreateAlert("Select outputMethod")
+  options = ['outputSerial', 'outputBluetooth']
+  droid.dialogSetItems(options)
+  droid.dialogShow()
+  result = droid.dialogGetResponse(dialog)["result"]
+  outputMethod = options[result['item']]
+  config.set("control", "outputMethod", outputMethod)
 xmppServer = config.get("xmpp", "server")
 xmppPort = config.getint("xmpp", "port")
 xmppUsername = config.get("xmpp", "username")
 xmppPassword = config.get("xmpp", "password")
+with open(configFilePath, 'wb') as configfile:
+  config.write(configfile)
+
 
 # Raise the sails and fire the cannons
 def main():
