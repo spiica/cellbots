@@ -1,8 +1,25 @@
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+# See http://www.cellbots.com for more information
+
+__license__ = 'Apache License, Version 2.0'
+
 import android
 import os
 import time
 import xmpp
 import ConfigParser
+from threading import Thread
 
 
 def commandByXMPP():
@@ -39,23 +56,49 @@ def XMPP_message_cb(session, message):
   operator = jid.getNode() + '@' + jid.getDomain()
   command = message.getBody()
   print str(command)
+      
+# Listen for incoming Bluetooth resonses. If this thread stops working, try rebooting. 
+class bluetoothReader(Thread):
+  def __init__ (self):
+    Thread.__init__(self)
+ 
+  def run(self):
+    while True:
+      if not droid.bluetoothReady():
+        time.sleep(0.05)
+        continue
+        result += droid.bluetoothRead()
+        if '\n' in result:
+          npos = result.find('\n')
+          yield result[:npos]
+          result = result[npos+1:]
+          print result
+
+# Initialize Bluetooth outbound if configured for it
+def initializeBluetooth():
+  droid.toggleBluetoothState(True)
+  droid.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB") #this is a magic UUID for serial BT devices
+  droid.makeToast("Initializing Bluetooth connection")
+  time.sleep(3)
 
 # Send command out of the device over XMPP
 def commandOut(msg):
-  global xmppRobotUsername
-  global previousMsg
-  global lastMsgTime
-  if not xmppRobotUsername:
-    xmppPassword = droid.getInput('Robot user')['result']
-  if msg != previousMsg or (time.time() > lastMsgTime + 1000):
-    xmppClient.send(xmpp.Message(xmppRobotUsername, msg))
-  previousMsg=msg
-  lastMsgTime = time.time()
+  if outputMethod == "outputBluetooth":
+    droid.bluetoothWrite(msg + '\n')
+  else:
+    global xmppRobotUsername
+    global previousMsg
+    global lastMsgTime
+    if not xmppRobotUsername:
+      xmppPassword = droid.getInput('Robot user')['result']
+    # Don't send the same message repeatedly unless 1 second has passed
+    if msg != previousMsg or (time.time() > lastMsgTime + 1000):
+      xmppClient.send(xmpp.Message(xmppRobotUsername, msg))
+    previousMsg=msg
+    lastMsgTime = time.time()
   
 
 def runRemoteControl():
-  upright=True
-  time.sleep(1.0) # give the sensors a chance to start up
   while 1:
     sensor_result = droid.readSensors()
     pitch=int(sensor_result.result['pitch'])
@@ -133,11 +176,12 @@ def runRemoteControl():
       commandOut('s')
   
     else:
-      command = 'pass "w %d %d;"' % (left, right)
+      #command = 'pass "w %d %d;"' % (left, right)
+      command = "w %d %d" % (left, right)
       print command
       commandOut(command)
 
-    time.sleep(0.5)
+    time.sleep(0.25)
 
 #Non-configurable settings
 droid = android.Android()
@@ -152,13 +196,20 @@ xmppPort = config.getint("xmpp", "port")
 xmppUsername = config.get("xmpp", "username")
 xmppPassword = config.get("xmpp", "password")
 xmppRobotUsername = config.get("xmpp", "robotUsername")
+outputMethod = config.get("control", "outputMethod")
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
-  print "Lay the phone flat to exit the program.\n"
+  print "Lay the phone flat to pause the program.\n"
   droid.startSensing()
+  if outputMethod == "outputBluetooth":
+    initializeBluetooth()
+    #readerThread = bluetoothReader()
+  else:
+    commandByXMPP()
+  #readerThread.start()
   droid.makeToast("Move the phone to control the robot")
-  commandByXMPP()
+  runRemoteControl()
 
 if __name__ == '__main__':
     main()
