@@ -97,8 +97,9 @@ def commandOut(msg):
     previousMsg=msg
     lastMsgTime = time.time()
   
-
 def runRemoteControl():
+  droid.startSensing()
+  time.sleep(1.0) # give the sensors a chance to start up
   while 1:
     sensor_result = droid.readSensors()
     pitch=int(sensor_result.result['pitch'])
@@ -108,18 +109,25 @@ def runRemoteControl():
 
     # People naturally hold the phone slightly pitched forward.
     # Translate and scale a bit to keep the values mostly in -100:100
-    pitch = pitch + 60
-    if pitch > 0:
-      speed = int(2 * pitch)
-    else:
-      speed = int(25.0 + pitch)
+    speed = pitch + 90
 
-    # Gutter near upright
-    if pitch > -25 and pitch < 5:
+    # Pitch develops a dead zone around vertical (90) where it jumps
+    # from about 90+roll to 90-roll as you try to hold it vertical,
+    # at least on the nexus one.  Try to subtract that out.
+    if speed > 0:
+      speed -= abs(roll)
+    else:
+      speed += abs(roll)
+
+    if speed > 20:
+      speed = int(4 * (speed - 20))
+    elif speed < 0:
+      speed = int(3 * speed)
+    else:
       speed = 0
 
     # Some empirical values, and also a gutter (dead spot) in the middle.
-    direction = int(-roll * 4 / 2.4)
+    direction = int(-roll * 5 / 2.4)
     if direction < 20 and direction > -20:
       direction = 0
 
@@ -165,7 +173,7 @@ def runRemoteControl():
       left = int(scale * left)
       right = int(scale * right)
 
-    # print speed,direction,left,right
+    print pitch,roll,speed, direction
 
     if speed == 0 and direction == 0:
       print 'steady'
@@ -181,7 +189,8 @@ def runRemoteControl():
       print command
       commandOut(command)
 
-    time.sleep(0.25)
+    time.sleep(0.5)
+
 
 #Non-configurable settings
 droid = android.Android()
@@ -201,7 +210,6 @@ outputMethod = config.get("control", "outputMethod")
 # The main loop that fires up a telnet socket and processes inputs
 def main():
   print "Lay the phone flat to pause the program.\n"
-  droid.startSensing()
   if outputMethod == "outputBluetooth":
     initializeBluetooth()
     #readerThread = bluetoothReader()
