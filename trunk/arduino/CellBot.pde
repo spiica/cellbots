@@ -142,7 +142,7 @@ void stopBot() {
   myservoRight.detach();
   digitalWrite(ledPin, LOW);  // Turn the LED off
   if (DEBUGGING) { Serial.println("Stopping both servos"); }
-  serialReply("e", "st"); // Tell the phone that the robot stopped
+  serialReply("i", "st"); // Tell the phone that the robot stopped
 }
 
 // Read and process the values from an ultrasonic range finder (you can leave this code in even if you don't have one)
@@ -200,7 +200,7 @@ long microsecondsToInches(long microseconds) {
 void serialReply(char* sensorname, char* tmpmsg) {
   Serial.print(sensorname);
   Serial.print(":");
-  Serial.print(tmpmsg); // Send the message back out the serial line
+  Serial.println(tmpmsg); // Send the message back out the serial line
   //Wait for the serial debugger to shut up
   delay(200); //this is a magic number
   Serial.flush(); //clears all incoming data
@@ -333,7 +333,7 @@ void performCommand(char* com) {
   } else if (strcmp(com, "s") == 0) { // Stop
     stopBot();
     servosActive = false;
-  } else if (strcmp(com, "x") == 0) { // Read and print forward facing distance sensor
+  } else if (strcmp(com, "fr") == 0) { // Read and print forward facing distance sensor
     dist = getDistanceSensor(rangePinForward);
     itoa(dist, msg, 10); // Turn the dist int into a char
     serialReply("x", msg); // Send the distance out the serial line
