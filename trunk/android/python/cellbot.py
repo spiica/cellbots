@@ -51,17 +51,17 @@ class bluetoothReader(Thread):
   def __init__ (self):
     Thread.__init__(self)
     
-  def receiveMessage(self):
-    while True:
-      result = droid.bluetoothReadLine().result
-      if result:
-        return result
-      time.sleep(0.5)
-      
   def run(self):
     while True:
-      botReply = self.receiveMessage()
-      outputToOperator("Bot says %s " % botReply)
+      if not droid.bluetoothReady():
+        time.sleep(0.05)
+        continue
+        botReply += droid.bluetoothRead()
+        if '\n' in result:
+          npos = botReply.find('\n')
+          yield botReply[:npos]
+          botReply = botReply[npos+1:]
+          outputToOperator("Bot says %s " % botReply)
 
 # Initialize Bluetooth outbound if configured for it
 def initializeBluetooth():
@@ -213,7 +213,7 @@ def orientToAzimuth(azimuth):
 # Send command out of the device via Bluetooth or serial
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
-    droid.bluetoothWrite(msg + '\r\n')
+    droid.bluetoothWrite(msg + '\n')
   else:
     os.system("echo '<%s>' > /dev/ttyMSM2" % msg)
 
@@ -232,8 +232,9 @@ def exitCellbot(msg='Exiting'):
     svr_sock.close()
   droid.stopSensing()
   droid.stopLocating()
-  global readerThread
-  readerThread.join()
+  #The following was throwing an error. Do we need to manually kill the thread?
+  #global readerThread
+  #readerThread.join()
   sys.exit(msg)
 
 # Parse the first character of incoming commands to determine what action to take
