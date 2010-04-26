@@ -403,7 +403,6 @@ def commandParse(input):
     outputToOperator("Unknown command: '%s'" % command)
 
 #Non-configurable settings
-robot = robot.Robot()
 cardinals = {}
 cardinals['n']=('North','0')
 cardinals['e']=('East','90')
@@ -420,6 +419,11 @@ phoneIP = netip.displayNoLo()
 config = ConfigParser.ConfigParser()
 configFilePath = "/sdcard/ase/scripts/cellbotConfig.ini"
 config.read(configFilePath)
+if config.has_option("basics", "phoneType"):
+  phoneType = config.get("basics", "phoneType")
+else:
+  config.set("basics", "phoneType", "android")
+robot = robot.Robot(phoneType)
 audioOn = config.getboolean("basics", "audioOn")
 currentSpeed = config.getint("basics", "currentSpeed")
 cardinalMargin = config.getint("basics", "cardinalMargin")
