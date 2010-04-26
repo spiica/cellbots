@@ -22,7 +22,6 @@ import datetime
 import socket
 import select
 import sys
-import android
 import math
 import shlex
 import netip
@@ -30,6 +29,7 @@ import xmpp
 import ConfigParser
 import string
 import re
+import robot
 from threading import Thread
 
 # Listen for incoming serial responses. If this thread stops working, try rebooting. 
@@ -37,7 +37,7 @@ class serialReader(Thread):
   def __init__ (self):
     Thread.__init__(self)
   def run(self):
-    process = os.popen('cat /dev/ttyMSM2')
+    process = robot.getSerialIn()
     while process:
       try:
         botReply = process.readline()
@@ -91,10 +91,10 @@ class bluetoothReader(Thread):
     
   def run(self):
     while True:
-      if not droid.bluetoothReady():
+      if not robot.bluetoothReady():
         time.sleep(0.05)
         continue
-        botReply += droid.bluetoothRead()
+        botReply += robot.bluetoothRead()
         if '\n' in result:
           npos = botReply.find('\n')
           yield botReply[:npos]
@@ -103,9 +103,9 @@ class bluetoothReader(Thread):
 
 # Initialize Bluetooth outbound if configured for it
 def initializeBluetooth():
-  droid.toggleBluetoothState(True)
-  droid.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB") #this is a magic UUID for serial BT devices
-  droid.makeToast("Initializing Bluetooth connection")
+  robot.toggleBluetoothState(True)
+  robot.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB") #this is a magic UUID for serial BT devices
+  robot.makeToast("Initializing Bluetooth connection")
   time.sleep(3)
   
 # Command input via open telnet port
@@ -143,9 +143,9 @@ def commandByXMPP():
   global xmppPassword
   global xmppClient
   if not xmppUsername:
-    xmppUsername = droid.getInput('Username')['result']
+    xmppUsername = robot.getInput('Username')['result']
   if not xmppPassword:
-    xmppPassword = droid.getInput('Password')['result']
+    xmppPassword = robot.getInput('Password')['result']
   jid = xmpp.protocol.JID(xmppUsername)
   xmppClient = xmpp.Client(jid.getDomain(), debug=[])
   xmppClient.connect(server=(xmppServer, xmppPort))
@@ -179,7 +179,7 @@ def XMPP_message_cb(session, message):
 # Command input via speech recognition
 def commandByVoice(mode='continuous'):
   try:
-    listen = droid.recognizeSpeech()
+    listen = robot.recognizeSpeech()
     voiceCommands = str(listen['result'])
   except:
     voiceCommands = ""
@@ -192,9 +192,9 @@ def commandByVoice(mode='continuous'):
 def speak(msg,override=False):
   global previousMsg
   if (audioOn and msg != previousMsg) or override:
-    droid.speak(msg)
+    robot.speak(msg)
   elif msg != previousMsg:
-    droid.makeToast(msg)
+    robot.makeToast(msg)
   outputToOperator(msg)
   previousMsg=msg
 
@@ -214,7 +214,7 @@ def orientToAzimuth(azimuth):
   onTarget = False
   stopTime = time.time() + 5000
   while not onTarget and time.time() < stopTime:
-    results = droid.readSensors()
+    results = robot.readSensors()
 
     if results['result'] is not None:
       currentHeading = results['result']['azimuth']
@@ -251,9 +251,9 @@ def orientToAzimuth(azimuth):
 # Send command out of the device via Bluetooth or serial
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
-    droid.bluetoothWrite(msg + '\n')
+    robot.bluetoothWrite(msg + '\n')
   else:
-    os.system("echo '<%s>' > /dev/ttyMSM2" % msg)
+    robot.writeSerialOut("echo '<%s>' > /dev/ttyMSM2" % msg)
 
 # Display information on screen and/or reply to the human operator
 def outputToOperator(msg):
@@ -268,8 +268,8 @@ def outputToOperator(msg):
 def exitCellbot(msg='Exiting'):
   if outputMethod == "outputSerial":
     svr_sock.close()
-  droid.stopSensing()
-  droid.stopLocating()
+  robot.stopSensing()
+  robot.stopLocating()
   #The following was throwing an error. Do we need to manually kill the thread?
   #global readerThread
   #readerThread.join()
@@ -301,11 +301,11 @@ def commandParse(input):
     fileName=time.strftime("/sdcard/cellbot_%Y-%m-%d_%H-%M-%S.3gp")
     if audioRecordingOn:
       outputToOperator("Starting audio recording")
-      droid.makeToast("Starting audio recording")
-      droid.startAudioRecording(fileName)
+      robot.makeToast("Starting audio recording")
+      robot.startAudioRecording(fileName)
     else:
-      droid.stopAudioRecording()
-      droid.makeToast("Stopping audio recording")
+      robot.stopAudioRecording()
+      robot.makeToast("Stopping audio recording")
       outputToOperator("Stopped audio recording. Audio file located at '%s'" % fileName)
   elif command  in ["b", "back", "backward", "backwards"]:
     speak("Moving backward")
@@ -345,13 +345,13 @@ def commandParse(input):
   elif command in ["t", "talk", "speak", "say"]:
     speak(input.replace(command, ''),True)
   elif command in ["v", "voice", "listen", "speech"]:
-    droid.makeToast("Launching voice recognition")
+    robot.makeToast("Launching voice recognition")
     outputToOperator("Launching voice recognition")
     commandByVoice("onceOnly")
   elif command in ["x", "location", "gps"]:
     try:
-      location = droid.readLocation()['result']
-      addresses = droid.geocode(location['latitude'], location['longitude'])
+      location = robot.readLocation()['result']
+      addresses = robot.geocode(location['latitude'], location['longitude'])
       firstAddr = addresses['result']['result'][0]
       msg = 'You are in %(locality)s, %(admin_area)s' % firstAddr
     except:
@@ -371,8 +371,8 @@ def commandParse(input):
   elif command in ["send", "pass"]:
     commandOut(commandValue)
   elif command in ["range", "distance", "dist", "z"]:
-    outputToOperator("Checking distance")
     commandOut("fr")
+    outputToOperator("Checking distance")    
     #ReaderThread thread will handle the response.
   elif command in ["c", "config", "calibrate"]:
     commandOut("c" + commandValue + " " + commandValue2)
@@ -388,7 +388,7 @@ def commandParse(input):
     outputToOperator("Toggled infinite rotation mode on robot")
   elif command in ["picture", "takepicture", "takePicture"]:
     fileName=time.strftime("/sdcard/cellbot_%Y-%m-%d_%H-%M-%S.jpg")
-    droid.cameraTakePicture(fileName)
+    robot.cameraTakePicture(fileName)
     outputToOperator("Took picture. Image file located at '%s'" % fileName)
     addToWhiteboard("Picture", fileName)
   elif command in ["whiteboard", "whiteboardfull"]:
@@ -396,11 +396,14 @@ def commandParse(input):
       outputToOperator(WhiteboardToString(True))
     else:
       outputToOperator(WhiteboardToString())
+  elif command in ["reset"]:
+    commandOut("reset")
+    outputToOperator("Reset hardwares settings to default")
   else:
     outputToOperator("Unknown command: '%s'" % command)
 
 #Non-configurable settings
-droid = android.Android()
+robot = robot.Robot()
 cardinals = {}
 cardinals['n']=('North','0')
 cardinals['e']=('East','90')
@@ -425,11 +428,11 @@ inputMethod = config.get("control", "inputMethod")
 if config.has_option("control", "outputMethod"):
   outputMethod = config.get("control", "outputMethod")
 else:
-  dialog = droid.dialogCreateAlert("Select outputMethod")
+  dialog = robot.dialogCreateAlert("Select outputMethod")
   options = ['outputSerial', 'outputBluetooth']
-  droid.dialogSetItems(options)
-  droid.dialogShow()
-  result = droid.dialogGetResponse(dialog)["result"]
+  robot.dialogSetItems(options)
+  robot.dialogShow()
+  result = robot.dialogGetResponse(dialog)["result"]
   outputMethod = options[result['item']]
   config.set("control", "outputMethod", outputMethod)
 xmppServer = config.get("xmpp", "server")
@@ -443,8 +446,8 @@ with open(configFilePath, 'wb') as configfile:
 # Raise the sails and fire the cannons
 def main():
   outputToOperator("Send the letter 'q' or say 'quit' to exit the program.\n")
-  droid.startSensing()
-  droid.startLocating()
+  robot.startSensing()
+  robot.startLocating()
   if outputMethod == "outputBluetooth":
     initializeBluetooth()
     readerThread = bluetoothReader()
@@ -454,7 +457,7 @@ def main():
   readerThread.start()
   global currentSpeed
   commandOut(str(currentSpeed))
-  droid.makeToast("Initiating input method...")
+  robot.makeToast("Initiating input method...")
   globals()[inputMethod]()
 
 if __name__ == '__main__':
