@@ -422,7 +422,8 @@ config.read(configFilePath)
 if config.has_option("basics", "phoneType"):
   phoneType = config.get("basics", "phoneType")
 else:
-  config.set("basics", "phoneType", "android")
+  phoneType = "android"
+  config.set("basics", "phoneType", phoneType)
 robot = robot.Robot(phoneType)
 audioOn = config.getboolean("basics", "audioOn")
 currentSpeed = config.getint("basics", "currentSpeed")
