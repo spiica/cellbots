@@ -35,6 +35,14 @@
 #define EEPROM_servoCenterRight 2
 #define EEPROM_speedMultiplier 3
 #define EEPROM_servosForcedActive 4
+#define EEPROM_lastNeckValue 5
+
+#define DEFAULT_servoCenterLeft 90
+#define DEFAULT_servoCenterRight 90
+#define DEFAULT_speedMultiplier 5
+#define DEFAULT_servosForcedActive false
+#define DEFAULT_servosForcedActive false
+#define DEFAULT_lastNeckValue 255
 
 // ** GENERAL SETTINGS ** - General preference settings
 boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
@@ -43,13 +51,15 @@ const int ledPin = 13; // LED turns on while running servos
 // ** SERVO SETTINGS ** - Configurable values based on pins used and servo direction
 const int servoPinLeft = 3;
 const int servoPinRight = 5;
+const int servoPinHead = 12; // Servo controlling the angle of the phone
 const int servoDirectionLeft = 1; // Use either 1 or -1 for reverse
 const int servoDirectionRight = -1; // Use either 1 or -1 for reverse
-int servoCenterLeft = 90; // PWM setting for no movement on left servo
-int servoCenterRight = 90; // PWM setting for no movement on right servo
+int servoCenterLeft = DEFAULT_servoCenterLeft; // PWM setting for no movement on left servo
+int servoCenterRight = DEFAULT_servoCenterLeft; // PWM setting for no movement on right servo
 int servoPowerRange = 30; // PWM range off of center that servos respond best to (set to 30 to work in the 60-120 range off center of 90)
 const long maxRunTime = 2000; // Maximum run time for servos without additional command. * Should use a command to set this. *
-int speedMultiplier = 5; // Default speed setting. Uses a range from 1-10
+int speedMultiplier = DEFAULT_speedMultiplier; // Default speed setting. Uses a range from 1-10
+int lastNeckValue = DEFAULT_lastNeckValue;
 
 // ** RANGE FINDING *** - The following settings are for ultrasonic range finders. OK to lave as-is if you don't have them on your robot
 long dist, microseconds, cm, inches; // Used by the range finder for calculating distances
@@ -62,10 +72,12 @@ const int rangeSampleCount = 3; // Number of range readings to take and average 
 // Create servo objects to control the servos
 Servo myservoLeft;
 Servo myservoRight;
+Servo myservoHead;
+
 
 // No config required for these parameters
 boolean servosActive = false; // assume servos are not moving when we begin
-boolean servosForcedActive = false; // will only stop when considered dangerous
+boolean servosForcedActive = DEFAULT_servosForcedActive; // will only stop when considered dangerous
 unsigned long stopTime=millis(); // used for calculating the run time for servos
 char incomingByte; // Holds incoming serial values
 char msg[8]; // For passing back serial messages
@@ -76,14 +88,21 @@ int serialAvail = 0;
 void setup() {
   pinMode(servoPinLeft, OUTPUT);
   pinMode(servoPinRight, OUTPUT);
+  pinMode(servoPinHead, OUTPUT);
   pinMode(ledPin, OUTPUT);
   digitalWrite(servoPinLeft,0);
   digitalWrite(servoPinRight,0);
+  digitalWrite(servoPinHead,0);
   Serial.begin(9600);
   servoCenterLeft = readSetting(EEPROM_servoCenterLeft, servoCenterLeft);
   servoCenterRight = readSetting(EEPROM_servoCenterRight, servoCenterRight);
   speedMultiplier = readSetting(EEPROM_speedMultiplier, speedMultiplier);  
   servosForcedActive = readSetting(EEPROM_servosForcedActive, servosForcedActive);  
+  lastNeckValue = readSetting(EEPROM_lastNeckValue, lastNeckValue);
+  if (lastNeckValue != DEFAULT_lastNeckValue) {
+    myservoHead.attach(servoPinHead);
+    myservoHead.write(lastNeckValue);
+  }
 } 
 
 //Safely reads EEPROM
@@ -93,6 +112,23 @@ int readSetting(int memoryLocation, int defaultValue) {
     EEPROM.write(memoryLocation, defaultValue);    
   }
   return value;  
+}
+
+//Sets the EEPROM settings to the default values
+void setEepromsToDefault() {
+  servosForcedActive = DEFAULT_servosForcedActive;
+  speedMultiplier = DEFAULT_speedMultiplier;
+  servoCenterRight = DEFAULT_servoCenterRight;
+  servoCenterLeft = DEFAULT_servoCenterLeft;
+  lastNeckValue = DEFAULT_lastNeckValue;
+  EEPROM.write(EEPROM_servosForcedActive, DEFAULT_servosForcedActive);
+  EEPROM.write(EEPROM_speedMultiplier, DEFAULT_speedMultiplier);
+  EEPROM.write(EEPROM_servoCenterRight, DEFAULT_servoCenterRight);
+  EEPROM.write(EEPROM_servoCenterLeft, DEFAULT_servoCenterLeft);
+  EEPROM.write(EEPROM_lastNeckValue, DEFAULT_lastNeckValue);
+  if (DEBUGGING) {
+      Serial.println("All EEPROM values set to defaults.");
+  }
 }
 
 // Convert directional text commands ("forward"/"backward") into calculated servo speed
@@ -333,7 +369,7 @@ void performCommand(char* com) {
   } else if (strcmp(com, "s") == 0) { // Stop
     stopBot();
     servosActive = false;
-  } else if (strcmp(com, "fr") == 0) { // Read and print forward facing distance sensor
+  } else if (strcmp(com, "fr") == 0 || strcmp(com, "fz") == 0 || strcmp(com, "x") == 0) { // Read and print forward facing distance sensor
     dist = getDistanceSensor(rangePinForward);
     itoa(dist, msg, 10); // Turn the dist int into a char
     serialReply("x", msg); // Send the distance out the serial line
@@ -395,14 +431,26 @@ void performCommand(char* com) {
     valueRight = map(valueRight, -100, 100, (servoCenterRight - servoPowerRange), (servoCenterRight + servoPowerRange));
     stopTime = driveServos(valueLeft, valueRight);
     servosActive = true;
+  } else if (strcmp(com, "reset") == 0) { // Resets the eeprom settings
+    setEepromsToDefault();
+  } else if (com[0] == 'n') { // Move head up
+    sscanf (com,"n %d",&lastNeckValue); // Parse the input into multiple values
+    myservoHead.attach(servoPinHead);
+    myservoHead.write(lastNeckValue);
+    EEPROM.write(EEPROM_lastNeckValue, lastNeckValue); 
+    if (DEBUGGING) {
+      Serial.print("Neck moved to ");
+      Serial.println(lastNeckValue);
+    }
   } else { 
-    serialReply("e", com);// Echo unknown command back (this may result in a loop if the other side also does this)
+    serialReply("e", com);// Echo unknown command back
     if (DEBUGGING) {
       Serial.print("Unknown command");
       Serial.println(com);
     }
   }
 }
+
 // Main loop running at all times
 void loop() 
 {
