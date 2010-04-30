@@ -79,12 +79,12 @@ def initializeBluetooth():
   droid.toggleBluetoothState(True)
   droid.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB") #this is a magic UUID for serial BT devices
   droid.makeToast("Initializing Bluetooth connection")
-  time.sleep(3)
+  time.sleep(4)
 
 # Send command out of the device over XMPP
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
-    droid.bluetoothWrite(msg + '\n')
+    droid.bluetoothWrite(msg + '\r\n')
   else:
     global xmppRobotUsername
     global previousMsg
@@ -189,7 +189,7 @@ def runRemoteControl():
       print command
       commandOut(command)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
 
 
 #Non-configurable settings

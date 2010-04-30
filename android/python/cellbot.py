@@ -81,7 +81,6 @@ def WhiteboardToString(includeHistory=False):
       if includeHistory == False:
         break        
   return str
-  
         
         
 # Listen for incoming Bluetooth resonses. If this thread stops working, try rebooting. 
@@ -399,6 +398,9 @@ def commandParse(input):
   elif command in ["reset"]:
     commandOut("reset")
     outputToOperator("Reset hardwares settings to default")
+  elif command in ["pair", "pairing"]:
+    commandOut("p")
+    outputToOperator("Asking Bluetooth module to go into pairing")
   else:
     outputToOperator("Unknown command: '%s'" % command)
 
@@ -408,6 +410,7 @@ cardinals['n']=('North','0')
 cardinals['e']=('East','90')
 cardinals['w']=('West','270')
 cardinals['s']=('South','180')
+
 #defines the dict of sensor values and their history
 whiteboard = {}
 MAX_WHITEBOARD_LENGTH = 30
