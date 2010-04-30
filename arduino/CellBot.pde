@@ -276,6 +276,11 @@ void checkIfStopBot() {
   }
 }
 
+// Send command to attached Bluetooth device to initiate pairing
+void pairBluetooth() {
+  Serial.print("\r\n+INQ=1\r\n"); // This is for Seeedstudio master/slave unit (change as needed for your model)
+}
+
 // Reads serial input if available and parses command when full command has been sent. 
 void readSerialInput() {
   serialAvail = Serial.available();
@@ -442,10 +447,12 @@ void performCommand(char* com) {
       Serial.print("Neck moved to ");
       Serial.println(lastNeckValue);
     }
+  } else if (com[0] == 'p') { // Initiates Bluetooth pairing so another device can connect
+    pairBluetooth();
   } else { 
     serialReply("e", com);// Echo unknown command back
     if (DEBUGGING) {
-      Serial.print("Unknown command");
+      Serial.print("Unknown command: ");
       Serial.println(com);
     }
   }
