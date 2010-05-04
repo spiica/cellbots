@@ -131,7 +131,9 @@ class Robot(object):
   def getInput(self, text):
     if self.phoneType == "android":
       return self.droid.getInput(text)
-    
+    else:
+      raise Exception('Unsupported', 'Function unsupported on this phone')
+
   def recognizeSpeech(self):
     if self.phoneType == "android":
       return self.droid.recognizeSpeech()
@@ -179,3 +181,14 @@ class Robot(object):
       return self.droid.cameraTakePicture(fileName)
     else:
       raise Exception('Unsupported', 'Function unsupported on this phone')
+
+  def pickFromList(self, title, options):
+    if self.phoneType == "android":
+      self.droid.dialogCreateAlert(title)
+      self.droid.dialogSetItems(options)
+      self.droid.dialogShow()
+      response = self.droid.dialogGetResponse().result['item']
+      return options[response]
+    else:
+      raise Exception('Unsupported', 'Function unsupported on this phone')
+

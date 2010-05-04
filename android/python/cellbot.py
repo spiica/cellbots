@@ -141,10 +141,6 @@ def commandByXMPP():
   global xmppUsername
   global xmppPassword
   global xmppClient
-  if not xmppUsername:
-    xmppUsername = robot.getInput('Username')['result']
-  if not xmppPassword:
-    xmppPassword = robot.getInput('Password')['result']
   jid = xmpp.protocol.JID(xmppUsername)
   xmppClient = xmpp.Client(jid.getDomain(), debug=[])
   xmppClient.connect(server=(xmppServer, xmppPort))
@@ -178,8 +174,7 @@ def XMPP_message_cb(session, message):
 # Command input via speech recognition
 def commandByVoice(mode='continuous'):
   try:
-    listen = robot.recognizeSpeech()
-    voiceCommands = str(listen['result'])
+    voiceCommands = robot.recognizeSpeech().result
   except:
     voiceCommands = ""
   outputToOperator("Voice commands: %s" % voiceCommands)
@@ -246,11 +241,24 @@ def orientToAzimuth(azimuth):
     else:
       msg = "Could not start sensors."
 
+# Extra processing when using a serial servo controller
+def serialServoDrive(leftPWM, rightPWM):
+  #Turn a range of -100 to 100 into a range of 1 to 127
+  leftPWM = (int(leftPWM) + 100) * 0.635
+  rightPWM = ((int(rightPWM) * -1) + 100) * 0.635
+  #Make sure nothing fell out of range
+  leftPWM = max(min(int(leftPWM), 127), 1)
+  rightPWM = max(min(int(rightPWM), 127), 1)
+  #Turn the numbers into hex for the servo controller plus some expected commands in front
+  serialCommand = '\x80\x01\x02\x01' + chr(leftPWM) + '\x80\x01\x02\x02' + chr(rightPWM)
+  commandOut(serialCommand)
 
 # Send command out of the device via Bluetooth or serial
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
     robot.bluetoothWrite(msg + '\n')
+  elif microcontroller == "serialservo":
+    robot.writeSerialOut(r"echo -e '%s' > /dev/ttyMSM2" % msg)
   else:
     robot.writeSerialOut("echo '<%s>' > /dev/ttyMSM2" % msg)
 
@@ -265,17 +273,19 @@ def outputToOperator(msg):
   
 # Shut down sensing and other open items and quit
 def exitCellbot(msg='Exiting'):
-  if outputMethod == "outputSerial":
+  if inputMethod == "commandByTelnet":
     svr_sock.close()
   robot.stopSensing()
   robot.stopLocating()
-  #The following was throwing an error. Do we need to manually kill the thread?
-  #global readerThread
-  #readerThread.join()
+  #Stop the servos if using a serial controller
+  if microcontroller == "serialservo":
+    serialServoDrive(0, 0)
+    time.sleep(1)
   sys.exit(msg)
 
 # Parse the first character of incoming commands to determine what action to take
 def commandParse(input):
+  # Split the incoing string into a command and up to two values
   try:
     commandList = shlex.split(input)
   except:
@@ -294,6 +304,7 @@ def commandParse(input):
   except IndexError:
     commandValue2 = ""
 
+  # Process known commands
   if command in ["a", "audio", "record"]:
     global audioRecordingOn
     audioRecordingOn = not audioRecordingOn
@@ -378,9 +389,13 @@ def commandParse(input):
     msg = "Calibrating servos to center at %s and %s" % (commandValue, commandValue2)
     outputToOperator(msg)
   elif command in ["w", "wheel"]:
-    commandOut("w" + commandValue + " " + commandValue2)
-    msg = "Driving servos with %s and %s" % (commandValue, commandValue2)
-    outputToOperator(msg)
+    if microcontroller == "arduino":
+      commandOut("w" + commandValue + " " + commandValue2)
+    elif microcontroller == "serialservo":
+      serialServoDrive(commandValue, commandValue2)
+    else:
+      msg = "Unknown microcontroller type: " + microcontroller
+      outputToOperator(msg)
     addToWhiteboard("w", commandValue + " " + commandValue2)
   elif command in ["i", "infinite"]:
     commandOut("i")
@@ -410,15 +425,42 @@ cardinals['n']=('North','0')
 cardinals['e']=('East','90')
 cardinals['w']=('West','270')
 cardinals['s']=('South','180')
-
-#defines the dict of sensor values and their history
-whiteboard = {}
-MAX_WHITEBOARD_LENGTH = 30
 previousMsg = ""
 audioRecordingOn = False
 phoneIP = netip.displayNoLo()
 
-# Get configurable options from the ini file
+# Defines the dict of sensor values and their history
+whiteboard = {}
+MAX_WHITEBOARD_LENGTH = 30
+
+# Get configurable options from the ini file, prompt user if they aren't there, and save if needed
+def getConfigFileValue(config, section, option, title, valueList, saveToFile):
+  # Check if option exists in the file
+  if config.has_option(section, option):
+    values = config.get(section, option)
+    values = values.split(',')
+    # Prompt the user to pick an option if the file specified more than one option
+    if len(values) > 1:
+      setting = robot.pickFromList(title, values)
+    else:
+      setting = values[0]
+  else:
+    setting = ''
+  # Deal with blank or missing values by prompting user
+  if not setting or not config.has_option(section, option):
+    # Provide an empty text prompt if no list of values provided
+    if not valueList:
+      setting = robot.getInput(title).result
+    # Let the user pick from a list of values
+    else:
+      setting = robot.pickFromList(title, valueList)
+    if saveToFile:
+      config.set(section, option, setting)
+      with open(configFilePath, 'wb') as configfile:
+        config.write(configfile)
+  return setting
+
+# Setup the config file for reading and be sure we have a phone type set
 config = ConfigParser.ConfigParser()
 configFilePath = "/sdcard/ase/scripts/cellbotConfig.ini"
 config.read(configFilePath)
@@ -428,28 +470,19 @@ else:
   phoneType = "android"
   config.set("basics", "phoneType", phoneType)
 robot = robot.Robot(phoneType)
+
+# List of config values to get from file or prompt user for
+inputMethod = getConfigFileValue(config, "control", "inputMethod", "Select Input Method", ['commandByXMPP', 'commandByTelnet', 'commandByVoice'], True)
+outputMethod = getConfigFileValue(config, "control", "outputMethod", "Select Output Method", ['outputSerial', 'outputBluetooth'], True)
+microcontroller = getConfigFileValue(config, "basics", "microcontroller", "Microcontroller Type", ['arduino', 'serialservo'], True)
+xmppUsername = getConfigFileValue(config, "xmpp", "username", "Chat username", '', True)
+xmppPassword = getConfigFileValue(config, "xmpp", "password", "Chat password", '', False)
 audioOn = config.getboolean("basics", "audioOn")
 currentSpeed = config.getint("basics", "currentSpeed")
 cardinalMargin = config.getint("basics", "cardinalMargin")
 telnetPort = config.getint("control", "port")
-inputMethod = config.get("control", "inputMethod")
-if config.has_option("control", "outputMethod"):
-  outputMethod = config.get("control", "outputMethod")
-else:
-  dialog = robot.dialogCreateAlert("Select outputMethod")
-  options = ['outputSerial', 'outputBluetooth']
-  robot.dialogSetItems(options)
-  robot.dialogShow()
-  result = robot.dialogGetResponse(dialog)["result"]
-  outputMethod = options[result['item']]
-  config.set("control", "outputMethod", outputMethod)
 xmppServer = config.get("xmpp", "server")
 xmppPort = config.getint("xmpp", "port")
-xmppUsername = config.get("xmpp", "username")
-xmppPassword = config.get("xmpp", "password")
-with open(configFilePath, 'wb') as configfile:
-  config.write(configfile)
-
 
 # Raise the sails and fire the cannons
 def main():
@@ -464,8 +497,9 @@ def main():
     readerThread = serialReader()
   readerThread.start()
   global currentSpeed
-  commandOut(str(currentSpeed))
-  robot.makeToast("Initiating input method...")
+  if microcontroller == "arduino":
+    commandOut(str(currentSpeed))
+  robot.makeToast("Initiating input method...\n")
   globals()[inputMethod]()
 
 if __name__ == '__main__':
