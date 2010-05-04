@@ -19,17 +19,13 @@ import os
 import time
 import xmpp
 import ConfigParser
+import math
+import robot
 from threading import Thread
 
-
+# Establish an XMPP connection
 def commandByXMPP():
-  global xmppUsername
-  global xmppPassword
   global xmppClient
-  if not xmppUsername:
-    xmppUsername = droid.getInput('Username')['result']
-  if not xmppPassword:
-    xmppPassword = droid.getInput('Password')['result']
   jid = xmpp.protocol.JID(xmppUsername)
   xmppClient = xmpp.Client(jid.getDomain(), debug=[])
   xmppClient.connect(server=(xmppServer, xmppPort))
@@ -81,16 +77,13 @@ def initializeBluetooth():
   droid.makeToast("Initializing Bluetooth connection")
   time.sleep(4)
 
-# Send command out of the device over XMPP
+# Send command out of the device over BlueTooth or XMPP
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
     droid.bluetoothWrite(msg + '\r\n')
   else:
-    global xmppRobotUsername
     global previousMsg
     global lastMsgTime
-    if not xmppRobotUsername:
-      xmppPassword = droid.getInput('Robot user')['result']
     # Don't send the same message repeatedly unless 1 second has passed
     if msg != previousMsg or (time.time() > lastMsgTime + 1000):
       xmppClient.send(xmpp.Message(xmppRobotUsername, msg))
@@ -105,42 +98,58 @@ def runRemoteControl():
     pitch=int(sensor_result.result['pitch'])
     roll=int(sensor_result.result['roll'])
 
-    # Assumes the phone is held in portrait orientation
-
-    # People naturally hold the phone slightly pitched forward.
-    # Translate and scale a bit to keep the values mostly in -100:100
-    speed = pitch + 90
-
-    # Pitch develops a dead zone around vertical (90) where it jumps
-    # from about 90+roll to 90-roll as you try to hold it vertical,
-    # at least on the nexus one.  Try to subtract that out.
-    if speed > 0:
-      speed -= abs(roll)
-    else:
-      speed += abs(roll)
-
-    if speed > 20:
-      speed = int(4 * (speed - 20))
-    elif speed < 0:
-      speed = int(3 * speed)
-    else:
+    # Assumes the phone is held in portrait orientation and that
+    # people naturally hold the phone slightly pitched forward.
+    # Translate and scale a bit to keep the values mostly in -150:20
+    # with 50 degrees forward and back multiple by 2 for a full range -100:100
+    if pitch in range(-20, -10):
+      speed = 100
+      droid.vibrate((pitch + 20) * 10)
+      print "Too far forward"
+    elif pitch in range(-70, -20):
+      speed = (pitch + 70) * 2
+    elif pitch in range(-100, -70):
       speed = 0
+      print "Steady"
+    elif pitch in range(-150, -100):
+      speed = (pitch + 100) * 2
+    elif pitch in range(-170, -150):
+      speed = -100
+      droid.vibrate(((pitch + 150) *-1) * 10)
+      print "Too far backward"
+    else:
+      # We set speed to zero and fake roll to zero so laying the phone flat stops bot
+      speed = 0
+      roll =0
+      print "Stopping bot"
 
     # Some empirical values, and also a gutter (dead spot) in the middle.
-    direction = int(-roll * 5 / 2.4)
-    if direction < 20 and direction > -20:
-      direction = 0
-
-    # clamp
-    if speed > 100:
-      speed = 100
-    elif speed < -100:
-      speed = 100
-
-    if direction  > 100:
-      direction = 100
-    elif direction < -100:
+    if roll > 50:
       direction = -100
+      droid.vibrate((roll -50) * 10)
+      print "Too far left"
+    elif roll < -50:
+      direction = 100
+      droid.vibrate(((roll *-1) -50) * 10)
+      print "too far right"
+    elif roll in range(-3,3):
+      direction = 0
+    else:
+      direction = roll * 2
+
+    # Reverse turning when going backwards
+    if speed < 0:
+      direction = direction * -1
+
+    # Clamp speed and direction between -100 and 100 just in case the above let's something slip
+    speed = max(min(speed, 100), -100)
+    direction = max(min(direction, 100), -100)
+
+    # Apply acceleration scaling factor since linear use of the accelerometer goes to fast with minor tilts
+    scaledSpeed = math.pow(abs(speed) / 100.00, speedScaleFactor)
+    speed = math.copysign(scaledSpeed, speed) * 100.00
+    scaledDirection = math.pow(abs(direction) / 100.00, directionScaleFactor)
+    direction = math.copysign(scaledDirection, direction) * 100.00
 
     # Okay, speed and direction are now both in the range of -100:100.
     # Speed=100 means to move forward at full speed.  direction=100 means
@@ -173,39 +182,66 @@ def runRemoteControl():
       left = int(scale * left)
       right = int(scale * right)
 
-    print pitch,roll,speed, direction
+    print pitch, roll, speed, direction
 
-    if speed == 0 and direction == 0:
-      print 'steady'
-      commandOut('s')
+    command = "w %d %d" % (left, right)
+    #print command
+    commandOut(command)
 
-    elif pitch > 50:
-      print 'off (or upside down)'
-      commandOut('s')
-  
+    time.sleep(0.10)
+
+# Get configurable options from the ini file, prompt user if they aren't there, and save if needed
+def getConfigFileValue(config, section, option, title, valueList, saveToFile):
+  # Check if option exists in the file
+  if config.has_option(section, option):
+    values = config.get(section, option)
+    values = values.split(',')
+    # Prompt the user to pick an option if the file specified more than one option
+    if len(values) > 1:
+      setting = robot.pickFromList(title, values)
     else:
-      #command = 'pass "w %d %d;"' % (left, right)
-      command = "w %d %d" % (left, right)
-      print command
-      commandOut(command)
+      setting = values[0]
+  else:
+    setting = ''
+  # Deal with blank or missing values by prompting user
+  if not setting or not config.has_option(section, option):
+    # Provide an empty text prompt if no list of values provided
+    if not valueList:
+      setting = robot.getInput(title).result
+    # Let the user pick from a list of values
+    else:
+      setting = robot.pickFromList(title, valueList)
+    if saveToFile:
+      config.set(section, option, setting)
+      with open(configFilePath, 'wb') as configfile:
+        config.write(configfile)
+  return setting
 
-    time.sleep(0.1)
-
+# Setup the config file for reading and be sure we have a phone type set
+config = ConfigParser.ConfigParser()
+configFilePath = "/sdcard/ase/scripts/cellbotRemoteConfig.ini"
+config.read(configFilePath)
+if config.has_option("basics", "phoneType"):
+  phoneType = config.get("basics", "phoneType")
+else:
+  phoneType = "android"
+  config.set("basics", "phoneType", phoneType)
+robot = robot.Robot(phoneType)
 
 #Non-configurable settings
 droid = android.Android()
 previousMsg = ""
 lastMsgTime = time.time()
 
-# Get configurable options from the ini file
-config = ConfigParser.ConfigParser()
-config.read("/sdcard/ase/scripts/cellbotRemoteConfig.ini")
+# List of config values to get from file or prompt user for
+outputMethod = getConfigFileValue(config, "control", "outputMethod", "Select Output Method", ['outputXMPP', 'outputBluetooth'], True)
+xmppUsername = getConfigFileValue(config, "xmpp", "username", "Chat username", '', True)
+xmppPassword = getConfigFileValue(config, "xmpp", "password", "Chat password", '', False)
+xmppRobotUsername = getConfigFileValue(config, "xmpp", "robotUsername", "Robot username", '', True)
 xmppServer = config.get("xmpp", "server")
 xmppPort = config.getint("xmpp", "port")
-xmppUsername = config.get("xmpp", "username")
-xmppPassword = config.get("xmpp", "password")
-xmppRobotUsername = config.get("xmpp", "robotUsername")
-outputMethod = config.get("control", "outputMethod")
+speedScaleFactor = 1.5
+directionScaleFactor = 2.0
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
