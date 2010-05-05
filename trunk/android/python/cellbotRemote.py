@@ -132,7 +132,7 @@ def runRemoteControl():
       direction = 100
       droid.vibrate(((roll *-1) -50) * 10)
       print "too far right"
-    elif roll in range(-3,3):
+    elif roll in range(-5,5):
       direction = 0
     else:
       direction = roll * 2
@@ -182,7 +182,7 @@ def runRemoteControl():
       left = int(scale * left)
       right = int(scale * right)
 
-    print pitch, roll, speed, direction
+    #print pitch, roll, speed, direction
 
     command = "w %d %d" % (left, right)
     #print command
@@ -215,6 +215,12 @@ def getConfigFileValue(config, section, option, title, valueList, saveToFile):
       config.set(section, option, setting)
       with open(configFilePath, 'wb') as configfile:
         config.write(configfile)
+  # Strip whitespace and try turning numbers into floats
+  setting = setting.strip()
+  try:
+    setting = float(setting)
+  except ValueError:
+    pass
   return setting
 
 # Setup the config file for reading and be sure we have a phone type set
@@ -235,23 +241,26 @@ lastMsgTime = time.time()
 
 # List of config values to get from file or prompt user for
 outputMethod = getConfigFileValue(config, "control", "outputMethod", "Select Output Method", ['outputXMPP', 'outputBluetooth'], True)
-xmppUsername = getConfigFileValue(config, "xmpp", "username", "Chat username", '', True)
-xmppPassword = getConfigFileValue(config, "xmpp", "password", "Chat password", '', False)
-xmppRobotUsername = getConfigFileValue(config, "xmpp", "robotUsername", "Robot username", '', True)
-xmppServer = config.get("xmpp", "server")
-xmppPort = config.getint("xmpp", "port")
-speedScaleFactor = 1.5
-directionScaleFactor = 2.0
+speedScaleFactor = getConfigFileValue(config, "control", "speedScaleFactor", "Speed scale factor", '', False)
+directionScaleFactor = getConfigFileValue(config, "control", "directionScaleFactor", "Direction scale factor", '', False)
+
+# Only get these settings if we using XMPP
+if outputMethod == "outputXMPP":
+  xmppUsername = getConfigFileValue(config, "xmpp", "username", "Chat username", '', True)
+  xmppPassword = getConfigFileValue(config, "xmpp", "password", "Chat password", '', False)
+  xmppRobotUsername = getConfigFileValue(config, "xmpp", "robotUsername", "Robot username", '', True)
+  xmppServer = config.get("xmpp", "server")
+  xmppPort = config.getint("xmpp", "port")
 
 # The main loop that fires up a telnet socket and processes inputs
 def main():
   print "Lay the phone flat to pause the program.\n"
   if outputMethod == "outputBluetooth":
     initializeBluetooth()
-    #readerThread = bluetoothReader()
+    readerThread = bluetoothReader()
   else:
     commandByXMPP()
-  #readerThread.start()
+  readerThread.start()
   droid.makeToast("Move the phone to control the robot")
   runRemoteControl()
 

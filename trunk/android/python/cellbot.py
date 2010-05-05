@@ -206,27 +206,22 @@ def changeSpeed(newSpeed):
 # Point towards a specific compass heading
 def orientToAzimuth(azimuth):
   onTarget = False
-  stopTime = time.time() + 5000
+  stopTime = time.time() + 60
   while not onTarget and time.time() < stopTime:
-    results = robot.readSensors()
-
-    if results['result'] is not None:
-      currentHeading = results['result']['azimuth']
+    results = robot.readSensors().result
+    if results is not None:
+      currentHeading = results['azimuth']
       msg = "Azimuth: %d Heading: %d" % (azimuth,currentHeading)
       delta = azimuth - currentHeading
       if math.fabs(delta) > 180:
         if delta < 0:
-          adjustment = math.fabs(delta) + 360
+          adjustment = delta + 360
         else:
-          adjustment = math.fabs(delta) - 360
+          adjustment = delta - 360
       else:
         adjustment = delta
       adjustmentAbs = math.fabs(adjustment)
       if adjustmentAbs < cardinalMargin:
-        msg = "Goal achieved! Facing %d degrees, which is within the %d degree margin of %d!" % (currentHeading, cardinalMargin, azimuth)
-        outputToOperator(msg)
-        speak(msg)
-        commandOut('s')
         onTarget = True
       else:
         if adjustment > cardinalMargin:
@@ -235,11 +230,23 @@ def orientToAzimuth(azimuth):
         if adjustment < (cardinalMargin * -1):
           outputToOperator("Moving %d left." % adjustmentAbs)
           commandOut('l')
+        # Let the robot run for an estimated number of seconds to turn in the intended direction
+        # We should have setting for this and/or allow some calibration for turning rate of the bot
         time.sleep(adjustmentAbs/180)
         commandOut('s')
-        time.sleep(1)
+        # Stop for a 1/4 second to take another compass reading
+        time.sleep(0.25)
     else:
       msg = "Could not start sensors."
+  # Loop finished because we hit target or ran out of time
+  if onTarget:
+    msg = "Goal achieved! Facing %d degrees, which is within the %d degree margin of %d!" % (currentHeading, cardinalMargin, azimuth)
+    speak(msg)
+    commandOut('s')
+  else:
+    msg = "Ran out of time before hitting proper orientation."
+    speak(msg)
+    commandOut('s')   
 
 # Extra processing when using a serial servo controller
 def serialServoDrive(leftPWM, rightPWM):
@@ -353,16 +360,17 @@ def commandParse(input):
     commandOut('s')
     outputToOperator("Stopping")
   elif command in ["t", "talk", "speak", "say"]:
-    speak(input.replace(command, ''),True)
+    msg = robot.replaceInsensitive(input, command, '').strip()
+    speak(msg,True)
   elif command in ["v", "voice", "listen", "speech"]:
     robot.makeToast("Launching voice recognition")
     outputToOperator("Launching voice recognition")
     commandByVoice("onceOnly")
   elif command in ["x", "location", "gps"]:
     try:
-      location = robot.readLocation()['result']
-      addresses = robot.geocode(location['latitude'], location['longitude'])
-      firstAddr = addresses['result']['result'][0]
+      location = robot.readLocation().result
+      addresses = robot.geocode(location['latitude'], location['longitude']).result
+      firstAddr = addresses[0]
       msg = 'You are in %(locality)s, %(admin_area)s' % firstAddr
     except:
       msg = "Failed to find location."
@@ -376,7 +384,8 @@ def commandParse(input):
     changeSpeed(currentSpeed + 1)
   elif command in ["slower", "slow", "chill"]:
     changeSpeed(currentSpeed - 1)
-  elif command in ["move", "go", "turn"]:
+  # Prefixes that we ignore and then process the following word
+  elif command in ["move", "go", "turn", "take"]:
     commandParse(commandValue)
   elif command in ["send", "pass"]:
     commandOut(commandValue)
@@ -400,7 +409,7 @@ def commandParse(input):
   elif command in ["i", "infinite"]:
     commandOut("i")
     outputToOperator("Toggled infinite rotation mode on robot")
-  elif command in ["picture", "takepicture", "takePicture"]:
+  elif command in ["picture", "takepicture"]:
     fileName=time.strftime("/sdcard/cellbot_%Y-%m-%d_%H-%M-%S.jpg")
     robot.cameraTakePicture(fileName)
     outputToOperator("Took picture. Image file located at '%s'" % fileName)
@@ -458,6 +467,12 @@ def getConfigFileValue(config, section, option, title, valueList, saveToFile):
       config.set(section, option, setting)
       with open(configFilePath, 'wb') as configfile:
         config.write(configfile)
+  # Strip whitespace and try turning numbers into floats
+  setting = setting.strip()
+  try:
+    setting = float(setting)
+  except ValueError:
+    pass
   return setting
 
 # Setup the config file for reading and be sure we have a phone type set
@@ -475,14 +490,17 @@ robot = robot.Robot(phoneType)
 inputMethod = getConfigFileValue(config, "control", "inputMethod", "Select Input Method", ['commandByXMPP', 'commandByTelnet', 'commandByVoice'], True)
 outputMethod = getConfigFileValue(config, "control", "outputMethod", "Select Output Method", ['outputSerial', 'outputBluetooth'], True)
 microcontroller = getConfigFileValue(config, "basics", "microcontroller", "Microcontroller Type", ['arduino', 'serialservo'], True)
-xmppUsername = getConfigFileValue(config, "xmpp", "username", "Chat username", '', True)
-xmppPassword = getConfigFileValue(config, "xmpp", "password", "Chat password", '', False)
 audioOn = config.getboolean("basics", "audioOn")
 currentSpeed = config.getint("basics", "currentSpeed")
 cardinalMargin = config.getint("basics", "cardinalMargin")
 telnetPort = config.getint("control", "port")
-xmppServer = config.get("xmpp", "server")
-xmppPort = config.getint("xmpp", "port")
+
+# Only get these settings if we using XMPP
+if inputMethod == "commandByXMPP":
+  xmppUsername = getConfigFileValue(config, "xmpp", "username", "Chat username", '', True)
+  xmppPassword = getConfigFileValue(config, "xmpp", "password", "Chat password", '', False)
+  xmppServer = config.get("xmpp", "server")
+  xmppPort = config.getint("xmpp", "port")
 
 # Raise the sails and fire the cannons
 def main():

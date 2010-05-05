@@ -22,7 +22,6 @@ import os
 #import sys
 import android
 
-
 class Robot(object):
 
   def __init__(self, phoneType):
@@ -192,3 +191,11 @@ class Robot(object):
     else:
       raise Exception('Unsupported', 'Function unsupported on this phone')
 
+  def replaceInsensitive(self, string, target, replacement):
+    no_case = string.lower()
+    index = no_case.find(target.lower())
+    if index >= 0:
+        result = string[:index] + replacement + string[index + len(target):]
+        return result
+    else: # no results so return the original string
+        return string
