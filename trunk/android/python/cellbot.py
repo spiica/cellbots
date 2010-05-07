@@ -174,7 +174,7 @@ def XMPP_message_cb(session, message):
 # Command input via speech recognition
 def commandByVoice(mode='continuous'):
   try:
-    voiceCommands = robot.recognizeSpeech().result
+    voiceCommands = str(robot.recognizeSpeech().result)
   except:
     voiceCommands = ""
   outputToOperator("Voice commands: %s" % voiceCommands)
@@ -344,10 +344,10 @@ def commandParse(input):
     audioOn = not audioOn
     speak("Audio mute toggled")
   elif command in ["p", "point", "pointe", "face", "facing"]:
-    msg = "Orienting %s" % cardinals[commandValue[:1]][0]
+    msg = "Orienting %s" % cardinals[commandValue[:1].lower()][0]
     speak(msg)
     try:
-      orientToAzimuth(int(cardinals[commandValue[:1]][1]))
+      orientToAzimuth(int(cardinals[commandValue[:1].lower()][1]))
     except:
       outputToOperator("Could not orient towards " + commandValue)
   elif command in ["q", "quit", "exit"]:
@@ -368,6 +368,7 @@ def commandParse(input):
     commandByVoice("onceOnly")
   elif command in ["x", "location", "gps"]:
     try:
+      robot.startLocating()
       location = robot.readLocation().result
       addresses = robot.geocode(location['latitude'], location['longitude']).result
       firstAddr = addresses[0]
