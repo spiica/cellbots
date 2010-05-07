@@ -21,6 +21,7 @@ import xmpp
 import ConfigParser
 import math
 import robot
+import sys
 from threading import Thread
 
 # Establish an XMPP connection
@@ -36,7 +37,7 @@ def commandByXMPP():
   if not xmppClient:
     exitCellbot('XMPP Connection failed!')
     return
-  auth = xmppClient.auth(jid.getNode(), xmppPassword, 'botty')
+  auth = xmppClient.auth(jid.getNode(), xmppPassword, 'cellbot')
   if not auth:
     exitCellbot('XMPP Authentication failed!')
     return
@@ -70,6 +71,43 @@ class bluetoothReader(Thread):
           result = result[npos+1:]
           print result
 
+# Give the user an option to try other actions while still using the remote as an accelerometer
+class remoteCommandOptions(Thread):
+  def __init__ (self):
+    Thread.__init__(self)
+ 
+  def run(self):
+    command = ''
+    msg = ''
+    while command != "Exit":
+      try:
+        command = robot.pickFromList("Pick an action (set down phone to pause)", ['Say Hello', 'Point Using Compass', 'Take Picture','Speak Location','Voice Command', 'Exit'])
+        if command == "Take Picture":
+          msg = "Asking robot to take a picture"
+          commandOut("picture")
+        elif command == "Speak Location":
+          msg = "Asking robot to speak current location"
+          commandOut("x")
+        elif command == "Voice Command":
+          try:
+            voiceCommand = droid.recognizeSpeech().result
+            msg = "Told the robot to " + voiceCommand
+            commandOut(voiceCommand)
+          except:
+            msg = "Could not understand"
+        elif command == "Point Using Compass":
+          direction = robot.pickFromList("Pick a direction", ['North','East','West','South'])
+          msg = "Asking robot to point " + direction
+          commandOut("p " + direction)
+          time.sleep(10)
+        elif command == "Say Hello":
+          msg = "Asking robot to say 'hello'"
+          commandOut("h")    
+      except KeyError:
+        msg = "Sorry, please try that again"
+      droid.makeToast(msg)
+      time.sleep(1)
+
 # Initialize Bluetooth outbound if configured for it
 def initializeBluetooth():
   droid.toggleBluetoothState(True)
@@ -84,19 +122,28 @@ def commandOut(msg):
   else:
     global previousMsg
     global lastMsgTime
-    # Don't send the same message repeatedly unless 1 second has passed
-    if msg != previousMsg or (time.time() > lastMsgTime + 1000):
-      xmppClient.send(xmpp.Message(xmppRobotUsername, msg))
+    try:
+      # Don't send the same message repeatedly unless 1 second has passed
+      if msg != previousMsg or (time.time() > lastMsgTime + 1000):
+        xmppClient.send(xmpp.Message(xmppRobotUsername, msg))
+    except IOError:
+      print "Failed to send command to robot"
     previousMsg=msg
     lastMsgTime = time.time()
-  
+
+# The main thread that continuously takes accelerometer data to drive the robot
 def runRemoteControl():
   droid.startSensing()
   time.sleep(1.0) # give the sensors a chance to start up
   while 1:
-    sensor_result = droid.readSensors()
-    pitch=int(sensor_result.result['pitch'])
-    roll=int(sensor_result.result['roll'])
+    try:
+      sensor_result = droid.readSensors()
+      pitch=int(sensor_result.result['pitch'])
+      roll=int(sensor_result.result['roll'])
+    except TypeError:
+      pitch = 0
+      roll = 0
+      droid.makeToast("Failed to read sensors")
 
     # Assumes the phone is held in portrait orientation and that
     # people naturally hold the phone slightly pitched forward.
@@ -121,9 +168,9 @@ def runRemoteControl():
       # We set speed to zero and fake roll to zero so laying the phone flat stops bot
       speed = 0
       roll =0
-      print "Stopping bot"
 
-    # Some empirical values, and also a gutter (dead spot) in the middle.
+    # Translate the roll into a direction ranging from -100 (full left) to 100 (full right).
+    # Also support a gutter (dead spot) in the middle and buzz the phone when user is out of range.
     if roll > 50:
       direction = -100
       droid.vibrate((roll -50) * 10)
@@ -131,13 +178,15 @@ def runRemoteControl():
     elif roll < -50:
       direction = 100
       droid.vibrate(((roll *-1) -50) * 10)
-      print "too far right"
+      print "Too far right"
     elif roll in range(-5,5):
       direction = 0
     else:
-      direction = roll * 2
+      # Take the roll that range from 50 to -50 and multiply it by two and reverse the sign
+      direction = roll * 2 * -1
 
-    # Reverse turning when going backwards
+    # Reverse turning when going backwards to mimic what happens when steering a non-differential drive system
+    # where direction is really a "bias" and not a true turning angle.
     if speed < 0:
       direction = direction * -1
 
@@ -175,20 +224,20 @@ def runRemoteControl():
       scale = 1.0
       # if left is bigger, use it to get the scaling amount
       if abs(left) > abs(right):
-        scale = 100.0 / left
+        scale = 100.0 / abs(left)
       else:
-        scale = 100.0 / right
+        scale = 100.0 / abs(right)
       
       left = int(scale * left)
       right = int(scale * right)
 
-    #print pitch, roll, speed, direction
+    print pitch, roll, int(speed), int(direction)
 
     command = "w %d %d" % (left, right)
     #print command
     commandOut(command)
 
-    time.sleep(0.10)
+    time.sleep(0.20)
 
 # Get configurable options from the ini file, prompt user if they aren't there, and save if needed
 def getConfigFileValue(config, section, option, title, valueList, saveToFile):
@@ -246,7 +295,7 @@ directionScaleFactor = getConfigFileValue(config, "control", "directionScaleFact
 
 # Only get these settings if we using XMPP
 if outputMethod == "outputXMPP":
-  xmppUsername = getConfigFileValue(config, "xmpp", "username", "Chat username", '', True)
+  xmppUsername = getConfigFileValue(config, "xmpp", "username", "Remote control username", '', True)
   xmppPassword = getConfigFileValue(config, "xmpp", "password", "Chat password", '', False)
   xmppRobotUsername = getConfigFileValue(config, "xmpp", "robotUsername", "Robot username", '', True)
   xmppServer = config.get("xmpp", "server")
@@ -255,12 +304,23 @@ if outputMethod == "outputXMPP":
 # The main loop that fires up a telnet socket and processes inputs
 def main():
   print "Lay the phone flat to pause the program.\n"
+  # When controlling a robt directly over Bluetooth we can also listen for a response in a new thread.
+  # We assume there is no phone on the robot to take additional commands though.
   if outputMethod == "outputBluetooth":
     initializeBluetooth()
     readerThread = bluetoothReader()
-  else:
+    readerThread.start()
+  # When sending XMPP to the bot we assume a phone is on the robot to take additional commands.
+  elif outputMethod == "outputXMPP":
+    global optionsThread
+    optionsThread = remoteCommandOptions()
+    optionsThread.daemon = True
+    optionsThread.start()
     commandByXMPP()
-  readerThread.start()
+  else:
+    droid.makeToast("Unsupported output method")
+    time.sleep(1)
+    sys.exit()
   droid.makeToast("Move the phone to control the robot")
   runRemoteControl()
 

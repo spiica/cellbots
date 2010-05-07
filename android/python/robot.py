@@ -21,6 +21,7 @@ __author__ = 'Glen Arrowsmith <glen.arrowsmith@gmail.com>'
 import os
 #import sys
 import android
+import time
 
 class Robot(object):
 
@@ -186,6 +187,7 @@ class Robot(object):
       self.droid.dialogCreateAlert(title)
       self.droid.dialogSetItems(options)
       self.droid.dialogShow()
+      time.sleep(0.25)
       response = self.droid.dialogGetResponse().result['item']
       return options[response]
     else:
