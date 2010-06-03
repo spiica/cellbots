@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+  <TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="Cellbots ServoTester"/>
+  <SeekBar
+    android:id="@+id/LeftServo"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20px"></SeekBar>
+  <TextView
+    android:text="@+id/LeftServoValue"
+    android:id="@+id/LeftServoValue"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"></TextView>
+  <SeekBar
+    android:id="@+id/RightServo"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="20px"></SeekBar>
+  <TextView
+    android:text="@+id/RightServoValue"
+    android:id="@+id/RightServoValue"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"></TextView>
+  <CheckBox
+    android:text="Invert Signal"
+    android:id="@+id/InvertSignalCheckBox"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:onClick="onToggleInvert"
+    android:layout_marginTop="20px"></CheckBox>
+
+
+  <ToggleButton
+    android:text="@+id/ToggleButton01"
+    android:id="@+id/ToggleButton01"
+    android:layout_width="80px"
+    android:layout_height="wrap_content"
+    android:textOff="Sound Off"
+    android:textOn="Sound On"
+    android:onClick="onToggleSound"
+    ></ToggleButton>
+</LinearLayout>
