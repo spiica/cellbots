@@ -92,13 +92,13 @@ public class ServoTester extends Activity implements OnSeekBarChangeListener
     if (seekBar.getId() == lPulseBar.getId())
     {
       noise.setLeftPulsePercent(progress);
-      lPulseText.setText("Left Pulse width = " + noise.getLeftPulseMs() + "ms");
+      lPulseText.setText("Left Pulse width = " + noise.getLeftPulseMs() + "ms (" + noise.getLeftPulseSamples() +" samples)");
     }
     
     if (seekBar.getId() == rPulseBar.getId())
     {
       noise.setRightPulsePercent(progress);
-      rPulseText.setText("Right Pulse width = " + noise.getRightPulseMs() + "ms");
+      rPulseText.setText("Right Pulse width = " + noise.getRightPulseMs() + "ms (" + noise.getRightPulseSamples() +" samples)");
     }
 
   }
