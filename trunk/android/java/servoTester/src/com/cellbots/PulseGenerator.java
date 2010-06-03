@@ -7,16 +7,16 @@ import android.util.Log;
 
 public class PulseGenerator implements Runnable
 {
-  public static int MIN_PULSE_WIDTH = 5;
+  public static int MIN_PULSE_WIDTH = 18;
   
-  public static int MAX_PULSE_WIDTH = 45;
+  public static int MAX_PULSE_WIDTH = 48;
 
   
   private boolean playing = false;
 
-  private int     lPulseWidth = 20;
+  private int     lPulseWidth = 33;
   
-  private int     rPulseWidth = 20;
+  private int     rPulseWidth = 33;
 
   private int     pulseInterval = 441;
 
@@ -136,12 +136,12 @@ public class PulseGenerator implements Runnable
 
   public void setLeftPulsePercent(int percent)
   {
-    this.lPulseWidth = MIN_PULSE_WIDTH + ((percent * MAX_PULSE_WIDTH )/ 100 );
+    this.lPulseWidth = MIN_PULSE_WIDTH + ((percent * (MAX_PULSE_WIDTH - MIN_PULSE_WIDTH))/ 100 );
   }
   
   public int getLeftPulsePercent()
   {
-    return ((lPulseWidth - MIN_PULSE_WIDTH)/MAX_PULSE_WIDTH) *100;
+    return ((lPulseWidth - MIN_PULSE_WIDTH)/(MAX_PULSE_WIDTH-MIN_PULSE_WIDTH)) *100;
   }
   
   public float getLeftPulseMs()
@@ -149,9 +149,20 @@ public class PulseGenerator implements Runnable
     return ((float)lPulseWidth / sampleRate) * 1000;
   }
   
+  public int getRightPulseSamples()
+  {
+    return rPulseWidth;
+  }
+  
+  
+  public int getLeftPulseSamples()
+  {
+    return lPulseWidth;
+  }
+  
   public void setRightPulsePercent(int percent)
   {
-    this.rPulseWidth = MIN_PULSE_WIDTH + ((percent * MAX_PULSE_WIDTH )/ 100 );
+    this.rPulseWidth = MIN_PULSE_WIDTH + ((percent * (MAX_PULSE_WIDTH - MIN_PULSE_WIDTH) )/ 100 );
   }
 
   public float getRightPulseMs()
@@ -161,7 +172,7 @@ public class PulseGenerator implements Runnable
 
   public int getRightPulsePercent()
   {
-    return ((rPulseWidth - MIN_PULSE_WIDTH)/MAX_PULSE_WIDTH) *100;
+    return ((rPulseWidth - MIN_PULSE_WIDTH)/(MAX_PULSE_WIDTH-MIN_PULSE_WIDTH)) *100;
   }
 
 }

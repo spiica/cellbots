@@ -12,6 +12,7 @@
     android:id="@+id/LeftServo"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:progress="50"
     android:layout_marginTop="20px"></SeekBar>
   <TextView
     android:text="@+id/LeftServoValue"
@@ -22,6 +23,7 @@
     android:id="@+id/RightServo"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    android:progress="50"
     android:layout_marginTop="20px"></SeekBar>
   <TextView
     android:text="@+id/RightServoValue"
@@ -42,8 +44,9 @@
     android:id="@+id/ToggleButton01"
     android:layout_width="80px"
     android:layout_height="wrap_content"
-    android:textOff="Sound Off"
-    android:textOn="Sound On"
+    android:textOff="Sound On"
+    android:textOn="Sound Off"
+    android:checked="false"
     android:onClick="onToggleSound"
     ></ToggleButton>
 </LinearLayout>
