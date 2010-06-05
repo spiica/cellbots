@@ -24,11 +24,13 @@ import android.util.Log;
 
 public class PulseGenerator implements Runnable
 {
-  private static int        sampleRate;
+  
+  //44100  native on g1
+  private int        sampleRate;
 
-  public static int  MIN_PULSE_WIDTH ;
+  public int  MIN_PULSE_WIDTH ;
 
-  public static int  MAX_PULSE_WIDTH ;
+  public int  MAX_PULSE_WIDTH ;
 
   private int        lPulseWidth     ;
 
@@ -38,9 +40,9 @@ public class PulseGenerator implements Runnable
   
   private int        bufferPulses  = 2;
   
-  private int        volume          = 31000;
+  private int        volume          = 30000;
 
-  private int        modulation      = 100;
+  private int        modulation      = 200;
 
   private boolean    playing         = false;
   
@@ -102,7 +104,8 @@ public class PulseGenerator implements Runnable
     
     while ( i < bufferLength)
     {
-      while (j < pulseWidth && i < bufferLength)
+      j=0;
+      while (j < pulseWidth )//&& i < bufferLength)
       {
         // we have to modulate the signal a bit because the sound card freaks
         // out if it goes dc
@@ -111,8 +114,8 @@ public class PulseGenerator implements Runnable
         j++;
       }
 
-      j=0;
-      while (j < pulseInterval && i < bufferLength)
+      
+      while (j < pulseInterval)// && i < bufferLength)
       {
         buffer[i] = (short) ( ( -volume * inverter ) + ( ( i % 2 ) * modulation ) );
         i++;
