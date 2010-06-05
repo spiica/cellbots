@@ -157,6 +157,7 @@ def commandByXMPP():
     return
   xmppClient.sendInitPresence()
   print "XMPP username for the robot is:\n" + xmppUsername
+  print "\r\n\Robot is now ready to take commands.\r\n\"
   try:
     while True:
       xmppClient.Process(1)
@@ -226,27 +227,27 @@ def orientToAzimuth(azimuth):
       else:
         if adjustment > cardinalMargin:
           outputToOperator("Moving %d right." % adjustmentAbs)
-          commandOut('r')
+          commandOut('w 15 -15')
         if adjustment < (cardinalMargin * -1):
           outputToOperator("Moving %d left." % adjustmentAbs)
-          commandOut('l')
+          commandOut('w -15 15')
         # Let the robot run for an estimated number of seconds to turn in the intended direction
         # We should have setting for this and/or allow some calibration for turning rate of the bot
         time.sleep(adjustmentAbs/180)
-        commandOut('s')
-        # Stop for a 1/4 second to take another compass reading
-        time.sleep(0.25)
+        commandOut('w 0 0')
+        # Stop for a 1/2 second to take another compass reading
+        time.sleep(0.5)
     else:
       msg = "Could not start sensors."
   # Loop finished because we hit target or ran out of time
   if onTarget:
     msg = "Goal achieved! Facing %d degrees, which is within the %d degree margin of %d!" % (currentHeading, cardinalMargin, azimuth)
     speak(msg)
-    commandOut('s')
+    commandOut('w 0 0')
   else:
     msg = "Ran out of time before hitting proper orientation."
     speak(msg)
-    commandOut('s')   
+    commandOut('w 0 0')   
 
 # Extra processing when using a serial servo controller
 def serialServoDrive(leftPWM, rightPWM):
@@ -326,19 +327,22 @@ def commandParse(input):
       outputToOperator("Stopped audio recording. Audio file located at '%s'" % fileName)
   elif command  in ["b", "back", "backward", "backwards"]:
     speak("Moving backward")
-    commandOut('b')
+    cmd = "w %s %s" % (currentSpeed * -10, currentSpeed * -10)
+    commandOut(cmd)
   elif command in ["compass", "heading"]:
     orientToAzimuth(int(commandValue[:3]))
   elif command in ["d", "date"]:
     speak(time.strftime("Current time is %_I %M %p on %A, %B %_e, %Y"))
   elif command in ["f", "forward", "forwards", "scoot"]:
     speak("Moving forward")
-    commandOut('f')
+    cmd = "w %s %s" % (currentSpeed * 10, currentSpeed * 10)
+    commandOut(cmd)
   elif command in ["h", "hi", "hello"]:
     speak("Hello. Let's play.")
   elif command in ["l", "left"]:
     speak("Moving left")
-    commandOut('l')
+    cmd = "w %s %s" % (currentSpeed * -10, currentSpeed * 10)
+    commandOut(cmd)
   elif command in ["m", "mute", "silence"]:
     global audioOn
     audioOn = not audioOn
@@ -355,9 +359,10 @@ def commandParse(input):
     exitCellbot("Exiting program after receiving 'q' command.")
   elif command in ["r", "right"]:
     speak("Moving right")
-    commandOut('r')
+    cmd = "w %s %s" % (currentSpeed * 10, currentSpeed * -10)
+    commandOut(cmd)
   elif command in ["s", "stop"]:
-    commandOut('s')
+    commandOut('w 0 0')
     outputToOperator("Stopping")
   elif command in ["t", "talk", "speak", "say"]:
     msg = robot.replaceInsensitive(input, command, '').strip()

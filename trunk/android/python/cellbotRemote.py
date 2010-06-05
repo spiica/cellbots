@@ -79,34 +79,53 @@ class remoteCommandOptions(Thread):
   def run(self):
     command = ''
     msg = ''
+    global running
+    global pauseSending
     while command != "Exit":
       try:
-        command = robot.pickFromList("Pick an action (set down phone to pause)", ['Say Hello', 'Point Using Compass', 'Take Picture','Speak Location','Voice Command', 'Exit'])
+        command = robot.pickFromList("Pick an action (set down phone to pause)",
+                                     ['Say Hello', 'Point Using Compass', 'Take Picture','Speak Location','Voice Command','Exit'])
+        # Pause sending commands so that robot only does what user selected here
+        pauseSending = True
         if command == "Take Picture":
-          msg = "Asking robot to take a picture"
-          commandOut("picture")
+          commandOut("picture", True)
+          droid.speak("Asking robot to take a picture")
+          droid.makeToast("Please wait, this may take a few seconds")
+          time.sleep(5)
+          msg = "Picture should be taken by now"
         elif command == "Speak Location":
-          msg = "Asking robot to speak current location"
-          commandOut("x")
+          msg = "Speaking location"
+          commandOut("x", True)
         elif command == "Voice Command":
           try:
             voiceCommand = droid.recognizeSpeech().result
+            commandOut(voiceCommand, True)
             msg = "Told the robot to " + voiceCommand
-            commandOut(voiceCommand)
+            droid.makeToast(msg)
+            time.sleep(2)
           except:
             msg = "Could not understand"
         elif command == "Point Using Compass":
           direction = robot.pickFromList("Pick a direction", ['North','East','West','South'])
+          commandOut("p " + direction, True)
           msg = "Asking robot to point " + direction
-          commandOut("p " + direction)
+          droid.speak(msg)
           time.sleep(10)
+          msg = "Robot should be facing " + direction
         elif command == "Say Hello":
-          msg = "Asking robot to say 'hello'"
-          commandOut("h")    
+          msg = "Asking robot to say hello"
+          commandOut("hi", True)
+        elif command == "Exit":
+          msg = "Bye bye. Come again."
       except KeyError:
         msg = "Sorry, please try that again"
-      droid.makeToast(msg)
+      droid.speak(msg)
       time.sleep(1)
+      # This resumes sending of normal accelerometer stream of commands
+      pauseSending = False
+    commandOut("w 0 0", True)
+    # This will exit the main loop as well. Remove this if you only want to exit the pop-up menu.
+    running = False
 
 # Initialize Bluetooth outbound if configured for it
 def initializeBluetooth():
@@ -116,10 +135,10 @@ def initializeBluetooth():
   time.sleep(4)
 
 # Send command out of the device over BlueTooth or XMPP
-def commandOut(msg):
+def commandOut(msg, override=False):
   if outputMethod == "outputBluetooth":
     droid.bluetoothWrite(msg + '\r\n')
-  else:
+  elif not pauseSending or override:
     global previousMsg
     global lastMsgTime
     try:
@@ -127,15 +146,28 @@ def commandOut(msg):
       if msg != previousMsg or (time.time() > lastMsgTime + 1000):
         xmppClient.send(xmpp.Message(xmppRobotUsername, msg))
     except IOError:
-      print "Failed to send command to robot"
+      specialToast("Failed to send command to robot")
     previousMsg=msg
     lastMsgTime = time.time()
 
+# Send command out of the device over BlueTooth or XMPP
+def specialToast(msg):
+  global previousToastMsg
+  global lastToastMsgTime
+  try:
+    # Don't toast the same message repeatedly unless 5 seconds have passed
+    if msg != previousToastMsg or (time.time() > lastToastMsgTime + 5000):
+      droid.makeToast(msg)
+  except:
+    pass
+  previousToastMsg=msg
+  lastToastMsgTime = time.time()
+    
 # The main thread that continuously takes accelerometer data to drive the robot
 def runRemoteControl():
   droid.startSensing()
   time.sleep(1.0) # give the sensors a chance to start up
-  while 1:
+  while running:
     try:
       sensor_result = droid.readSensors()
       pitch=int(sensor_result.result['pitch'])
@@ -143,7 +175,7 @@ def runRemoteControl():
     except TypeError:
       pitch = 0
       roll = 0
-      droid.makeToast("Failed to read sensors")
+      specialToast("Failed to read sensors")
 
     # Assumes the phone is held in portrait orientation and that
     # people naturally hold the phone slightly pitched forward.
@@ -152,18 +184,20 @@ def runRemoteControl():
     if pitch in range(-20, -10):
       speed = 100
       droid.vibrate((pitch + 20) * 10)
-      print "Too far forward"
+      specialToast("Too far forward")
+    # Range for forward
     elif pitch in range(-70, -20):
       speed = (pitch + 70) * 2
+    # Center gutter
     elif pitch in range(-100, -70):
       speed = 0
-      print "Steady"
+    # Range for backward
     elif pitch in range(-150, -100):
       speed = (pitch + 100) * 2
     elif pitch in range(-170, -150):
       speed = -100
       droid.vibrate(((pitch + 150) *-1) * 10)
-      print "Too far backward"
+      specialToast("Too far backward")
     else:
       # We set speed to zero and fake roll to zero so laying the phone flat stops bot
       speed = 0
@@ -174,11 +208,11 @@ def runRemoteControl():
     if roll > 50:
       direction = -100
       droid.vibrate((roll -50) * 10)
-      print "Too far left"
+      specialToast("Too far left")
     elif roll < -50:
       direction = 100
       droid.vibrate(((roll *-1) -50) * 10)
-      print "Too far right"
+      specialToast("Too far right")
     elif roll in range(-5,5):
       direction = 0
     else:
@@ -210,7 +244,7 @@ def runRemoteControl():
     # wheel as Y.
     # If we do that, then we can translate [speed,direction] into [left,right]
     # by rotating by -45 degrees.
-    # See the writeup at [INSERT URL HERE]
+    # See the writeup at http://code.google.com/p/cellbots/wiki/TranslatingUserControls
 
     # This actually rotates by 45 degrees and scales by 1.414, so that full
     # forward = [100,100]
@@ -231,13 +265,14 @@ def runRemoteControl():
       left = int(scale * left)
       right = int(scale * right)
 
-    print pitch, roll, int(speed), int(direction)
+    #print pitch, roll, int(speed), int(direction)
 
     command = "w %d %d" % (left, right)
     #print command
     commandOut(command)
 
-    time.sleep(0.20)
+    time.sleep(0.10)
+  sys.exit()
 
 # Get configurable options from the ini file, prompt user if they aren't there, and save if needed
 def getConfigFileValue(config, section, option, title, valueList, saveToFile):
@@ -287,6 +322,8 @@ robot = robot.Robot(phoneType)
 droid = android.Android()
 previousMsg = ""
 lastMsgTime = time.time()
+running = True
+pauseSending = False
 
 # List of config values to get from file or prompt user for
 outputMethod = getConfigFileValue(config, "control", "outputMethod", "Select Output Method", ['outputXMPP', 'outputBluetooth'], True)
