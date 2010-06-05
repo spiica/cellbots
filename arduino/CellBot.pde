@@ -47,6 +47,7 @@
 // ** GENERAL SETTINGS ** - General preference settings
 boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
 const int ledPin = 13; // LED turns on while running servos
+char* driveType = "servo"; // Use "motor" when bots has a DC motor driver or "servo" for servos powering the wheels
 
 // ** SERVO SETTINGS ** - Configurable values based on pins used and servo direction
 const int servoPinLeft = 3;
@@ -61,6 +62,13 @@ const long maxRunTime = 2000; // Maximum run time for servos without additional 
 int speedMultiplier = DEFAULT_speedMultiplier; // Default speed setting. Uses a range from 1-10
 int lastNeckValue = DEFAULT_lastNeckValue;
 
+// ** MOTOR DRIVER SETTINGS ** - For use with boards like the Pololu motor driver (also uses left/right servo pin settings above)
+int leftMotorPin_1 = 9;
+int leftMotorPin_2 = 8;
+int rightMotorPin_1 = 10;
+int rightMotorPin_2 = 11;
+int motor_stby = 12;
+
 // ** RANGE FINDING *** - The following settings are for ultrasonic range finders. OK to lave as-is if you don't have them on your robot
 long dist, microseconds, cm, inches; // Used by the range finder for calculating distances
 const int rangePinForward = 7; // Digital pin for the forward facing range finder (for object distance in front of bot)
@@ -73,7 +81,6 @@ const int rangeSampleCount = 3; // Number of range readings to take and average 
 Servo myservoLeft;
 Servo myservoRight;
 Servo myservoHead;
-
 
 // No config required for these parameters
 boolean servosActive = false; // assume servos are not moving when we begin
@@ -89,10 +96,15 @@ void setup() {
   pinMode(servoPinLeft, OUTPUT);
   pinMode(servoPinRight, OUTPUT);
   pinMode(servoPinHead, OUTPUT);
+  pinMode(leftMotorPin_1,OUTPUT);
+  pinMode(leftMotorPin_2,OUTPUT);
+  pinMode(rightMotorPin_1,OUTPUT);
+  pinMode(rightMotorPin_2,OUTPUT);
   pinMode(ledPin, OUTPUT);
   digitalWrite(servoPinLeft,0);
   digitalWrite(servoPinRight,0);
   digitalWrite(servoPinHead,0);
+  digitalWrite(motor_stby,HIGH);
   Serial.begin(9600);
   servoCenterLeft = readSetting(EEPROM_servoCenterLeft, servoCenterLeft);
   servoCenterRight = readSetting(EEPROM_servoCenterRight, servoCenterRight);
@@ -149,35 +161,74 @@ int directionValue(char* directionCommand, int servoDirection) {
 unsigned long moveBot(char* commandLeft, char* commandRight) {
   int valueLeft = directionValue(commandLeft, servoDirectionLeft) + servoCenterLeft;
   int valueRight = directionValue(commandRight, servoDirectionRight) + servoCenterRight;
-  driveServos(valueLeft, valueRight);
+  driveWheels(valueLeft, valueRight);
 }
 
-// Drive servo motors to move the robot using PWM values for left and right
-unsigned long driveServos(int valueLeft, int valueRight) {
-  digitalWrite(ledPin, HIGH);   // set the LED on
-  // Restart the servo PWM and send them commands
-  myservoLeft.attach(servoPinLeft);
-  myservoRight.attach(servoPinRight);
-  myservoLeft.write(valueLeft);
-  myservoRight.write(valueRight);
 
-  // Spit out some diagnosis info over serial
-  if (DEBUGGING) {
-    Serial.print("Moving left servo ");
-    Serial.print(valueLeft, DEC);
-    Serial.print(" and right servo ");
-    Serial.println(valueRight, DEC);
+// Drive servo or DC motors to move the robot using values in range -100 to 100 for left and right
+unsigned long driveWheels(int valueLeft, int valueRight) {
+  // Detach both servo pins which will stop whine and de-energize the motors so they don't kill the compass readings
+  if (valueLeft == 0 and valueRight == 0){
+    myservoLeft.detach();
+    myservoRight.detach();
   }
+  // Drive the wheels based on "servo" driveType
+  if (driveType == "servo"){
+    valueLeft = valueLeft * servoDirectionLeft; // Flip positive to negative if needed based on servo direction value setting
+    valueRight = valueRight * servoDirectionRight;
+    // Map "w" values to the narrow range that the servos respond to
+    valueLeft = map(valueLeft, -100, 100, (servoCenterLeft - servoPowerRange), (servoCenterLeft + servoPowerRange));
+    valueRight = map(valueRight, -100, 100, (servoCenterRight - servoPowerRange), (servoCenterRight + servoPowerRange));
+    digitalWrite(ledPin, HIGH);   // set the LED on
+    // Restart the servo PWM and send them commands
+    myservoLeft.attach(servoPinLeft);
+    myservoRight.attach(servoPinRight);
+    myservoLeft.write(valueLeft);
+    myservoRight.write(valueRight);
+    // Spit out some diagnosis info over serial
+    if (DEBUGGING) {
+      Serial.print("Moving left servo ");
+      Serial.print(valueLeft, DEC);
+      Serial.print(" and right servo ");
+      Serial.println(valueRight, DEC);
+    }
+  }
+  // Drive the wheels based on "motor" driveType
+  else{
+    // Set left motor pins to turn in the desired direction
+    if (valueLeft < 0){
+      digitalWrite(leftMotorPin_1,LOW);
+      digitalWrite(leftMotorPin_2,HIGH);
+    }
+    else {
+      digitalWrite(leftMotorPin_1,HIGH);
+      digitalWrite(leftMotorPin_2,LOW);
+    }
+    // Set right motor pins to turn in the desired direction
+    if (valueRight < 0){
+      digitalWrite(rightMotorPin_1,LOW);
+      digitalWrite(rightMotorPin_2,HIGH);
+    }
+    else {
+      digitalWrite(rightMotorPin_1,HIGH);
+      digitalWrite(rightMotorPin_2,LOW);
+    }
+    // Maps "w" values to the wider range that the motor responds to
+    valueLeft = map(abs(valueLeft), 0, 100, 0, 255);
+    valueRight = map(abs(valueRight), 0, 100, 0, 255);
+    analogWrite(servoPinLeft,valueLeft);
+    analogWrite(servoPinRight,valueRight);
+  }
+
   stopTime=millis() + maxRunTime; // Set time to stop running based on allowable running time
   return stopTime;
 }
 
 // Stop the bot
 void stopBot() {
-  myservoLeft.detach();
-  myservoRight.detach();
+  driveWheels(0,0);
   digitalWrite(ledPin, LOW);  // Turn the LED off
-  if (DEBUGGING) { Serial.println("Stopping both servos"); }
+  if (DEBUGGING) { Serial.println("Stopping both wheels"); }
   serialReply("i", "st"); // Tell the phone that the robot stopped
 }
 
@@ -302,37 +353,6 @@ void readSerialInput() {
   }  
 }
 
-// Dance
-void showOff() {
-  speedMultiplier = 1;
-  moveBot("forward","backward"); 
-  delay(500); 
-  stopBot();
-  moveBot("backward","forward"); 
-  delay(500); 
-  stopBot();
-  moveBot("forward","forward"); 
-  delay(2000); 
-  stopBot();
-  moveBot("backward","backward"); 
-  delay(3000); 
-  stopBot();
-  speedMultiplier = 1; 
-  moveBot("forward","forward"); 
-  delay(1000);
-  speedMultiplier = 3; 
-  moveBot("forward","forward"); 
-  delay(1000);
-  speedMultiplier = 5; 
-  moveBot("forward","forward"); 
-  delay(2000); 
-  stopBot();
-  speedMultiplier = 3; 
-  moveBot("backward","backward"); 
-  delay(3000); 
-  stopBot();
-}
-
 // Cleans and parses the command
 void parseCommand(char* com) {
   if (com[0] == '\0') { return; } //bit of error checking
@@ -357,19 +377,17 @@ void parseCommand(char* com) {
 }
 
 void performCommand(char* com) {  
-  if (strcmp(com, "d") == 0) { // Do a little dance
-    showOff();
-  } else if (strcmp(com, "f") == 0) { // Forward
-    stopTime = moveBot("forward","forward");
+  if (strcmp(com, "f") == 0) { // Forward
+    stopTime = driveWheels(speedMultiplier * 10, speedMultiplier * 10);
     servosActive = true;
   } else if (strcmp(com, "r") == 0) { // Right
-    stopTime = moveBot("forward","backward");
+    stopTime = driveWheels(speedMultiplier * 10, speedMultiplier * -10);
     servosActive = true;  
   } else if (strcmp(com, "l") == 0) { // Left
-    stopTime = moveBot("backward","forward");
+    stopTime = driveWheels(speedMultiplier * -10, speedMultiplier * 10);
     servosActive = true;  
   } else if (strcmp(com, "b") == 0) { // Backward
-    stopTime = moveBot("backward","backward");
+    stopTime = driveWheels(speedMultiplier * -10, speedMultiplier * -10);
     servosActive = true;
   } else if (strcmp(com, "s") == 0) { // Stop
     stopBot();
@@ -400,16 +418,16 @@ void performCommand(char* com) {
     // Blink the LED to confirm the new speed setting
     for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
       digitalWrite(ledPin, HIGH);   // set the LED on           
-      delay(250);
+      delay(100);
       digitalWrite(ledPin, LOW);   // set the LED off
-      delay(250);
+      delay(100);
     }  
   } else if (com[0] == 'c') { // Calibrate center PWM settings for both servos ex: "c 90 90"
     int valueLeft=90, valueRight=90;
     sscanf (com,"c %d %d",&valueLeft, &valueRight); // Parse the input into multiple values
     servoCenterLeft = valueLeft;
     servoCenterRight = valueRight;
-    stopTime = driveServos(servoCenterLeft, servoCenterRight); // Drive the servos with their center value (should result in no movement when calibrated)
+    stopTime = driveWheels(0,0); // Drive the servos with 0 value which should result in no movement when calibrated correctly
     servosActive = true;
     EEPROM.write(EEPROM_servoCenterLeft, servoCenterLeft); 
     EEPROM.write(EEPROM_servoCenterRight, servoCenterRight); 
@@ -430,11 +448,7 @@ void performCommand(char* com) {
   } else if (com[0] == 'w') { // Handle "wheel" command and translate into PWM values ex: "w -100 100" [range is from -100 to 100]
     int valueLeft=90, valueRight=90;
     sscanf (com,"w %d %d",&valueLeft, &valueRight); // Parse the input into multiple values
-    valueLeft = valueLeft * servoDirectionLeft; // Flip positive to negative if needed based on servo direction value setting
-    valueRight = valueRight * servoDirectionRight;
-    valueLeft = map(valueLeft, -100, 100, (servoCenterLeft - servoPowerRange), (servoCenterLeft + servoPowerRange)); // Maps to the narrow range that the servo responds to
-    valueRight = map(valueRight, -100, 100, (servoCenterRight - servoPowerRange), (servoCenterRight + servoPowerRange));
-    stopTime = driveServos(valueLeft, valueRight);
+    stopTime = driveWheels(valueLeft, valueRight);
     servosActive = true;
   } else if (strcmp(com, "reset") == 0) { // Resets the eeprom settings
     setEepromsToDefault();
