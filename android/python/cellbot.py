@@ -157,7 +157,7 @@ def commandByXMPP():
     return
   xmppClient.sendInitPresence()
   print "XMPP username for the robot is:\n" + xmppUsername
-  print "\r\n\Robot is now ready to take commands.\r\n\"
+  print "\r\nRobot is now ready to take commands."
   try:
     while True:
       xmppClient.Process(1)
@@ -516,10 +516,11 @@ def main():
   if outputMethod == "outputBluetooth":
     initializeBluetooth()
     readerThread = bluetoothReader()
+    #TEMP REM THIS OUT UNTIL ASE FIXES BLUETOOTH HANDLING readerThread.start()
   else:
     serialReader.lifeline = re.compile(r"(\d) received")
     readerThread = serialReader()
-  readerThread.start()
+    readerThread.start()
   global currentSpeed
   if microcontroller == "arduino":
     commandOut(str(currentSpeed))

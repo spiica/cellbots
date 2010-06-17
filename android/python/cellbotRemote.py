@@ -346,7 +346,7 @@ def main():
   if outputMethod == "outputBluetooth":
     initializeBluetooth()
     readerThread = bluetoothReader()
-    readerThread.start()
+    #TEMP REM THIS OUT UNTIL ASE FIXES BLUETOOTH HANDLING readerThread.start()
   # When sending XMPP to the bot we assume a phone is on the robot to take additional commands.
   elif outputMethod == "outputXMPP":
     global optionsThread

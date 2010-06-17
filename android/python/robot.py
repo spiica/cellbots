@@ -142,7 +142,7 @@ class Robot(object):
     
   def speak(self, msg):
     if self.phoneType == "android":
-      return self.droid.speak(msg)
+      return self.droid.ttsSpeak(msg)
     else:
       raise Exception('Unsupported', 'Function unsupported on this phone')
     
