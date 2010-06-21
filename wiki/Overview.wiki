@@ -5,7 +5,7 @@
 
 Our website is [http://www.cellbots.com Cellbots.com] and we also have video of the robots in action are on [http://www.youtube.com/cellbots our YouTube channel].
 
-An initial set of code is up for you to play with. It includes Python code to run in the [http://code.google.com/p/android-scripting/ Android Scripting Environment], as well as code to run on your Arduino. See [http://www.instructables.com/id/Android-G1-Serial-To-Arduino/ this Instructable] for getting your Android phone connected to the Arduino physically over serial. We are working on BlueTooth communications as well so Cyanogen and serial won't be required.
+An initial set of code is up for you to play with. It includes Python code to run in the [http://code.google.com/p/android-scripting/ Android Scripting Environment], as well as code to run on your Arduino. See [http://www.instructables.com/id/Android-G1-Serial-To-Arduino/ this Instructable] for getting your Android phone connected to the Arduino physically over serial. We are working on !BlueTooth communications as well so Cyanogen and serial won't be required.
 
 We've also added an Android program for talking to a Lego Mindstorms NXT, and we have some Nokia support as well. Our goal is to use multiple phone platforms for talking with many different robots. See our [http://code.google.com/p/cellbots/issues/list issue tracker] for more on what we have planned.
 
