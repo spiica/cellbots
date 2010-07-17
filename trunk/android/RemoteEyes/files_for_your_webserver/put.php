@@ -1,10 +1,9 @@
 <?php
-/* Taken from: http://php.net/manual/en/features.file-upload.put-method.php */
 /* PUT data comes in on the stdin stream */
 $putdata = fopen("php://input", "r");
 
 /* Open a file for writing */
-$fp = fopen("myputfile.ext", "w");
+$fp = fopen("image.jpg", "w");
 
 /* Read the data 1 KB at a time
    and write to the file */

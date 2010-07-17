@@ -25,7 +25,7 @@
  */
 
 var cameraImage; 
-var imgBase="http://myexampleserver.com/dropbox/image.jpg?" 
+var imgBase="image.jpg?" 
 var c = 0; 
 function count() 
 { 
@@ -44,7 +44,15 @@ function init()
 window.onload = init; 
 </script> 
 <body> 
-<p align="center">Cellbot Vision</p> 
-<p align="center"><img src="http://myexampleserver.com/dropbox/image.jpg?" id="cellbot"></p> 
+<div style="float:left;">
+<p>Cellbot Vision</p> 
+<img src="image.jpg?" id="cellbot">
+</div> 
+<div style="float:right;">
+<!--- This is the standard Google Talk Gadget for web pages --->
+<script src="http://www.gmodules.com/ig/ifr?url=http://hosting.gmodules.com/ig/gadgets/file/102561716148301006345/googletalk.xml&amp;synd=open&amp;w=320&amp;h=550&amp;title=&amp;border=%23ffffff%7C0px%2C1px+solid+%23004488%7C0px%2C1px+solid+%23005599%7C0px%2C1px+solid+%230077BB%7C0px%2C1px+solid+%230088CC&amp;output=js"></script>
+</div> 
+
+
 </body> 
 </html>  
