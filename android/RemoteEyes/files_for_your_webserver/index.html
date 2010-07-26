@@ -26,7 +26,8 @@
 
 var cameraImage; 
 var imgBase="image.jpg?" 
-var c = 0; 
+var c = 0;
+var refresh = 50;
 function count() 
 { 
  cameraImage.src=imgBase+(++c); 
@@ -35,12 +36,19 @@ function init()
 { 
  cameraImage = document.getElementById("cellbot"); 
  if( cameraImage ) 
- {
+ {  
+  if (document.location.search && document.location.search.length > 0){
+    // Should actually do some validation here...
+    var refreshStr = document.location.search.replace("?", "");
+    refresh = refreshStr;
+  }
+ 
   // 50 is a pretty good interval. Too short, and the page is constantly
   // loading and doesn't show anything. Too long, and the video is choppy.
-  setInterval("count()",50); 
+  setInterval("count()", refresh); 
  }
 } 
+
 window.onload = init; 
 </script> 
 <body> 
