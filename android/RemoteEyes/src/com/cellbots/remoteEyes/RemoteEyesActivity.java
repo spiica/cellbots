@@ -13,6 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.cellbots.remoteEyes;
 
 import org.apache.commons.httpclient.HttpConnection;
@@ -21,12 +22,18 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.http.client.ClientProtocolException;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder.Callback;
@@ -36,37 +43,31 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-
 /**
- * Remote eyes turns your Android device into a wireless web cam.
- *
- * With Froyo's camera enhancements (ability to manage the preview memory buffer
- * + access to Skia for quickly converting from YUV to JPG), it is possible to
- * capture and upload preview frames fast enough for it to look like video.
- * 
- * The behavior is that a new frame will not be captured and processed until the
- * previous frame has been processed and uploaded. This means that if the
- * connection slows down, the video may have brief stutters, but it won't fall
- * behind.
- * 
- * See put.php for a simple, working example of what is running server side.
- * Once you have put.php uploaded to your server, be sure to remember to update
+ * Remote eyes turns your Android device into a wireless web cam. With Froyo's
+ * camera enhancements (ability to manage the preview memory buffer + access to
+ * Skia for quickly converting from YUV to JPG), it is possible to capture and
+ * upload preview frames fast enough for it to look like video. The behavior is
+ * that a new frame will not be captured and processed until the previous frame
+ * has been processed and uploaded. This means that if the connection slows
+ * down, the video may have brief stutters, but it won't fall behind. See
+ * put.php for a simple, working example of what is running server side. Once
+ * you have put.php uploaded to your server, be sure to remember to update
  * "putUrl", "server", and "port" in the Remote Eyes code to match your server
- * instead of "myexampleserver.com".
- * 
- * See remote_eyes.html for the client HTML page that can be used to see what
- * Remote Eyes is seeing.
+ * instead of "myexampleserver.com". See remote_eyes.html for the client HTML
+ * page that can be used to see what Remote Eyes is seeing.
  * 
  * @author clchen@google.com (Charles L. Chen)
  */
 
-
 public class RemoteEyesActivity extends Activity implements Callback {
     private SurfaceHolder mHolder;
 
-    private final String putUrl = "http://myexampleserver.com/dropbox/put.php";
-    private final String server = "myexampleserver.com";
-    private final int port = 80;
+    private String putUrl = "";
+
+    private String server = "";
+
+    private int port = 80;
 
     private SurfaceView mPreview;
 
@@ -78,11 +79,46 @@ public class RemoteEyesActivity extends Activity implements Callback {
 
     private Rect r;
 
+    private int previewHeight = 0;
+
+    private int previewWidth = 0;
+
+    private int previewFormat = 0;
+
+    private boolean isUploading = false;
+
+    byte[] output;
+
+    byte[] mCallbackBuffer;
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.e("remote eyes", "started");
         super.onCreate(savedInstanceState);
         out = new ByteArrayOutputStream();
+
+        if ((getIntent() != null) && (getIntent().getData() != null)) {
+            putUrl = this.getIntent().getData().toString();
+            server = putUrl.replace("http://", "");
+            server = server.substring(0, server.indexOf("/"));
+        }
+
+        else {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            putUrl = prefs.getString("REMOTE_EYES_PUT_URL", "");
+            Log.e("prefs", putUrl);
+            if (putUrl.length() < 1) {
+                Intent i = new Intent();
+                i.setClass(this, PrefsActivity.class);
+                startActivity(i);
+                finish();
+                return;
+            } else {
+                server = putUrl.replace("http://", "");
+                server = server.substring(0, server.indexOf("/"));
+            }
+        }
 
         resetConnection();
         mHttpState = new HttpState();
@@ -95,6 +131,7 @@ public class RemoteEyesActivity extends Activity implements Callback {
     }
 
     private void resetConnection() {
+        Log.e("server", server);
         mConnection = new HttpConnection(server, port);
         try {
             mConnection.open();
@@ -119,18 +156,6 @@ public class RemoteEyesActivity extends Activity implements Callback {
         mCamera = null;
     }
 
-    private int previewHeight = 0;
-
-    private int previewWidth = 0;
-
-    private int previewFormat = 0;
-
-    private boolean isUploading = false;
-
-    byte[] output;
-
-    byte[] mCallbackBuffer;
-
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
         mHolder.setFixedSize(w, h);
         // Start the preview
@@ -144,7 +169,7 @@ public class RemoteEyesActivity extends Activity implements Callback {
 
         output = new byte[15000];
         mCallbackBuffer = new byte[460800];
-        
+
         mCamera.setParameters(params);
         mCamera.setPreviewCallbackWithBuffer(new PreviewCallback() {
             public void onPreviewFrame(byte[] imageData, Camera arg1) {
@@ -165,8 +190,8 @@ public class RemoteEyesActivity extends Activity implements Callback {
             YuvImage yuvImage = new YuvImage(imageData, previewFormat, previewWidth, previewHeight,
                     null);
             yuvImage.compressToJpeg(r, 20, out); // Tweak the quality here - 20
-                                                 // seems pretty decent for
-                                                 // quality + size.
+            // seems pretty decent for
+            // quality + size.
             PutMethod put = new PutMethod(putUrl);
             put.setRequestBody(new ByteArrayInputStream(out.toByteArray()));
             put.execute(mHttpState, mConnection);
@@ -183,10 +208,31 @@ public class RemoteEyesActivity extends Activity implements Callback {
             resetConnection();
         } finally {
             out.reset();
-            mCamera.addCallbackBuffer(mCallbackBuffer);
+            if (mCamera != null) {
+                mCamera.addCallbackBuffer(mCallbackBuffer);
+            }
             isUploading = false;
         }
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, R.string.settings, 0, R.string.settings).setIcon(
+                android.R.drawable.ic_menu_preferences);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            case R.string.settings:
+                intent = new Intent(this, PrefsActivity.class);
+                startActivity(intent);
+                finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
