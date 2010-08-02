@@ -22,7 +22,10 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.http.client.ClientProtocolException;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -36,7 +39,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.SurfaceHolder.Callback;
+import android.view.View.OnClickListener;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -73,6 +78,8 @@ public class RemoteEyesActivity extends Activity implements Callback {
 
     private Camera mCamera;
 
+    private boolean mTorchMode;
+
     private HttpConnection mConnection;
 
     private HttpState mHttpState;
@@ -87,24 +94,29 @@ public class RemoteEyesActivity extends Activity implements Callback {
 
     private boolean isUploading = false;
 
-    byte[] output;
+    private byte[] mCallbackBuffer;
 
-    byte[] mCallbackBuffer;
+    private ByteArrayOutputStream out;
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.e("remote eyes", "started");
         super.onCreate(savedInstanceState);
+
+        mTorchMode = false;
+
         out = new ByteArrayOutputStream();
 
         if ((getIntent() != null) && (getIntent().getData() != null)) {
-            putUrl = this.getIntent().getData().toString();
+            putUrl = getIntent().getData().toString();
             server = putUrl.replace("http://", "");
             server = server.substring(0, server.indexOf("/"));
-        }
-
-        else {
+            Bundle extras = getIntent().getExtras();
+            if ((extras != null) && (extras.getBoolean("TORCH", false))) {
+                mTorchMode = true;
+            }
+        } else {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
             putUrl = prefs.getString("REMOTE_EYES_PUT_URL", "");
             Log.e("prefs", putUrl);
@@ -128,6 +140,20 @@ public class RemoteEyesActivity extends Activity implements Callback {
         mHolder = mPreview.getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        mPreview.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                setTorchMode(!mTorchMode);
+            }
+        });
+
+        this.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                boolean useTorch = intent.getBooleanExtra("TORCH", false);
+                setTorchMode(useTorch);
+            }
+        }, new IntentFilter("android.intent.action.REMOTE_EYES_COMMAND"));
     }
 
     private void resetConnection() {
@@ -167,7 +193,6 @@ public class RemoteEyesActivity extends Activity implements Callback {
         // Crop the edges of the picture to reduce the image size
         r = new Rect(100, 100, previewWidth - 100, previewHeight - 100);
 
-        output = new byte[15000];
         mCallbackBuffer = new byte[460800];
 
         mCamera.setParameters(params);
@@ -181,9 +206,8 @@ public class RemoteEyesActivity extends Activity implements Callback {
         });
         mCamera.addCallbackBuffer(mCallbackBuffer);
         mCamera.startPreview();
+        setTorchMode(mTorchMode);
     }
-
-    ByteArrayOutputStream out;
 
     private void uploadImage(byte[] imageData) {
         try {
@@ -198,12 +222,13 @@ public class RemoteEyesActivity extends Activity implements Callback {
         } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            resetConnection();
         } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             resetConnection();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             resetConnection();
         } finally {
@@ -214,6 +239,19 @@ public class RemoteEyesActivity extends Activity implements Callback {
             isUploading = false;
         }
 
+    }
+
+    private void setTorchMode(boolean on) {
+        if (mCamera != null) {
+            Parameters params = mCamera.getParameters();
+            if (on) {
+                params.setFlashMode(Parameters.FLASH_MODE_TORCH);
+            } else {
+                params.setFlashMode(Parameters.FLASH_MODE_AUTO);
+            }
+            mTorchMode = on;
+            mCamera.setParameters(params);
+        }
     }
 
     @Override
@@ -235,4 +273,5 @@ public class RemoteEyesActivity extends Activity implements Callback {
         }
         return super.onOptionsItemSelected(item);
     }
+
 }

@@ -7,7 +7,7 @@
 
   <application android:icon="@drawable/icon" android:label="@string/app_name">
     <activity android:name=".RemoteEyesActivity" android:label="@string/app_name"
-      android:screenOrientation="landscape"
+      android:launchMode="singleTop" android:screenOrientation="landscape"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -15,7 +15,7 @@
       </intent-filter>
     </activity>
     <activity android:name=".RemoteEyesActivity" android:label="@string/app_name"
-      android:screenOrientation="landscape"
+      android:launchMode="singleTop" android:screenOrientation="landscape"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
       <intent-filter>
         <action android:name="android.intent.action.REMOTE_EYES" />
@@ -23,6 +23,7 @@
         <data android:scheme="http" />
       </intent-filter>
     </activity>
+
     <activity android:name=".PrefsActivity" android:label="@string/app_name">
     </activity>
   </application>
