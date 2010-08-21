@@ -110,6 +110,7 @@ def initializeBluetooth():
 # Command input via open telnet port
 def commandByTelnet():
   rs = []
+  global svr_sock  # Fixing crash after exit command
   svr_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   print "Firing up telnet socket..."
   try:
@@ -134,6 +135,7 @@ def commandByTelnet():
         input = input.replace('\n','')
         if input != '':
           print "Received: '%s'" % input
+          cli.sendall("ok\r\n")   # Send OK after every command recieved via telnet
           commandParse(input)
 
 # Command input via XMPP chat
@@ -195,14 +197,17 @@ def speak(msg,override=False):
 
 # Handle changing the speed setting  on the robot
 def changeSpeed(newSpeed):
+  newSpeed = int(newSpeed)  # For correct math operation must be newSpeed integer not string
   global currentSpeed
-  if newSpeed in ["0","1","2","3","4","5","6","7","8","9"]:
+  if newSpeed in [0,1,2,3,4,5,6,7,8,9]:
     msg = "Changing speed to %s" % newSpeed
-    commandOut(newSpeed)
-    currentSpeed=newSpeed
+    if microcontroller != "AVR_Stepper": 
+      commandOut(newSpeed)
+    currentSpeed = newSpeed
   else:
     msg = "Speed %s is out of range [0-9]" % newSpeed
   speak(msg)
+
    
 # Point towards a specific compass heading
 def orientToAzimuth(azimuth):
@@ -260,13 +265,27 @@ def serialServoDrive(leftPWM, rightPWM):
   #Turn the numbers into hex for the servo controller plus some expected commands in front
   serialCommand = '\x80\x01\x02\x01' + chr(leftPWM) + '\x80\x01\x02\x02' + chr(rightPWM)
   commandOut(serialCommand)
+  
+# Extra processing when using a serial AVR Stepper Driver by MiliKiller
+def AVR_Stepper_Controll(leftPWM, rightPWM):
+  #Make sure nothing fell out of range
+  leftPWM = max(min(int(leftPWM), 100), (-100))
+  rightPWM = max(min(int(rightPWM), 100), (-100))
+  #Send Command to AVR Stepper Driver Board
+  serialCommand = "w " + str(leftPWM) + " " + str(rightPWM)
+  commandOut(serialCommand)
 
 # Send command out of the device via Bluetooth or serial
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
-    robot.bluetoothWrite(msg + '\n')
+    if microcontroller == "AVR_Stepper":
+      robot.bluetoothWrite(msg.split(" ")[2] + "," + msg.split(" ")[1] + '\r\n')
+    else:
+      robot.bluetoothWrite(msg + '\n')
   elif microcontroller == "serialservo":
     robot.writeSerialOut(r"echo -e '%s' > /dev/ttyMSM2" % msg)
+  elif microcontroller == "AVR_Stepper":
+    robot.writeSerialOut(r"echo -e '%s' > /dev/ttyMSM2" % (msg.split(" ")[2] + "," + msg.split(" ")[1] + '\r\n'))
   else:
     robot.writeSerialOut("echo '<%s>' > /dev/ttyMSM2" % msg)
 
@@ -284,6 +303,7 @@ def exitCellbot(msg='Exiting'):
   if inputMethod == "commandByTelnet":
     svr_sock.close()
   robot.stopSensing()
+  time.sleep(1)   # Fixing crash before exit on G1
   robot.stopLocating()
   #Stop the servos if using a serial controller
   if microcontroller == "serialservo":
@@ -408,6 +428,8 @@ def commandParse(input):
       commandOut("w" + commandValue + " " + commandValue2)
     elif microcontroller == "serialservo":
       serialServoDrive(commandValue, commandValue2)
+    elif microcontroller == "AVR_Stepper":
+      AVR_Stepper_Controll(commandValue, commandValue2)
     else:
       msg = "Unknown microcontroller type: " + microcontroller
       outputToOperator(msg)
@@ -495,7 +517,7 @@ robot = robot.Robot(phoneType)
 # List of config values to get from file or prompt user for
 inputMethod = getConfigFileValue(config, "control", "inputMethod", "Select Input Method", ['commandByXMPP', 'commandByTelnet', 'commandByVoice'], True)
 outputMethod = getConfigFileValue(config, "control", "outputMethod", "Select Output Method", ['outputSerial', 'outputBluetooth'], True)
-microcontroller = getConfigFileValue(config, "basics", "microcontroller", "Microcontroller Type", ['arduino', 'serialservo'], True)
+microcontroller = getConfigFileValue(config, "basics", "microcontroller", "Microcontroller Type", ['arduino', 'serialservo','AVR_Stepper'], True)
 audioOn = config.getboolean("basics", "audioOn")
 currentSpeed = config.getint("basics", "currentSpeed")
 cardinalMargin = config.getint("basics", "cardinalMargin")
