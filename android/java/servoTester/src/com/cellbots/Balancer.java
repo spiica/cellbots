@@ -32,8 +32,8 @@ public class Balancer implements OrientationListener
   {
     this.pulseGenerator = pulseGenerator;
     this.servoTester = servoTester;
-    this.leftCenter = pulseGenerator.getLeftPulsePercent();
-    this.rightCenter = pulseGenerator.getRightPulsePercent();
+    this.leftCenter = 0;//pulseGenerator.getLeftPulsePercent();
+    this.rightCenter = 0;//pulseGenerator.getRightPulsePercent();
 
     if (Math.abs(leftCenter - 50) > Math.abs(leftCenter - 50))
     {
@@ -68,8 +68,8 @@ public class Balancer implements OrientationListener
     
     if(pitchError > maxLean)
     {
-         pulseGenerator.setLeftPulsePercent(leftCenter);
-         pulseGenerator.setRightPulsePercent(rightCenter);
+         //pulseGenerator.setLeftPulsePercent(leftCenter);
+         //pulseGenerator.setRightPulsePercent(rightCenter);
          return;
     }
     
