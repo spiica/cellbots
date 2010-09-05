@@ -69,7 +69,7 @@
   </ToggleButton>
   <TextView
     android:text=" Caution, Improper usage may damage your phone!  
-Connect 3v-5v to +(red) and -(black) of the servos, connect the left(tip) and right(ring) channels of the headphone cord to the signal lines, and connect the headphone ground(sleeve) to the other grounds. 
+Connect 3v-5v to +(red) and -(black) of the servos, connect the left(tip) and right(ring) channels of the headphone cord to the signal lines, and connect the headphone ground(sleeve) to the other grounds.  Servos 1 and 3 are positive pulses, Servos 2 and 4 are negative pulses.  
 If you are not getting any response from the servo, try adjusting the volume.  If the servo only goes in one direction, it can also be a symptom of insuffencent volume."
     android:id="@+id/TextView01"
     android:layout_width="wrap_content"

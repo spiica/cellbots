@@ -66,10 +66,7 @@ public class PulseGenerator implements Runnable
   private AudioTrack noiseAudioTrack;
 
   /** The bufferlength. */
-  private int        bufferlength;                   // 4800
-
-  /** The inverted. */
-  private boolean    inverted      = true;
+  private int        bufferlength;  // 4800
 
   /** The audio buffer. */
   private short[]    audioBuffer;
@@ -80,6 +77,8 @@ public class PulseGenerator implements Runnable
   /** The right channel buffer. */
   private short[]    rightChannelBuffer;
 
+  private static String TAG = "Servo Pulse Generator";
+  
   /**
    * Instantiates a new pulse generator.
    */
@@ -103,8 +102,8 @@ public class PulseGenerator implements Runnable
 
     sampleRate = noiseAudioTrack.getSampleRate();
 
-    Log.i("Noise Setup", "BufferLength = " + Integer.toString(bufferlength));
-    Log.i("Noise Setup", "Sample Rate = " + Integer.toString(sampleRate));
+    Log.i(TAG, "BufferLength = " + Integer.toString(bufferlength));
+    Log.i(TAG, "Sample Rate = " + Integer.toString(sampleRate));
 
     audioBuffer = new short[bufferlength];
     leftChannelBuffer = new short[bufferlength / 2];
@@ -173,8 +172,6 @@ public class PulseGenerator implements Runnable
       int bufferlength = pulseInterval * bufferPulses * 2;
       if (playing)
       {
-        // Log.i("Pulse Generator", "extraSamples" +
-        // Integer.toString(extraLeftPulses));
         for (int i = 0; i < bufferlength && bufferChanged; i += 2)
         {
           audioBuffer[i] = leftChannelBuffer[i / 2];
@@ -231,10 +228,14 @@ public class PulseGenerator implements Runnable
   public void setPulsePercent(int percent, int i)
   {
 
-    // for (int i = 0; i < pulseWidthArray.length; i++)
-    // {
+    if (i< 0 || i > 4)
+    {
+      Log.e(TAG,"Servo index out of bounds, should be between 0 and 3");
+      return; 
+    }
+    
     this.pulseWidthArray[i] = MIN_PULSE_WIDTH + ( ( percent * ( MAX_PULSE_WIDTH - MIN_PULSE_WIDTH ) ) / 100 );
-    // }
+
     if (i < 2)
     {
       generatePCM(pulseWidthArray[0], pulseWidthArray[1], pulseInterval, volume, modulation, leftChannelBuffer, pulseInterval * bufferPulses, i);
@@ -247,9 +248,9 @@ public class PulseGenerator implements Runnable
   }
 
   /**
-   * Gets the left pulse percent.
+   * Gets the  pulse percent.
    * 
-   * @return the left pulse percent
+   * @return the pulse percent
    */
   public int getPulsePercent(int i)
   {
@@ -257,9 +258,9 @@ public class PulseGenerator implements Runnable
   }
 
   /**
-   * Gets the left pulse ms.
+   * Gets the pulse ms.
    * 
-   * @return the left pulse ms
+   * @return the  pulse ms
    */
   public float getPulseMs(int i)
   {
@@ -267,9 +268,9 @@ public class PulseGenerator implements Runnable
   }
 
   /**
-   * Gets the left pulse samples.
+   * Gets the pulse samples.
    * 
-   * @return the left pulse samples
+   * @return the pulse samples
    */
   public int getPulseSamples(int i)
   {

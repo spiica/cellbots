@@ -128,24 +128,24 @@ public class ServoTester extends Activity implements OnSeekBarChangeListener
     if (seekBar.getId() == lPulseBar.getId())
     {
       noise.setPulsePercent(progress, 0);
-      lPulseText.setText("Left Pulse width = " + noise.getPulseMs(0) + "ms (" + noise.getPulseSamples(0) + " samples)");
+      lPulseText.setText("Servo 1(L Pos) pulse width = " + noise.getPulseMs(0) + "ms (" + noise.getPulseSamples(0) + " samples)");
     }
     if (seekBar.getId() == lPulseBar2.getId())
     {
       noise.setPulsePercent(progress, 1);
-      lPulseText2.setText("Left Pulse width = " + noise.getPulseMs(1) + "ms (" + noise.getPulseSamples(1) + " samples)");
+      lPulseText2.setText("Servo 2(L Neg) pulse width = " + noise.getPulseMs(1) + "ms (" + noise.getPulseSamples(1) + " samples)");
     }
 
     if (seekBar.getId() == rPulseBar.getId())
     {
       noise.setPulsePercent(progress, 2);
-      rPulseText.setText("Right Pulse width = " + noise.getPulseMs(2) + "ms (" + noise.getPulseSamples(2) + " samples)");
+      rPulseText.setText("Servo 3(R Pos) pulse width = " + noise.getPulseMs(2) + "ms (" + noise.getPulseSamples(2) + " samples)");
     }
 
     if (seekBar.getId() == rPulseBar2.getId())
     {
       noise.setPulsePercent(progress, 3);
-      rPulseText2.setText("Right Pulse width = " + noise.getPulseMs(3) + "ms (" + noise.getPulseSamples(3) + " samples)");
+      rPulseText2.setText("Servo 4(R Neg) Pulse width = " + noise.getPulseMs(3) + "ms (" + noise.getPulseSamples(3) + " samples)");
     }
 
   }
