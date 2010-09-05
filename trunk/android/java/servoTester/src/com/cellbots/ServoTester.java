@@ -46,13 +46,17 @@ public class ServoTester extends Activity implements OnSeekBarChangeListener
 
   SeekBar                     rPulseBar;
 
-  SeekBar                     pulseIntervalBar;
-
   TextView                    rPulseText;
 
   TextView                    lPulseText;
 
-  TextView                    pulseIntervalText;
+  SeekBar                     lPulseBar2;
+
+  SeekBar                     rPulseBar2;
+
+  TextView                    rPulseText2;
+
+  TextView                    lPulseText2;
 
   Thread                      noiseThread;
 
@@ -75,18 +79,26 @@ public class ServoTester extends Activity implements OnSeekBarChangeListener
     // lPulseBar.setProgress(noise.getLeftPulsePercent());
     lPulseBar.setOnSeekBarChangeListener(this);
     lPulseText = (TextView) findViewById(R.id.LeftServoValue);
-    lPulseText.setText("Left Pulse width =" + noise.getLeftPulsePercent());
+    lPulseText.setText("0 Left Pos Pulse width =" + noise.getPulsePercent(0));
 
+    lPulseBar2 = (SeekBar) findViewById(R.id.LeftServo2);
+    // lPulseBar.setProgress(noise.getLeftPulsePercent());
+    lPulseBar2.setOnSeekBarChangeListener(this);
+    lPulseText2 = (TextView) findViewById(R.id.LeftServoValue2);
+    lPulseText2.setText("1 Left Neg Pulse width =" + noise.getPulsePercent(1));
+    
     rPulseBar = (SeekBar) findViewById(R.id.RightServo);
     // rPulseBar.setProgress(noise.getRightPulsePercent());
     rPulseBar.setOnSeekBarChangeListener(this);
     rPulseText = (TextView) findViewById(R.id.RightServoValue);
-    rPulseText.setText("Right Pulse width =" + noise.getRightPulsePercent());
+    rPulseText.setText("2 Right Pos Pulse width =" + noise.getPulsePercent(2));
 
-    pulseIntervalBar = (SeekBar) findViewById(R.id.PulseLength);
-    pulseIntervalBar.setOnSeekBarChangeListener(this);
-    pulseIntervalText = (TextView) findViewById(R.id.PulseLengthText);
-    pulseIntervalText.setText("" + noise.getHz() + " Hz");
+    rPulseBar2 = (SeekBar) findViewById(R.id.RightServo2);
+    // rPulseBar.setProgress(noise.getRightPulsePercent());
+    rPulseBar2.setOnSeekBarChangeListener(this);
+    rPulseText2 = (TextView) findViewById(R.id.RightServoValue2);
+    rPulseText2.setText("3 Right Neg Pulse width =" + noise.getPulsePercent(3));
+
   }
 
   @Override
@@ -111,31 +123,31 @@ public class ServoTester extends Activity implements OnSeekBarChangeListener
     noise.togglePlayback();
   }
 
-  public void onToggleInvert(View v)
-  {
-    noise.toggleInverted();
-  }
-
   public void onProgressChanged(SeekBar seekBar, int progress, boolean fromTouch)
   {
     if (seekBar.getId() == lPulseBar.getId())
     {
-      noise.setLeftPulsePercent(progress);
-      lPulseText.setText("Left Pulse width = " + noise.getLeftPulseMs() + "ms (" + noise.getLeftPulseSamples() + " samples)");
+      noise.setPulsePercent(progress, 0);
+      lPulseText.setText("Left Pulse width = " + noise.getPulseMs(0) + "ms (" + noise.getPulseSamples(0) + " samples)");
+    }
+    if (seekBar.getId() == lPulseBar2.getId())
+    {
+      noise.setPulsePercent(progress, 1);
+      lPulseText2.setText("Left Pulse width = " + noise.getPulseMs(1) + "ms (" + noise.getPulseSamples(1) + " samples)");
     }
 
     if (seekBar.getId() == rPulseBar.getId())
     {
-      noise.setRightPulsePercent(progress);
-      rPulseText.setText("Right Pulse width = " + noise.getRightPulseMs() + "ms (" + noise.getRightPulseSamples() + " samples)");
+      noise.setPulsePercent(progress, 2);
+      rPulseText.setText("Right Pulse width = " + noise.getPulseMs(2) + "ms (" + noise.getPulseSamples(2) + " samples)");
     }
 
-    if (seekBar.getId() == pulseIntervalBar.getId())
+    if (seekBar.getId() == rPulseBar2.getId())
     {
-      noise.setHzPercent(progress);
-
-      pulseIntervalText.setText("" + noise.getHz() + " Hz (" + noise.getHzSamples() + ")");
+      noise.setPulsePercent(progress, 3);
+      rPulseText2.setText("Right Pulse width = " + noise.getPulseMs(3) + "ms (" + noise.getPulseSamples(3) + " samples)");
     }
+
   }
 
   public void onStartTrackingTouch(SeekBar seekBar)

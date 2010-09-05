@@ -17,62 +17,85 @@ package com.cellbots;
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import java.util.Arrays;
+
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class PulseGenerator.
+ */
 public class PulseGenerator implements Runnable
 {
-  
-  //44100  native on g1
+
+  //
+  /** The sample rate. 44100hz is native on g1 */
   private int        sampleRate;
 
-  public int  MIN_PULSE_WIDTH ;
+  /** The MI n_ puls e_ width. */
+  public int         MIN_PULSE_WIDTH;
 
-  public int  MAX_PULSE_WIDTH ;
+  /** The MA x_ puls e_ width. */
+  public int         MAX_PULSE_WIDTH;
 
-  private int        lPulseWidth     ;
+  /** The left channel pulse width. */
+  private int        pulseWidthArray[];
 
-  private int        rPulseWidth     ;
+  /** The pulse interval. */
+  private int        pulseInterval;
 
-  private int        pulseInterval   ;
-  
+  /** The buffer pulses. */
   private int        bufferPulses  = 2;
-  
-  private int        volume          = 30000;
 
-  private int        modulation      = 200;
+  /** The ammount modulation. */
+  private int        modulation    = 200;
 
-  private boolean    playing         = false;
-  
-  private boolean     bufferChanged   = false;
-  
+  /** The max volume */
+  private int        volume        = Short.MAX_VALUE;
+
+  /** Are we playing sound right now? */
+  private boolean    playing       = false;
+
+  /** Do we need to update the buffer? */
+  private boolean    bufferChanged = false;
+
+  /** The noise audio track. */
   private AudioTrack noiseAudioTrack;
 
-  private int        bufferlength; //4800
+  /** The bufferlength. */
+  private int        bufferlength;                   // 4800
 
-  private boolean    inverted        = true;
+  /** The inverted. */
+  private boolean    inverted      = true;
 
+  /** The audio buffer. */
   private short[]    audioBuffer;
 
+  /** The left channel buffer. */
   private short[]    leftChannelBuffer;
 
+  /** The right channel buffer. */
   private short[]    rightChannelBuffer;
 
+  /**
+   * Instantiates a new pulse generator.
+   */
   public PulseGenerator()
   {
     sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
-    
-    MIN_PULSE_WIDTH = sampleRate/1200;
 
-    MAX_PULSE_WIDTH = sampleRate/456;
+    MIN_PULSE_WIDTH = sampleRate / 1200;
 
-    lPulseWidth     = (MIN_PULSE_WIDTH + MAX_PULSE_WIDTH)/2;
+    MAX_PULSE_WIDTH = sampleRate / 456;
 
-    rPulseWidth     = (MIN_PULSE_WIDTH + MAX_PULSE_WIDTH)/2;
+    pulseWidthArray = new int[4];
 
-    pulseInterval   = sampleRate/50;
+    Arrays.fill(pulseWidthArray, ( MIN_PULSE_WIDTH + MAX_PULSE_WIDTH ) / 2);
+
+    pulseInterval = sampleRate / 50;
 
     bufferlength = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
 
@@ -90,53 +113,68 @@ public class PulseGenerator implements Runnable
     noiseAudioTrack.play();
   }
 
-  private void generatePCM(int pulseWidth, int pulseInterval, int volume, int modulation, short buffer[], int bufferLength)
-  {
-    int inverter = 1;
 
-    if (inverted)
-    {
-      inverter = -1;
-    }
-    
+  private void generatePCM(int pulseWidth, int negPulseWidth, int pulseInterval, int volume, int modulation, short buffer[], int bufferLength, int lastChanged)
+  {
+
     int i = 0;
     int j = 0;
-    
-    while ( i < bufferLength)
+    while (i < bufferLength)
     {
-      j=0;
-      while (j < pulseWidth )//&& i < bufferLength)
-      {
-        // we have to modulate the signal a bit because the sound card freaks
-        // out if it goes dc
-        buffer[i] = (short) ( ( volume * inverter ) + ( ( i % 2 ) * modulation ) );
-        i++;
-        j++;
-      }
+      j = 0;
 
-      
-      while (j < pulseInterval)// && i < bufferLength)
-      {
-        buffer[i] = (short) ( ( -volume * inverter ) + ( ( i % 2 ) * modulation ) );
-        i++;
-        j++;
+      if (lastChanged % 2 == 0)
+       {
+        while (j < pulseWidth)// && i < bufferLength)
+        {
+
+          buffer[i] = (short) ( ( volume ) );
+          i++;
+          j++;
+        }
+
+        while (j < pulseInterval )// && i < bufferLength)
+        {
+          buffer[i] = (short) ( ( -volume ) );
+          i++;
+          j++;
+        }
       }
-      
+     else
+      {
+
+        while (j < negPulseWidth)
+        {
+          // we have to modulate the signal a bit because the sound card freaks
+          // out if it goes dc
+          buffer[i] = (short) ( ( -volume ) );
+          i++;
+          j++;
+        }
+        while (j < pulseInterval )// && i < bufferLength)
+        {
+          buffer[i] = (short) ( ( volume ) );
+          i++;
+          j++;
+        }
+
+      }
     }
-    
+
     bufferChanged = true;
   }
 
   public void run()
   {
-    generatePCM(lPulseWidth, pulseInterval, volume, modulation,  leftChannelBuffer,  pulseInterval * bufferPulses);
-    generatePCM(rPulseWidth, pulseInterval, volume, modulation, rightChannelBuffer,  pulseInterval * bufferPulses);
+    generatePCM(pulseWidthArray[0], pulseWidthArray[1], pulseInterval, volume, modulation, leftChannelBuffer, pulseInterval * bufferPulses, 0);
+    generatePCM(pulseWidthArray[2], pulseWidthArray[3], pulseInterval, volume, modulation, rightChannelBuffer, pulseInterval * bufferPulses, 2);
     while (true)
     {
       int bufferlength = pulseInterval * bufferPulses * 2;
       if (playing)
       {
-        //Log.i("Pulse Generator", "extraSamples" + Integer.toString(extraLeftPulses));
+        // Log.i("Pulse Generator", "extraSamples" +
+        // Integer.toString(extraLeftPulses));
         for (int i = 0; i < bufferlength && bufferChanged; i += 2)
         {
           audioBuffer[i] = leftChannelBuffer[i / 2];
@@ -156,6 +194,9 @@ public class PulseGenerator implements Runnable
     }
   }
 
+  /**
+   * Stop.
+   */
   public void stop()
   {
     playing = false;
@@ -163,92 +204,76 @@ public class PulseGenerator implements Runnable
     noiseAudioTrack.release();
   }
 
+  /**
+   * Toggle playback.
+   */
   public void togglePlayback()
   {
     playing = !playing;
   }
 
-  public void toggleInverted()
-  {
-    inverted = !inverted;
-  }
-
+  /**
+   * Checks if is playing.
+   * 
+   * @return true, if is playing
+   */
   public boolean isPlaying()
   {
     return playing;
   }
 
-  public void setLeftPulsePercent(int percent)
+  /**
+   * Sets the left pulse percent.
+   * 
+   * @param percent
+   *          the new left pulse percent
+   */
+  public void setPulsePercent(int percent, int i)
   {
-    this.lPulseWidth = MIN_PULSE_WIDTH + ( ( percent * ( MAX_PULSE_WIDTH - MIN_PULSE_WIDTH ) ) / 100 );
-    generatePCM(lPulseWidth, pulseInterval, volume, modulation,  leftChannelBuffer, bufferPulses * pulseInterval);
+
+    // for (int i = 0; i < pulseWidthArray.length; i++)
+    // {
+    this.pulseWidthArray[i] = MIN_PULSE_WIDTH + ( ( percent * ( MAX_PULSE_WIDTH - MIN_PULSE_WIDTH ) ) / 100 );
+    // }
+    if (i < 2)
+    {
+      generatePCM(pulseWidthArray[0], pulseWidthArray[1], pulseInterval, volume, modulation, leftChannelBuffer, pulseInterval * bufferPulses, i);
+    }
+    else
+    {
+      generatePCM(pulseWidthArray[2], pulseWidthArray[3], pulseInterval, volume, modulation, rightChannelBuffer, pulseInterval * bufferPulses, i);
+    }
+
   }
 
-  public int getLeftPulsePercent()
+  /**
+   * Gets the left pulse percent.
+   * 
+   * @return the left pulse percent
+   */
+  public int getPulsePercent(int i)
   {
-    return ( ( lPulseWidth - MIN_PULSE_WIDTH ) / ( MAX_PULSE_WIDTH - MIN_PULSE_WIDTH ) ) * 100;
+    return ( ( pulseWidthArray[i] - MIN_PULSE_WIDTH ) / ( MAX_PULSE_WIDTH - MIN_PULSE_WIDTH ) ) * 100;
   }
 
-  public float getLeftPulseMs()
+  /**
+   * Gets the left pulse ms.
+   * 
+   * @return the left pulse ms
+   */
+  public float getPulseMs(int i)
   {
-    return ( (float) lPulseWidth / sampleRate ) * 1000;
+    return ( (float) pulseWidthArray[i] / sampleRate ) * 1000;
   }
 
-  public int getLeftPulseSamples()
+  /**
+   * Gets the left pulse samples.
+   * 
+   * @return the left pulse samples
+   */
+  public int getPulseSamples(int i)
   {
-    return lPulseWidth;
-  }
-
-  public void setRightPulsePercent(int percent)
-  {
-    //mirror the right servo
-    //percent = 100 - percent;
-    
-    this.rPulseWidth = MIN_PULSE_WIDTH + ( ( percent * ( MAX_PULSE_WIDTH - MIN_PULSE_WIDTH ) ) / 100 );
-    
-    generatePCM(rPulseWidth, pulseInterval, volume, modulation, rightChannelBuffer, bufferPulses * pulseInterval);
-  }
-
-  public float getRightPulseMs()
-  {
-    return ( (float) rPulseWidth / sampleRate ) * 1000;
-  }
-
-  public int getRightPulsePercent()
-  {
-    return ( ( rPulseWidth - MIN_PULSE_WIDTH ) / ( MAX_PULSE_WIDTH - MIN_PULSE_WIDTH ) ) * 100;
-  }
-
-  public int getRightPulseSamples()
-  {
-    return rPulseWidth;
-  }
-
-  public float getHz()
-  {
-    return (float) this.sampleRate / this.pulseInterval;
-  }
-  
-  public int getHzSamples()
-  {
-    return this.pulseInterval;
-  }
-
-  public void setHz(float hz)
-  {
-    this.pulseInterval = (int) ( this.sampleRate / hz );
-    
-    generatePCM(lPulseWidth, pulseInterval, volume, modulation,  leftChannelBuffer, bufferPulses * pulseInterval);
-    generatePCM(rPulseWidth, pulseInterval, volume, modulation, rightChannelBuffer, bufferPulses * pulseInterval);
-  }
-  
-  public void setHzPercent(int percent)
-  {
-    float hz = 50;
-    
-    hz = (float) ( hz + ((float)percent - 50.0)/10.0 );
-    
-    this.setHz(hz);
+    return pulseWidthArray[i];
   }
 
 }
