@@ -1,0 +1,75 @@
+package tutorial;
+
+option java_package = "com.cellbots";
+option java_outer_classname = "CellbotProtos";
+
+message PhoneState {
+  required int64 timestamp = 1; 
+  optional bytes videoFrame = 2 ;
+  optional string dbgMsg = 3;
+  
+  message Compass{
+    optional float x = 1;  
+    optional float y = 2;
+    optional float z = 3;
+  }
+  optional Compass compass = 4;
+  
+  message Accelerometer {
+  
+  	optional float x = 1;
+  	optional float y = 2; 
+  	optional float z = 3;  
+  }
+  optional Accelerometer accelerometer = 5;
+  
+  message Orientation {
+    optional float azimuth = 6; 
+    optional float pitch = 7;
+    optional float  roll = 8;
+  }
+  optional Orientation orientation = 6;
+  
+  
+  optional float phoneBatteryLevel =  7;
+  optional int32 phoneBatteryTemp =  8;
+  optional int32 wifiStrength = 9;
+  optional int32 wifiSpeed = 10;
+  optional float lightLevel = 11;
+  
+  optional string botID = 12;
+  
+}
+
+message ControllerState {
+  required int64 timestamp = 1;
+  
+  message KeyEvent {
+    required string keyCode = 1;
+    optional bool keyDown = 2 ;
+    optional bool keyUp = 3 ;
+  }
+  repeated KeyEvent keyEvent = 2;
+  
+  message StickEvent {
+    enum StickType {
+      ANALOG = 1;
+      ORIENTATION = 2;
+      LINEAR_ACCEL = 3;
+      ANGULAR_ACCEL = 4;
+      SLIDER = 5;
+      WHEEL = 6;
+      MOUSE = 7;
+    }
+    required StickType stickType = 1;
+    required int32 stickNumber = 2;
+    optional float x=3;
+    optional float y=4;
+    optional float z=5;
+  }
+  repeated StickEvent stickEvent = 3;  
+ 
+  optional string txtCommand = 4;
+  optional string controllerID = 5;
+  
+}
