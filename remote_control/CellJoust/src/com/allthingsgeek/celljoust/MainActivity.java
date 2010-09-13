@@ -1,5 +1,3 @@
-
-
 package com.allthingsgeek.celljoust;
 
 import java.io.ByteArrayOutputStream;
@@ -10,19 +8,21 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import org.apache.http.HttpConnection;
+import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import com.allthingsgeek.celljoust.R;
 import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.ControllerState;
 import com.cellbots.CellbotProtos.PhoneState.Builder;
 import com.google.protobuf.ByteString;
-
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -34,13 +34,17 @@ import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.hardware.SensorManager;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.speech.tts.TextToSpeech;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -57,47 +61,49 @@ import android.widget.ToggleButton;
 
 public class MainActivity extends Activity implements Callback
 {
-  public static final String                  PREFS_NAME    = "ServoBotPrefsFile";
+  public static final String    PREFS_NAME    = "ServoBotPrefsFile";
 
-  PulseGenerator                              noise;
+  private static final String   TAG           = "CellJoust";
 
-  Movement                                    mover;
+  PulseGenerator                noise;
 
-  private SurfaceHolder                       mHolder;
+  Movement                      mover;
 
-  private String                              putUrl        = "";
+  private SurfaceHolder         mHolder;
 
-  private String                              server        = "";
+  private String                putUrl        = "";
 
-  private SurfaceView                         mPreview;
+  private String                server        = "";
 
-  private Camera                              mCamera;
+  private SurfaceView           mPreview;
 
-  private boolean                             mTorchMode;
+  private Camera                mCamera;
 
-  private HttpConnection                      mConnection;
+  private boolean               mTorchMode;
 
   // private HttpState mHttpState;
 
-  private Rect                                r;
+  private Rect                  r;
 
-  private int                                 previewHeight = 0;
+  private int                   previewHeight = 0;
 
-  private int                                 previewWidth  = 0;
+  private int                   previewWidth  = 0;
 
-  private int                                 previewFormat = 0;
+  private int                   previewFormat = 0;
 
-  private boolean                             isUploading   = false;
+  private byte[]                mCallbackBuffer;
 
-  private byte[]                              mCallbackBuffer;
+  byte[]                        buff;
 
-  byte[]                                      buff;
+  private ByteArrayOutputStream out;
 
-  private ByteArrayOutputStream               out;
-  
-  private ConversionWorker convWorker;
+  private ConversionWorker      convWorker;
 
-  //public static CellbotProtos.ControllerState controllerState;
+  public static SensorManager   sensorManager;
+
+  RobotStateHandler             state;
+
+  // public static CellbotProtos.ControllerState controllerState;
 
   /** Called when the activity is first created. */
   @Override
@@ -131,12 +137,14 @@ public class MainActivity extends Activity implements Callback
 
     out = new ByteArrayOutputStream();
 
-    resetConnection();
-    // mHttpState = new HttpState();
-
     setContentView(R.layout.main);
-    
-    convWorker = new ConversionWorker();
+
+    if (sensorManager == null)
+    {
+      sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
+    }
+
+    startListening();
     
     mPreview = (SurfaceView) findViewById(R.id.preview);
     mHolder = mPreview.getHolder();
@@ -144,27 +152,94 @@ public class MainActivity extends Activity implements Callback
     mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
     noise.pause();
+
+  }
+
+  private Handler handler = new Handler()
+                          {
+
+                            @Override
+                            public void handleMessage(Message msg)
+                            {
+                              // utterTaunt((String) msg.obj);
+                            }
+
+                          };
+
+  private synchronized void startListening()
+  {
+    Log.d(TAG, "startListening called");
     
-
-/*
-    mPreview.setOnClickListener(new OnClickListener()
+    convWorker = new ConversionWorker();
+    
+    if (state == null)
     {
-      public void onClick(View v)
+      try
       {
-        // setTorchMode(!mTorchMode);
+        state = RobotStateHandler.getInstance(handler);
       }
-    });
+      catch (IOException e)
+      {
+        // TODO Auto-generated catch block
+        Log.e(TAG, "error getting robot state handler instace", e);
+      }
+      // Initialize text-to-speech. This is an asynchronous operation.
+      // The OnInitListener (second argument) is called after initialization
+      // completes.
 
-    this.registerReceiver(new BroadcastReceiver()
+    }
+
+    if (!state.listening)
     {
-      @Override
-      public void onReceive(Context context, Intent intent)
-      {
-        boolean useTorch = intent.getBooleanExtra("TORCH", false);
-        // setTorchMode(useTorch);
-      }
-    }, new IntentFilter("android.intent.action.REMOTE_EYES_COMMAND"));
-    */
+
+      // Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),
+      // Toast.LENGTH_LONG);
+      // ProgressDialog.show(me, msg,
+      // "Searching for a Bluetooth serial port...");
+
+      ProgressDialog btDialog = null;
+
+      String connectivity_context = Context.WIFI_SERVICE;
+      WifiManager wifi = (WifiManager) getSystemService(connectivity_context);
+
+      this.registerReceiver(state.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+      this.registerReceiver(state.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+
+      state.startListening(btDialog, wifi);
+
+    }
+
+  }
+
+  private synchronized void stopListening()
+  {
+
+    Log.d(TAG, "stopListening called");
+
+    convWorker.kill();
+    
+    try
+    {
+      this.unregisterReceiver(state.mBatInfoReceiver);
+    }
+    catch (Exception e)
+    {
+    }
+
+    try
+    {
+      this.unregisterReceiver(state.mWifiInfoReceiver);
+    }
+    catch (Exception e)
+    {
+    }
+
+    if (state.isAlive())
+    {
+      state.stopListening();
+    }
+
   }
 
   protected void onDestroy()
@@ -178,7 +253,7 @@ public class MainActivity extends Activity implements Callback
   {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.menu, menu);
-    
+
     return super.onCreateOptionsMenu(menu);
   }
 
@@ -200,8 +275,6 @@ public class MainActivity extends Activity implements Callback
     }
     return true;
   }
-  
- 
 
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event)
@@ -213,16 +286,6 @@ public class MainActivity extends Activity implements Callback
   public boolean onKeyUp(int keyCode, KeyEvent event)
   {
     return mover.processKeyUpEvent(keyCode);
-  }
-
-  private void resetConnection()
-  {
-    Log.e("server", server);
-    /*
-     * mConnection = new HttpConnection(server, port); try { mConnection.open();
-     * } catch (IOException e) { // TODO Auto-generated catch block
-     * e.printStackTrace(); }
-     */
   }
 
   public void surfaceCreated(SurfaceHolder holder)
@@ -266,19 +329,13 @@ public class MainActivity extends Activity implements Callback
     {
       public void onPreviewFrame(byte[] imageData, Camera arg1)
       {
-        if (!isUploading)
-        {
-          isUploading = true;
-          convWorker.nextFrame(imageData);
-          
-        }
+        convWorker.nextFrame(imageData);
       }
     });
     mCamera.addCallbackBuffer(mCallbackBuffer);
     mCamera.startPreview();
     setTorchMode(mTorchMode);
   }
-
 
   private void setTorchMode(boolean on)
   {
@@ -298,103 +355,123 @@ public class MainActivity extends Activity implements Callback
     }
   }
 
-  
-  class ConversionWorker extends Thread {
-  
+  class ConversionWorker extends Thread
+  {
+
+    //private HttpConnection mConnection;
     
-    public ConversionWorker() {
-        //setDaemon(true);   
-        start();
+    HttpClient httpclient;
+    boolean alive;
+    
+    public ConversionWorker()
+    {
+      // setDaemon(true);
+      
+      //this client should automatically reuse its connection
+      httpclient = new DefaultHttpClient();  
+      alive=true;
+      start();
+    }
+
+    public void kill()
+    {
+      alive = false;
+      this.notify();
     }
     
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Thread#run()
      */
     @Override
-    public synchronized void run() {            
-        try {
-            wait();//wait for initial frame
-        } catch (InterruptedException e) {}
-        while(true) {
+    public synchronized void run()
+    {
+      try
+      {
+        wait();// wait for initial frame
+      }
+      catch (InterruptedException e)
+      {
+      }
+      while (alive)
+      {
 
-          try
-          {
-            YuvImage yuvImage = new YuvImage(mCallbackBuffer, previewFormat, previewWidth, previewHeight, null);
-            yuvImage.compressToJpeg(r, 20, out); // Tweak the quality here
-
-            Builder state = CellbotProtos.PhoneState.newBuilder();
-
-            state.setVideoFrame(ByteString.copyFrom(out.toByteArray()));
-            state.setTimestamp(System.currentTimeMillis());
-
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost post = new HttpPost(putUrl);
-
-            post.setEntity(new ByteArrayEntity(state.build().toByteArray()));
-
-            HttpResponse resp = httpclient.execute(post);
-
-            InputStream resStream = resp.getEntity().getContent();
-
-              ControllerState cs = ControllerState.parseFrom(resStream);
-              
-              
-              Log.i("RemoteEyes Got Controller State", cs.toString());
-              mover.processControllerStateEvent(cs);
-
-            // Log.i("RemoteEyes","got this from server :"+response);
-          }
-          catch (UnsupportedEncodingException e)
-          {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-          catch (IllegalStateException e)
-          {
-            e.printStackTrace();
-            resetConnection();
-          }
-          catch (com.google.protobuf.InvalidProtocolBufferException e)
-          {
-            //e.printStackTrace();
-            //resetConnection();
-          }
-          catch (IOException e)
-          {
-            e.printStackTrace();
-            resetConnection();
-          }
-          finally
-          {
-            out.reset();
-            if (mCamera != null)
-            {
-              mCamera.addCallbackBuffer(mCallbackBuffer);
-            }
-            isUploading = false;
-          }       
-            
-            try {
-                wait();//wait for next frame
-            } catch (InterruptedException e) {}
-        }
-    }
-    
-    synchronized boolean nextFrame(byte[] frame) {
-        if(this.getState() == Thread.State.WAITING) 
+        try
         {
-          //ok, we are ready for a new frame:
-           // curFrame = frame;
-            //do the work:
-            this.notify();
-            return true;
-        } else {
-            //ignore it
-          return false;
+          YuvImage yuvImage = new YuvImage(mCallbackBuffer, previewFormat, previewWidth, previewHeight, null);
+          yuvImage.compressToJpeg(r, 20, out); // Tweak the quality here
 
+          state.setVideoFrame(ByteString.copyFrom(out.toByteArray()));
+          
+          HttpPost post = new HttpPost(putUrl);
+
+          post.setEntity(new ByteArrayEntity(state.getStateAndReset().toByteArray()));
+
+          HttpResponse resp = httpclient.execute(post);
+
+          InputStream resStream = resp.getEntity().getContent();
+
+          ControllerState cs = ControllerState.parseFrom(resStream);
+
+          mover.processControllerStateEvent(cs);
         }
-        
+        catch (UnsupportedEncodingException e)
+        {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+        catch (IllegalStateException e)
+        {
+          e.printStackTrace();
+        }
+        catch (com.google.protobuf.InvalidProtocolBufferException e)
+        {
+          // e.printStackTrace();
+          // resetConnection();
+        }
+        catch (IOException e)
+        {
+          e.printStackTrace();
+        }
+        finally
+        {
+          out.reset();
+          if (mCamera != null)
+          {
+            mCamera.addCallbackBuffer(mCallbackBuffer);
+          }
+          // isUploading = false;
+        }
+
+        try
+        {
+          wait();// wait for next frame
+        }
+        catch (InterruptedException e)
+        {
+        }
+      }
     }
-}
-  
+
+    synchronized boolean nextFrame(byte[] frame)
+    {
+      if (this.getState() == Thread.State.WAITING)
+      {
+        // ok, we are ready for a new frame:
+        // curFrame = frame;
+        // do the work:
+        this.notify();
+        return true;
+      }
+      else
+      {
+        // ignore it
+        return false;
+
+      }
+
+    }
+  }
+
 }
