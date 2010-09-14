@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+<TextView android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:text=""/>
+
+<TextView
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:textSize="30dp"
+    android:gravity="center_horizontal" 
+    android:text="Cell Droid"
+    />
+
+<TextView android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:text=""/>
+    
+<TextView
+    android:id="@+id/username_title"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="Username"
+    />
+<EditText
+	android:id="@+id/username_text"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text=""
+    />
+
+<TextView android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:text=""/>
+
+<TextView
+    android:id="@+id/username_title"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="Password"
+    />
+<EditText
+  android:id="@+id/password_text"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:password="true" 
+    android:text=""
+    />
+
+<TextView android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:text=""/>
+
+<TextView
+    android:id="@+id/username_title"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="Bluetooth Device name"
+    />
+<EditText
+  android:id="@+id/bluetooth_text"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:text="MYROBOT_BT"
+    />
+
+<TextView android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:text=""/>
+    
+<Button
+	android:id="@+id/connect_button"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="Connect"
+    />
+<Button
+  android:id="@+id/disconnect_button"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="Disconnect"
+    />
+</LinearLayout>
