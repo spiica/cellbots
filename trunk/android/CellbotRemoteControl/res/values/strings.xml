@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings">Settings</string>
+    <string name="ui_type_joystick">Joystick</string>
+    <string name="ui_type_buttons">Buttons</string>
     <string name="app_name">Cellbot Remote Control</string>
 </resources>
