@@ -36,5 +36,10 @@
                 android:key="REMOTE_EYES_IMAGE_URL"
                 android:title="Remote Eyes URL" 
                 android:hint="http://mywebsite.com/dropbox/image.jpg" />
+                
+        <EditTextPreference
+                android:key="COMMAND_PUT_URL"
+                android:title="Command URL" 
+                android:hint="http://mywebsite.com/dropbox/command.php" />
 
 </PreferenceScreen>

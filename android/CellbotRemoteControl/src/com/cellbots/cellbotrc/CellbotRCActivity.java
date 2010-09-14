@@ -16,6 +16,13 @@
 
 package com.cellbots.cellbotrc;
 
+import org.apache.commons.httpclient.HttpConnection;
+import org.apache.commons.httpclient.HttpState;
+import org.apache.commons.httpclient.methods.PutMethod;
+import org.apache.http.client.ClientProtocolException;
+
+import com.cellbots.cellbotrc.CellbotJoystick.JoystickEventListener;
+
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
@@ -48,8 +55,14 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -64,7 +77,7 @@ import java.util.ArrayList;
  * 
  * @author clchen@google.com (Charles L. Chen)
  */
-public class CellbotRCActivity extends Activity {
+public class CellbotRCActivity extends Activity implements JoystickEventListener {
     private static final String TAG = "Cellbot Remote Control";
 
     public static final int VOICE_RECO_CODE = 42;
@@ -76,17 +89,38 @@ public class CellbotRCActivity extends Activity {
     private String ROBOT_ACCOUNT;
 
     private String REMOTE_EYES_IMAGE_URL;
-
+    
+    private String COMMAND_PUT_URL;
+    
     public int state = 0;
 
     private URL url;
 
     private ImageView remoteEyesImageView;
+    
+    private LinearLayout mJoystickLayout;
+    
+    private LinearLayout mButtonLayout;
+    
+    private MenuItem mUiTypeMenuitem, mPrefMenuitem;
+    
+    private CellbotJoystick mJoystick;
 
     private Chat chatControl;
 
     private boolean mTorchOn = false;
-
+    
+    private SendCommandTask mSendCommandTask;
+    
+    private OnClickListener speakClickListener = new OnClickListener() {
+        public void onClick(View v) {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+            startActivityForResult(intent, VOICE_RECO_CODE);
+        }
+    };
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,6 +131,8 @@ public class CellbotRCActivity extends Activity {
         CONTROLLER_PASS = prefs.getString("CONTROLLER_PASS", "");
         ROBOT_ACCOUNT = prefs.getString("ROBOT_ACCOUNT", "");
         REMOTE_EYES_IMAGE_URL = prefs.getString("REMOTE_EYES_IMAGE_URL", "");
+        COMMAND_PUT_URL = prefs.getString("COMMAND_PUT_URL", "");
+
         if ((CONTROLLER_ACCOUNT.length() < 1) || (CONTROLLER_PASS.length() < 1)
                 || (ROBOT_ACCOUNT.length() < 1) || (REMOTE_EYES_IMAGE_URL.length() < 1)) {
             Intent i = new Intent();
@@ -169,6 +205,14 @@ public class CellbotRCActivity extends Activity {
             }
         });
 
+        mSendCommandTask = new SendCommandTask();
+
+        mButtonLayout = (LinearLayout) findViewById(R.id.button_layout);
+
+        mJoystickLayout = (LinearLayout) findViewById(R.id.joystick_layout);
+        mJoystick = new CellbotJoystick(this, this);
+        mJoystickLayout.addView(mJoystick);
+
         ImageButton forward = (ImageButton) findViewById(R.id.forward);
         forward.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -204,27 +248,30 @@ public class CellbotRCActivity extends Activity {
             }
         });
 
-        ImageButton speak = (ImageButton) findViewById(R.id.speak);
-        speak.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                        RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
-                startActivityForResult(intent, VOICE_RECO_CODE);
-            }
-        });
+        ((ImageButton) findViewById(R.id.speak)).setOnClickListener(speakClickListener);
+        ((ImageButton) findViewById(R.id.speak1)).setOnClickListener(speakClickListener);
 
         new UpdateImageTask().execute();
     }
 
     private boolean sendCommand(String command) {
-        try {
-            if (chatControl != null) {
-                chatControl.sendMessage(command);
-                return true;
+        if (mJoystickLayout.getVisibility() == View.VISIBLE) {
+            // Wait until the previous PUT is done only for stop command.
+            while(!mSendCommandTask.isReady() && command.equals("s"));
+            if (mSendCommandTask.isReady()) {
+                mSendCommandTask = new SendCommandTask();
+                mSendCommandTask.execute(command);
             }
-        } catch (XMPPException e) {
-            e.printStackTrace();
+            return true;
+        } else {
+            try {
+                if (chatControl != null) {
+                    chatControl.sendMessage(command);
+                    return true;
+                }
+            } catch (XMPPException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -271,22 +318,97 @@ public class CellbotRCActivity extends Activity {
         }
     }
 
+    private class SendCommandTask extends UserTask<String, Void, Void> {
+        
+        private HttpConnection mConnection;
+
+        private HttpState mHttpState;
+        
+        private final int port = 80;
+
+        private boolean isReady = true;
+        
+        public SendCommandTask() {
+            super();
+            mHttpState = new HttpState();
+            resetConnection();
+        }
+        
+        @Override
+        @SuppressWarnings("unchecked")
+        public Void doInBackground(String... params) {
+            if (params == null || params.length == 0 ||
+                COMMAND_PUT_URL == null || COMMAND_PUT_URL.equals("")) return null;
+            isReady = false;
+            try {
+                PutMethod put = new PutMethod(COMMAND_PUT_URL);
+                put.setRequestBody(new ByteArrayInputStream(params[0].getBytes()));
+                put.execute(mHttpState, mConnection);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (ClientProtocolException e) {
+                e.printStackTrace();
+                resetConnection();
+            } catch (IOException e) {
+                e.printStackTrace();
+                resetConnection();
+            } finally {
+                isReady = true;
+                if (mConnection != null)
+                    mConnection.close();
+            }
+            return null;
+        }
+        
+        public boolean isReady() {
+            return isReady;
+        }
+        
+        private void resetConnection() {
+            if (COMMAND_PUT_URL == null || COMMAND_PUT_URL.equals("")) return;
+            try {
+                mConnection = new HttpConnection(new URL(COMMAND_PUT_URL).getHost(), port);
+                mConnection.open();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, R.string.settings, 0, R.string.settings).setIcon(
+        mPrefMenuitem = menu.add(R.string.settings).setIcon(
                 android.R.drawable.ic_menu_preferences);
+        mUiTypeMenuitem = menu.add(R.string.ui_type_joystick);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
-        switch (item.getItemId()) {
-            case R.string.settings:
-                intent = new Intent(this, PrefsActivity.class);
-                startActivity(intent);
-                finish();
-                break;
+        if (item == mPrefMenuitem) {
+            intent = new Intent(this, PrefsActivity.class);
+            startActivity(intent);
+            finish();
+        } else if (item == mUiTypeMenuitem) {
+            if (item.getTitle().equals(getResources().getString(R.string.ui_type_joystick))) {
+                item.setTitle(getResources().getString(R.string.ui_type_buttons));
+                mButtonLayout.setVisibility(View.INVISIBLE);
+                mButtonLayout.setLayoutParams(new LayoutParams(0, 0));
+                mJoystickLayout.setVisibility(View.VISIBLE);
+                mJoystickLayout.setLayoutParams(
+                        new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+                                LayoutParams.WRAP_CONTENT));
+            } else {
+                item.setTitle(getResources().getString(R.string.ui_type_joystick));
+                mJoystickLayout.setVisibility(View.INVISIBLE);
+                mJoystickLayout.setLayoutParams(new LayoutParams(0, 0));
+                mButtonLayout.setVisibility(View.VISIBLE);
+                mButtonLayout.setLayoutParams(
+                        new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -325,5 +447,32 @@ public class CellbotRCActivity extends Activity {
                 showSpeechAlert(results.get(0));
             }
         }
+    }
+
+    /* (non-Javadoc)
+     * @see com.cellbots.cellbotrc.CellbotJoystick.JoystickEventListener#onAction(int, int)
+     */
+    @Override
+    public void onAction(float direction, float speed) {
+        if (direction >= 0 && direction <= 90) {
+            sendCommand("w " + (int) speed + " " + (int) (speed - direction / 90 * speed));
+        } else if (direction > 90) {
+            sendCommand("w -" + (int) speed + " -" +
+                    (int) (speed - (180 - direction) / 90 * speed));
+        } else if (direction < 0 && direction >= -90) {
+            sendCommand("w " + (int) (speed - Math.abs(direction) / 90 * speed) +
+                    " " + (int) speed);
+        } else if (direction < -90) {
+            sendCommand("w -" + (int) (speed - (180 - Math.abs(direction)) / 90 * speed) +
+                    " -" + (int) speed);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.cellbots.cellbotrc.CellbotJoystick.JoystickEventListener#onStopBot()
+     */
+    @Override
+    public void onStopBot() {
+        sendCommand("s");
     }
 }

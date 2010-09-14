@@ -32,6 +32,7 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
     private EditTextPreference controllerPassPref;
     private EditTextPreference robotAccountPref;
     private EditTextPreference remoteEyesUrlPref;
+    private EditTextPreference commandUrlPref;
     private SharedPreferences prefs;
 
 
@@ -44,7 +45,7 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
         controllerPassPref = (EditTextPreference) findPreference("CONTROLLER_PASS");
         robotAccountPref = (EditTextPreference) findPreference("ROBOT_ACCOUNT");
         remoteEyesUrlPref = (EditTextPreference) findPreference("REMOTE_EYES_IMAGE_URL");
-
+        commandUrlPref = (EditTextPreference) findPreference("COMMAND_PUT_URL");
     }
     
     @Override
@@ -54,6 +55,7 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
         controllerPassPref.setSummary(prefs.getString("CONTROLLER_PASS", "")); 
         robotAccountPref.setSummary(prefs.getString("ROBOT_ACCOUNT", "")); 
         remoteEyesUrlPref.setSummary(prefs.getString("REMOTE_EYES_IMAGE_URL", "")); 
+        commandUrlPref.setSummary(prefs.getString("COMMAND_PUT_URL", ""));
         prefs.registerOnSharedPreferenceChangeListener(this);
     }
     
@@ -66,6 +68,8 @@ public class PrefsActivity extends PreferenceActivity implements OnSharedPrefere
             robotAccountPref.setSummary(sharedPreferences.getString(key, ""));
         } else if (key.equals("REMOTE_EYES_IMAGE_URL")) {
             remoteEyesUrlPref.setSummary(sharedPreferences.getString(key, ""));
+        } else if (key.equals("COMMAND_PUT_URL")) {
+            commandUrlPref.setSummary(sharedPreferences.getString(key, ""));
         }
     }
 
