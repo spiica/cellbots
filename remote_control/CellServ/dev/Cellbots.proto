@@ -1,10 +1,11 @@
+//to compile:  protoc --java_out=../src/  Cellbots.proto
 package cellbots;
 
 option java_package = "com.cellbots";
 option java_outer_classname = "CellbotProtos";
 
 
-message  AVFrame{ //can be used for setting params or sending data
+message  AudioVideoFrame{ //can be used for setting params or sending data
   optional int64 timestamp = 1; 
   optional bytes data = 2;
   optional int64 frameNumber = 3;
@@ -27,7 +28,7 @@ message  AVFrame{ //can be used for setting params or sending data
   optional Encoding encoding = 12;
 }
 
-message BotConnection{
+message HALConnection{
     optional string address = 1;
     optional string name = 2;
     optional string uuid = 3;
@@ -147,7 +148,7 @@ message PhoneState {
   }
   optional Location location = 18;
   optional bool gpsEnabled = 19;
-  optional BotConnection BotConnection = 20;  
+  optional HALConnection HALConnection = 20;  
 }
 
 
@@ -182,10 +183,9 @@ message ControllerState {
  
   optional string txtCommand = 4;
   optional string controllerID = 5;
-  
 }
 
-message  HalCommand {
+message  HALCommand {
   optional int64 timestamp = 1; 
   optional string txtCommand = 2;
   optional bool allStop = 3;
@@ -221,7 +221,7 @@ message  HalCommand {
   repeated Relay relay =  7;
 }
 
-message  HalState{
+message  HALState{
   required int64 timestamp = 1; 
   optional string dbgMessage = 2 ;
   
@@ -259,4 +259,25 @@ message  HalState{
     optional SensorUnits sensorUnits = 7;
   }
   repeated SensorValue sensorValue = 8;
+}
+
+
+service HALService {
+    rpc connect(HALConnection) returns (HALConnection);
+    rpc execute(HALCommand) returns (HALState);
+    rpc getConnectionStatus(HALConnection) returns (HALConnection);
+    //rpc getFullState(void) returns (HALState);
+}
+
+service MasterControlService {
+    rpc processControllerEvent(ControllerState) returns (PhoneState);
+    rpc setVideoOptions(AudioVideoFrame) returns (AudioVideoFrame);
+    rpc processAVFrame(AudioVideoFrame) returns (PhoneState);
+    //method getPhoneState() returns (PhoneState);
+}
+
+service HIDService{ 
+    rpc displayAVFrame(AudioVideoFrame) returns (ControllerState);
+    rpc displayPhoneState(PhoneState) returns (ControllerState);
+    rpc displayHALSensorData(HALState) returns (ControllerState);
 }
