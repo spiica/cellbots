@@ -17,6 +17,8 @@
 
 package com.allthingsgeek.celljoust;
 
+import java.util.Random;
+
 import com.allthingsgeek.celljoust.R;
 
 import android.app.Activity;
@@ -36,10 +38,11 @@ import android.widget.ToggleButton;
  *  Activity to help configure the ServoBot program 
  */
 public class SetupActivity extends Activity implements OnSeekBarChangeListener {
-	public static SensorManager sensorManager;
+//	public static SensorManager sensorManager;
 	
 	SeekBar lPulseBar;
 	EditText serverUrl;
+	EditText robotId;
 	SeekBar lPulseBar2;
 	SeekBar rPulseBar;
 	SeekBar rPulseBar2;
@@ -62,12 +65,17 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+	  
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.setup);
 
 		SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
 		serverUrl = (EditText) findViewById(R.id.serverUrl);
-		serverUrl.setText(settings.getString("REMOTE_EYES_PUT_URL", "http://example.com:8080/cellserv/video"));
+		serverUrl.setText(settings.getString("REMOTE_EYES_PUT_URL", "http://192.168.2.242:8080/CellServ"));
+		
+	    robotId = (EditText) findViewById(R.id.robotID);
+	    robotId.setText(settings.getString("ROBOT_ID", RobotStateHandler.ROBOT_ID));
 		
 	    noise = PulseGenerator.getInstance();
 	    mover = Movement.getInstance();

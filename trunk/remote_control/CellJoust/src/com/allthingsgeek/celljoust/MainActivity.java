@@ -20,6 +20,7 @@ import org.apache.http.params.HttpParams;
 
 import com.allthingsgeek.celljoust.R;
 import com.cellbots.CellbotProtos;
+import com.cellbots.CellbotProtos.AudioVideoFrame;
 import com.cellbots.CellbotProtos.ControllerState;
 import com.cellbots.CellbotProtos.PhoneState.Builder;
 import com.google.protobuf.ByteString;
@@ -71,9 +72,7 @@ public class MainActivity extends Activity implements Callback
 
   private SurfaceHolder         mHolder;
 
-  private String                putUrl        = "";
-
-  private String                server        = "";
+  public static String                putUrl        = "";
 
   private SurfaceView           mPreview;
 
@@ -123,16 +122,9 @@ public class MainActivity extends Activity implements Callback
 
     noise = PulseGenerator.getInstance();
     mover = Movement.getInstance();
-
-    // Restore preferences
-    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-    putUrl = settings.getString("REMOTE_EYES_PUT_URL", "http://example.com:8080/cellserv/video");
-    noise.setOffsetPulsePercent(settings.getInt("servo1Percent", 50), 0);
-    noise.setOffsetPulsePercent(settings.getInt("servo2Percent", 50), 1);
-    noise.setOffsetPulsePercent(settings.getInt("servo3Percent", 50), 2);
-    noise.setOffsetPulsePercent(settings.getInt("servo4Percent", 50), 3);
-    mover.setOffset(settings.getInt("wheelOffset", 0));
-
+     
+    loadPrefs();
+    
     mTorchMode = false;
 
     out = new ByteArrayOutputStream();
@@ -154,7 +146,27 @@ public class MainActivity extends Activity implements Callback
     noise.pause();
 
   }
+  
+  private void loadPrefs()
+  {
+    // Restore preferences
+    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+    putUrl = settings.getString("REMOTE_EYES_PUT_URL", "http://example.com:8080/cellserv");
+    noise.setOffsetPulsePercent(settings.getInt("servo1Percent", 50), 0);
+    noise.setOffsetPulsePercent(settings.getInt("servo2Percent", 50), 1);
+    noise.setOffsetPulsePercent(settings.getInt("servo3Percent", 50), 2);
+    noise.setOffsetPulsePercent(settings.getInt("servo4Percent", 50), 3);
+    mover.setOffset(settings.getInt("wheelOffset", 0));
 
+  }
+
+  @Override
+  public void onResume()
+  {
+    loadPrefs(); 
+    super.onResume();
+  }
+   
   private Handler handler = new Handler()
                           {
 
@@ -235,17 +247,17 @@ public class MainActivity extends Activity implements Callback
     {
     }
 
-    if (state.isAlive())
-    {
-      state.stopListening();
-    }
+    //if (state.isAlive())
+    //{
+      //state.stopListening();
+    //}
 
   }
 
   protected void onDestroy()
   {
-    super.onDestroy();
     noise.stop();
+    super.onDestroy();
   }
 
   @Override
@@ -369,7 +381,7 @@ public class MainActivity extends Activity implements Callback
       
       //this client should automatically reuse its connection
       httpclient = new DefaultHttpClient();  
-      alive=true;
+      alive = true;
       start();
     }
 
@@ -402,19 +414,24 @@ public class MainActivity extends Activity implements Callback
           YuvImage yuvImage = new YuvImage(mCallbackBuffer, previewFormat, previewWidth, previewHeight, null);
           yuvImage.compressToJpeg(r, 20, out); // Tweak the quality here
 
-          state.setVideoFrame(ByteString.copyFrom(out.toByteArray()));
+          //state.setVideoFrame(ByteString.copyFrom(out.toByteArray()));
           
-          HttpPost post = new HttpPost(putUrl);
+          AudioVideoFrame.Builder avFrame = AudioVideoFrame.newBuilder(); 
+          
+          avFrame.setData(ByteString.copyFrom(out.toByteArray()));
+          
+          
+          HttpPost post = new HttpPost(putUrl+"/video?ROBOT_ID="+RobotStateHandler.ROBOT_ID);
 
-          post.setEntity(new ByteArrayEntity(state.getStateAndReset().toByteArray()));
+          post.setEntity(new ByteArrayEntity(state.getVideoFrame().toByteArray()));
 
           HttpResponse resp = httpclient.execute(post);
 
-          InputStream resStream = resp.getEntity().getContent();
+          //InputStream resStream = resp.getEntity().getContent();
 
-          ControllerState cs = ControllerState.parseFrom(resStream);
+          //ControllerState cs = ControllerState.parseFrom(resStream);
 
-          mover.processControllerStateEvent(cs);
+          //mover.processControllerStateEvent(cs);
         }
         catch (UnsupportedEncodingException e)
         {
