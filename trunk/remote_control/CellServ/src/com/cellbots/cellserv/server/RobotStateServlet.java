@@ -20,9 +20,14 @@ import org.apache.commons.httpclient.HttpStatus;
 import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.ControllerState;
 import com.cellbots.CellbotProtos.PhoneState;
+import com.cellbots.CellbotProtos.PhoneState.Builder;
 import com.cellbots.SchemaCellbotProtos;
+import com.cellbots.SchemaCellbotProtos.PhoneState.BuilderSchema;
+import com.cellbots.SchemaCellbotProtos.PhoneState.MessageSchema;
 import com.dyuproject.protostuff.JsonIOUtil;
 import com.dyuproject.protostuff.Output;
+import com.dyuproject.protostuff.Schema;
+import com.dyuproject.protostuff.runtime.RuntimeSchema;
 
 public class RobotStateServlet extends HttpServlet
 {
@@ -36,7 +41,6 @@ public class RobotStateServlet extends HttpServlet
 
   private static long       lastControllerTimestamp;
 
-
   public String getServletInfo()
   {
     return "Servlet for handeling communication with phone";
@@ -45,29 +49,37 @@ public class RobotStateServlet extends HttpServlet
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException
   {
 
-    //final SchemaCellbotP json = new SchemaCellbotProtos();
+    // final SchemaCellbotP json = new SchemaCellbotProtos();
 
-    
-    res.setContentType("application/json");
-    
-   
-   /* 
-    *  PhoneState.Builder ps = PhoneState.newBuilder();
-    * json.mergeFrom(request.getInputStream(), greet);
-    
-    String name = greet.getName();
-    if(name==null || name.length()==0)
-        greet.setName("Anonymous");
-   
-    greet.setId(greetCount.incrementAndGet())
-        .setStatus(Greet.Status.ACKNOWLEDGED)
-        .setMessage("Hello " + greet.getName() + " from server @ " + new Date());
-        */
-    
-    SchemaCellbotProtos.PhoneState.WRITE.writeTo((Output) res.getOutputStream(),  StateHolder.getInstance("").getPhoneState());
-    
-    //JsonIOUtil.writeTo(res.getOutputStream(), StateHolder.getInstance("").getPhoneState(),true);½
+    //res.setContentType("application/json");
 
+    /*
+     * PhoneState.Builder ps = PhoneState.newBuilder();
+     * json.mergeFrom(request.getInputStream(), greet);
+     * 
+     * String name = greet.getName(); if(name==null || name.length()==0)
+     * greet.setName("Anonymous");
+     * 
+     * greet.setId(greetCount.incrementAndGet())
+     * .setStatus(Greet.Status.ACKNOWLEDGED) .setMessage("Hello " +
+     * greet.getName() + " from server @ " + new Date());
+     */
+
+    // SchemaCellbotProtos.PhoneState.WRITE.writeTo(output,
+    // StateHolder.getInstance("").getPhoneState());
+
+    // Schema<CellbotProtos.PhoneState> schema =
+
+    Schema<com.cellbots.CellbotProtos.PhoneState> schema = new SchemaCellbotProtos.PhoneState.MessageSchema();
+
+    PhoneState ps = StateHolder.getInstance("").getPhoneState();
+
+    byte[] bytes;
+    if (ps != null)
+    {
+      bytes =   JsonIOUtil.toByteArray(ps, schema, true);
+      res.getOutputStream().write(bytes);
+    }
 
   }
 
@@ -78,13 +90,13 @@ public class RobotStateServlet extends HttpServlet
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException
   {
     // first, set the "content type" header of the response
-    //res.setContentType("text/html");
+    // res.setContentType("text/html");
 
     try
     {
-        CellbotProtos.PhoneState state = CellbotProtos.PhoneState.parseFrom(req.getInputStream());
-        StateHolder.getInstance("").setPhoneState( state);
-       
+      CellbotProtos.PhoneState state = CellbotProtos.PhoneState.parseFrom(req.getInputStream());
+      StateHolder.getInstance("").setPhoneState(state);
+
       if (StateHolder.getInstance("").newControllerStateAvailble(lastControllerTimestamp))
       {
         System.out.println("writing new controller msg");

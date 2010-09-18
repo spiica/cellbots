@@ -32,7 +32,7 @@ import com.google.gwt.user.client.ui.Widget;
 public class WiimoteEntry implements EntryPoint
 {
   
-  static final String JSON_URL = "/robotState";
+  static final String JSON_URL = "/cellserv/robotState";
 
   
   final static Label messageLabel = new Label("Status:ok");;
@@ -108,7 +108,7 @@ public class WiimoteEntry implements EntryPoint
     // Create a new timer
     sensorTimer = new Timer () {
       public void run() {
-        RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, JSON_URL);
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, JSON_URL);
         try 
         {
             builder.setHeader("Content-Type", "application/json");
@@ -135,7 +135,7 @@ public class WiimoteEntry implements EntryPoint
     
     // Schedule the timer for every 1/2 second (500 milliseconds)
     elapsedTimer.scheduleRepeating(50);
-    sensorTimer.scheduleRepeating(1000);
+    sensorTimer.scheduleRepeating(500);
 
   }
 
@@ -145,7 +145,7 @@ public class WiimoteEntry implements EntryPoint
       //vp.add(new Label("Greet #" + greet.getId() + ": " + greet.getMessage() + " | " + greet.getStatus().getNumber()));
       if(state.hasOrientation())
       {
-        messageLabel.setText("Aimuth="+state.getOrientation().getAzimuth());
+        messageLabel.setText("Azimuth="+state.getOrientation().getAzimuth());
       }
   }
   

@@ -70,13 +70,13 @@ public class StateHolder
 
   public  boolean newVideoFrameAvilble( long timestamp)
   {
-    return instance.avFrame != null && instance.avFrame.getTimestamp() != timestamp;
+    return instance.avFrame != null ;//&& instance.avFrame.getTimestamp() != timestamp;
   }
 
   
   public  boolean newPhoneStateAvilble(long timestamp)
   {
-    return instance.phoneState != null && instance.phoneState.getTimestamp() != timestamp;
+    return instance.phoneState != null;//&& instance.phoneState.getTimestamp() != timestamp;
   }
 
   public  byte[] getVideoFrame(int slotNumber)
