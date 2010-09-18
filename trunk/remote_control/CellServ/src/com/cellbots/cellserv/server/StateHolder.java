@@ -1,60 +1,100 @@
 package com.cellbots.cellserv.server;
 
+import java.io.IOException;
+
+
 import com.cellbots.CellbotProtos;
-import com.cellbots.CellbotProtos.ControllerState;
-import com.cellbots.CellbotProtos.ControllerState.Builder;
+import com.gargoylesoftware.htmlunit.Cache;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.protobuf.ByteString;
 
 public class StateHolder
 {
 
-  private static int                           MAX_SLOTS         = 10;
 
-  private static CellbotProtos.PhoneState      phoneState[]      = new CellbotProtos.PhoneState[MAX_SLOTS];
+  private  CellbotProtos.PhoneState      phoneState;
 
-  private static CellbotProtos.ControllerState controllerState[] = new CellbotProtos.ControllerState[MAX_SLOTS];
+  private  CellbotProtos.ControllerState controllerState; 
   
-  private static Builder csBuilder = CellbotProtos.ControllerState.newBuilder();
+  private  CellbotProtos.AudioVideoFrame avFrame; 
+  
+  private  CellbotProtos.ControllerState.Builder csBuilder = CellbotProtos.ControllerState.newBuilder();
+  
+  private static StateHolder instance;
   
   
-  public static void setPhoneState(int slotNumber, CellbotProtos.PhoneState ps)
+  //private   MemcacheService phoneStates = MemcacheServiceFactory.getMemcacheService();
+  
+  private StateHolder() 
   {
-    phoneState[slotNumber] = ps;
   }
   
-  public static CellbotProtos.PhoneState getPhoneState(int slotNumber)
+  
+  public static StateHolder getInstance(String botID) 
   {
-    return phoneState[slotNumber];
+    
+    if (instance == null)
+    {
+      instance = new StateHolder();
+    }
+    return instance;
+  }
+  
+  public void setPhoneState(CellbotProtos.PhoneState ps)
+  {
+    instance.phoneState  = ps;
+   // cache.put()
+
   }
 
-  public static CellbotProtos.ControllerState getControllerState(int slotNumber)
+  public void setVideoFrame( CellbotProtos.AudioVideoFrame av)
   {
-    ControllerState cs = csBuilder.build();
+    instance.avFrame = av;
+   // cache.put()
+
+  }
+  
+  public  CellbotProtos.PhoneState getPhoneState()
+  {
+    return instance.phoneState;
+  }
+
+  public  CellbotProtos.ControllerState getControllerState()
+  {
+    CellbotProtos.ControllerState cs = csBuilder.build();
     csBuilder=null;
     
     return cs;
   }
 
-  public static boolean newVideoFrameAvilble(int slotNumber, long timestamp)
+  public  boolean newVideoFrameAvilble( long timestamp)
   {
-    return phoneState[slotNumber] != null && phoneState[slotNumber].hasVideoFrame() && phoneState[slotNumber].getTimestamp() != timestamp;
+    return instance.avFrame != null && instance.avFrame.getTimestamp() != timestamp;
   }
 
-  public static byte[] getVideoFrame(int slotNumber)
+  
+  public  boolean newPhoneStateAvilble(long timestamp)
   {
-    if (phoneState[slotNumber] != null && phoneState[slotNumber].hasVideoFrame())
-      return phoneState[slotNumber].getVideoFrame().toByteArray();
+    return instance.phoneState != null && instance.phoneState.getTimestamp() != timestamp;
+  }
+
+  public  byte[] getVideoFrame(int slotNumber)
+  {
+    if (instance.avFrame != null && instance.avFrame.hasData())
+      return instance.avFrame.getData().toByteArray();
     else
       return null;
   }
 
-  public static boolean newControllerStateAvailble(int slotNumber, long timestamp)
+  public  boolean newControllerStateAvailble( long timestamp)
   {
     //controllerState[slotNumber] != null &&
     
     return csBuilder!=null && csBuilder.getKeyEventCount() > 0;
   }
 
-  public static void addKeyEvent(com.cellbots.CellbotProtos.ControllerState.KeyEvent.Builder key)
+  public  void addKeyEvent(com.cellbots.CellbotProtos.ControllerState.KeyEvent.Builder key)
   {
     
     if(csBuilder == null)

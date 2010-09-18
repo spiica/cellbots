@@ -25,30 +25,10 @@ public class VideoServlet extends HttpServlet
 
   private static final long serialVersionUID = -1542374763947377440L;
 
-  private String            resultsDir;
-
   private static int        slotNumber       = 0;
 
   private static long       lastPhoneTimestamp;
 
-  private static long       lastControllerTimestamp;
-
-  public void init(ServletConfig config) throws ServletException
-  {
-    super.init(config);
-
-    // Store the directory that will hold the survey-results files
-    resultsDir = getInitParameter("resultsDir");
-
-    // If no directory was provided, can't handle clients
-    if (resultsDir == null)
-    {
-      resultsDir = System.getProperty("java.io.tmpdir");
-      // throw new UnavailableException(this,
-      // "Not given a directory to write survey results!");
-    }
-
-  }
 
   public String getServletInfo()
   {
@@ -58,9 +38,9 @@ public class VideoServlet extends HttpServlet
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException
   {
 
-    if (StateHolder.newVideoFrameAvilble(slotNumber, lastPhoneTimestamp))
+    if (StateHolder.getInstance("").newVideoFrameAvilble( lastPhoneTimestamp))
     {
-      res.getOutputStream().write(StateHolder.getVideoFrame(slotNumber));
+      res.getOutputStream().write(StateHolder.getInstance("").getVideoFrame(slotNumber));
     }
 
     else
@@ -81,18 +61,8 @@ public class VideoServlet extends HttpServlet
 
     try
     {
-        CellbotProtos.PhoneState state = CellbotProtos.PhoneState.parseFrom(req.getInputStream());
-        StateHolder.setPhoneState(slotNumber, state);
-       
-      if (StateHolder.newControllerStateAvailble(slotNumber, lastControllerTimestamp))
-      {
-        System.out.println("writing new controller msg");
-        ControllerState cs = StateHolder.getControllerState(slotNumber);
-        res.getOutputStream().write(cs.toByteArray());
-        lastControllerTimestamp = cs.getTimestamp();
-
-        
-      }
+        CellbotProtos.AudioVideoFrame frame = CellbotProtos.AudioVideoFrame.parseFrom(req.getInputStream());
+        StateHolder.getInstance("").setVideoFrame(frame);
 
     }
     catch (IOException e)
