@@ -374,6 +374,8 @@ public class MainActivity extends Activity implements Callback
     
     HttpClient httpclient;
     boolean alive;
+    HttpPost post;
+    boolean sending = false;
     
     public ConversionWorker()
     {
@@ -382,6 +384,7 @@ public class MainActivity extends Activity implements Callback
       //this client should automatically reuse its connection
       httpclient = new DefaultHttpClient();  
       alive = true;
+      post = new HttpPost(putUrl+"/video");
       start();
     }
 
@@ -420,13 +423,14 @@ public class MainActivity extends Activity implements Callback
           
           avFrame.setData(ByteString.copyFrom(out.toByteArray()));
           
+          post.setEntity(new ByteArrayEntity(avFrame.build().toByteArray()));
           
-          HttpPost post = new HttpPost(putUrl+"/video?ROBOT_ID="+RobotStateHandler.ROBOT_ID);
-
-          post.setEntity(new ByteArrayEntity(state.getVideoFrame().toByteArray()));
-
+          Log.i(TAG, "sending video");
+          sending = true;
           HttpResponse resp = httpclient.execute(post);
-
+          sending = false;
+          Log.i(TAG, "sent video");
+         
           //InputStream resStream = resp.getEntity().getContent();
 
           //ControllerState cs = ControllerState.parseFrom(resStream);
@@ -437,6 +441,7 @@ public class MainActivity extends Activity implements Callback
         {
           // TODO Auto-generated catch block
           e.printStackTrace();
+          
         }
         catch (IllegalStateException e)
         {
@@ -473,7 +478,7 @@ public class MainActivity extends Activity implements Callback
 
     synchronized boolean nextFrame(byte[] frame)
     {
-      if (this.getState() == Thread.State.WAITING)
+      if (this.getState() == Thread.State.WAITING && ! sending)
       {
         // ok, we are ready for a new frame:
         // curFrame = frame;

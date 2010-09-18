@@ -72,7 +72,7 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 
 		SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
 		serverUrl = (EditText) findViewById(R.id.serverUrl);
-		serverUrl.setText(settings.getString("REMOTE_EYES_PUT_URL", "http://192.168.2.242:8080/CellServ"));
+		serverUrl.setText(settings.getString("REMOTE_EYES_PUT_URL", "http://192.168.43.242:8080/cellserv"));
 		
 	    robotId = (EditText) findViewById(R.id.robotID);
 	    robotId.setText(settings.getString("ROBOT_ID", RobotStateHandler.ROBOT_ID));

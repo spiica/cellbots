@@ -20,6 +20,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.ControllerState;
+import com.cellbots.CellbotProtos.PhoneState;
 import com.cellbots.sensors.CompassManager;
 import com.cellbots.sensors.LightSensorManager;
 import com.cellbots.sensors.OrientationManager;
@@ -171,8 +172,8 @@ public class RobotStateHandler implements SensorListener
                                              {
                                                public void onReceive(Context arg0, Intent intent)
                                                {
-                                                 state.setPhoneBatteryLevel(intent.getIntExtra("level", 0));
-                                                 state.setPhoneBatteryTemp(intent.getIntExtra("temperature", 0));
+                                                 //state.setPhoneBatteryLevel(intent.getIntExtra("level", 0));
+                                                 //state.setPhoneBatteryTemp(intent.getIntExtra("temperature", 0));
                                                }
                                              };
 
@@ -305,6 +306,8 @@ public class RobotStateHandler implements SensorListener
       this.listening = true;
 
       this.sensorSender = new SensorSender();
+      
+      sensorSender.start();
 
       try
       {
@@ -381,11 +384,13 @@ public class RobotStateHandler implements SensorListener
       {
         try
         {
-          HttpPost post = new HttpPost(MainActivity.putUrl + "/robotState?ROBOT_ID=" + RobotStateHandler.ROBOT_ID);
+          HttpPost post = new HttpPost(MainActivity.putUrl + "/robotState");
 
           state.setTimestamp(System.currentTimeMillis());
 
           post.setEntity(new ByteArrayEntity(state.build().toByteArray()));
+          
+          state = PhoneState.newBuilder();
 
           HttpResponse resp = httpclient.execute(post);
 
