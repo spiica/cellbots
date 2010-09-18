@@ -56,7 +56,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return Servo 
          */
         public static native Servo parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -66,7 +66,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return JsArray<Servo> 
          */
         public static native JsArray<Servo> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -76,24 +76,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Servo obj) /*-{
-            var buf = [];
-            var _1 = obj["iD"];
-            if(_1 != null)
-                buf.push("\"iD\":\"" + _1 + "\"");
-            var _3 = obj["speed"];
-            if(_3 != null)
-                buf.push("\"speed\":" + _3);
-            var _4 = obj["targetPosition"];
-            if(_4 != null)
-                buf.push("\"targetPosition\":" + _4);
-            var _5 = obj["torque"];
-            if(_5 != null)
-                buf.push("\"torque\":" + _5);
-            var _6 = obj["freeWheel"];
-            if(_6 != null)
-                buf.push("\"freeWheel\":" + _6);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Servo obj) /*-{
@@ -246,7 +229,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return Motor 
          */
         public static native Motor parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -256,7 +239,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return JsArray<Motor> 
          */
         public static native JsArray<Motor> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -266,21 +249,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Motor obj) /*-{
-            var buf = [];
-            var _1 = obj["iD"];
-            if(_1 != null)
-                buf.push("\"iD\":\"" + _1 + "\"");
-            var _2 = obj["steps"];
-            if(_2 != null)
-                buf.push("\"steps\":" + _2);
-            var _3 = obj["speed"];
-            if(_3 != null)
-                buf.push("\"speed\":" + _3);
-            var _4 = obj["freeWheel"];
-            if(_4 != null)
-                buf.push("\"freeWheel\":" + _4);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Motor obj) /*-{
@@ -415,7 +384,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return PWM 
          */
         public static native PWM parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -425,7 +394,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return JsArray<PWM> 
          */
         public static native JsArray<PWM> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -435,18 +404,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(PWM obj) /*-{
-            var buf = [];
-            var _1 = obj["iD"];
-            if(_1 != null)
-                buf.push("\"iD\":\"" + _1 + "\"");
-            var _2 = obj["frequency"];
-            if(_2 != null)
-                buf.push("\"frequency\":" + _2);
-            var _3 = obj["duty"];
-            if(_3 != null)
-                buf.push("\"duty\":" + _3);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(PWM obj) /*-{
@@ -565,7 +523,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return Relay 
          */
         public static native Relay parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -575,7 +533,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return JsArray<Relay> 
          */
         public static native JsArray<Relay> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -585,15 +543,7 @@ public final class HALCommand extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Relay obj) /*-{
-            var buf = [];
-            var _1 = obj["iD"];
-            if(_1 != null)
-                buf.push("\"iD\":\"" + _1 + "\"");
-            var _2 = obj["on"];
-            if(_2 != null)
-                buf.push("\"on\":" + _2);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Relay obj) /*-{
@@ -691,7 +641,7 @@ public final class HALCommand extends JavaScriptObject  {
      * @return HALCommand 
      */
     public static native HALCommand parse(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -701,7 +651,7 @@ public final class HALCommand extends JavaScriptObject  {
      * @return JsArray<HALCommand> 
      */
     public static native JsArray<HALCommand> parseArray(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -711,46 +661,7 @@ public final class HALCommand extends JavaScriptObject  {
      * @return String the serialized json string
      */
     public static native String stringify(HALCommand obj) /*-{
-        var buf = [];
-        var _1 = obj["timestamp"];
-        if(_1 != null)
-            buf.push("\"timestamp\":" + _1);
-        var _2 = obj["txtCommand"];
-        if(_2 != null)
-            buf.push("\"txtCommand\":\"" + _2 + "\"");
-        var _3 = obj["allStop"];
-        if(_3 != null)
-            buf.push("\"allStop\":" + _3);
-        var _4 = obj["servo"];
-        if(_4 != null && _4.length != 0) {
-            var b = [], fn = @com.cellbots.cellserv.client.HALCommand.Servo::stringify(Lcom/cellbots/cellserv/client/HALCommand$Servo;);
-            for(var i=0,l=_4.length; i<l; i++)
-                b.push(fn(_4[i]));
-            buf.push("\"servo\":[" + b.join(",") + "]");
-        }
-        var _5 = obj["motor"];
-        if(_5 != null && _5.length != 0) {
-            var b = [], fn = @com.cellbots.cellserv.client.HALCommand.Motor::stringify(Lcom/cellbots/cellserv/client/HALCommand$Motor;);
-            for(var i=0,l=_5.length; i<l; i++)
-                b.push(fn(_5[i]));
-            buf.push("\"motor\":[" + b.join(",") + "]");
-        }
-        var _6 = obj["pwm"];
-        if(_6 != null && _6.length != 0) {
-            var b = [], fn = @com.cellbots.cellserv.client.HALCommand.PWM::stringify(Lcom/cellbots/cellserv/client/HALCommand$PWM;);
-            for(var i=0,l=_6.length; i<l; i++)
-                b.push(fn(_6[i]));
-            buf.push("\"pwm\":[" + b.join(",") + "]");
-        }
-        var _7 = obj["relay"];
-        if(_7 != null && _7.length != 0) {
-            var b = [], fn = @com.cellbots.cellserv.client.HALCommand.Relay::stringify(Lcom/cellbots/cellserv/client/HALCommand$Relay;);
-            for(var i=0,l=_7.length; i<l; i++)
-                b.push(fn(_7[i]));
-            buf.push("\"relay\":[" + b.join(",") + "]");
-        }
-
-        return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+        return $wnd.JSON.stringify(obj);
     }-*/;
     
     public static native boolean isInitialized(HALCommand obj) /*-{

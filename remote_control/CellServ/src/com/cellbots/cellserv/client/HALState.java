@@ -27,31 +27,15 @@ public final class HALState extends JavaScriptObject  {
             public static final SensorUnits PRESSURE_MILIBAR = create(15);
             
             private static native SensorUnits create(int number) /*-{
-                return [number];
+                return number;
             }-*/;
             
             protected SensorUnits() {}
             
             public native int getNumber() /*-{
-                return this[0];
+                return this;
             }-*/;
             
-            // dev mode
-            public static native JsArray<SensorUnits> getArray(JavaScriptObject obj, String key) /*-{
-                var v = obj[key];
-                if(v && v.length && !v[0].length) {
-                    for(var i=0,l=v.length; i<l; i++)
-                        v[i] = [v[i]];
-                }
-                return v;
-            }-*/;
-
-            public static native SensorUnits get(JavaScriptObject obj, String key) /*-{
-                var v = obj[key];
-                if(v == null)
-                    return [1];
-                return v.length ? v : (obj[key] = [v]);
-            }-*/;
         }
 
         /**
@@ -101,7 +85,7 @@ public final class HALState extends JavaScriptObject  {
          * @return SensorValue 
          */
         public static native SensorValue parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -111,7 +95,7 @@ public final class HALState extends JavaScriptObject  {
          * @return JsArray<SensorValue> 
          */
         public static native JsArray<SensorValue> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -121,30 +105,7 @@ public final class HALState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(SensorValue obj) /*-{
-            var buf = [];
-            var _1 = obj["iD"];
-            if(_1 != null)
-                buf.push("\"iD\":\"" + _1 + "\"");
-            var _2 = obj["outOfRange"];
-            if(_2 != null)
-                buf.push("\"outOfRange\":" + _2);
-            var _3 = obj["value"];
-            if(_3 != null)
-                buf.push("\"value\":" + _3);
-            var _4 = obj["prevValue"];
-            if(_4 != null)
-                buf.push("\"prevValue\":" + _4);
-            var _5 = obj["minSenseableValue"];
-            if(_5 != null)
-                buf.push("\"minSenseableValue\":" + _5);
-            var _6 = obj["maxSenseableValue"];
-            if(_6 != null)
-                buf.push("\"maxSenseableValue\":" + _6);
-            var _7 = obj["sensorUnits"];
-            if(_7 != null)
-                buf.push("\"sensorUnits\":" + _7);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(SensorValue obj) /*-{
@@ -267,7 +228,8 @@ public final class HALState extends JavaScriptObject  {
         // sensorUnits
 
         public native SensorUnits getSensorUnits() /*-{
-            return @com.cellbots.cellserv.client.HALState.SensorValue.SensorUnits::get(Lcom/google/gwt/core/client/JavaScriptObject;Ljava/lang/String;)(this, "sensorUnits");
+            var v = this["sensorUnits"];
+            return v == null ? 1 : v;
         }-*/;
 
         public native void setSensorUnits(SensorUnits sensorUnits) /*-{
@@ -331,7 +293,7 @@ public final class HALState extends JavaScriptObject  {
      * @return HALState 
      */
     public static native HALState parse(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -341,7 +303,7 @@ public final class HALState extends JavaScriptObject  {
      * @return JsArray<HALState> 
      */
     public static native JsArray<HALState> parseArray(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -351,37 +313,7 @@ public final class HALState extends JavaScriptObject  {
      * @return String the serialized json string
      */
     public static native String stringify(HALState obj) /*-{
-        var buf = [];
-        var _1 = obj["timestamp"];
-        if(_1 != null)
-            buf.push("\"timestamp\":" + _1);
-        var _2 = obj["dbgMessage"];
-        if(_2 != null)
-            buf.push("\"dbgMessage\":\"" + _2 + "\"");
-        var _3 = obj["vBat"];
-        if(_3 != null)
-            buf.push("\"vBat\":" + _3);
-        var _4 = obj["currentDraw"];
-        if(_4 != null)
-            buf.push("\"currentDraw\":" + _4);
-        var _5 = obj["powerUsed"];
-        if(_5 != null)
-            buf.push("\"powerUsed\":" + _5);
-        var _6 = obj["batteryTemp"];
-        if(_6 != null)
-            buf.push("\"batteryTemp\":" + _6);
-        var _7 = obj["vCC"];
-        if(_7 != null)
-            buf.push("\"vCC\":" + _7);
-        var _8 = obj["sensorValue"];
-        if(_8 != null && _8.length != 0) {
-            var b = [], fn = @com.cellbots.cellserv.client.HALState.SensorValue::stringify(Lcom/cellbots/cellserv/client/HALState$SensorValue;);
-            for(var i=0,l=_8.length; i<l; i++)
-                b.push(fn(_8[i]));
-            buf.push("\"sensorValue\":[" + b.join(",") + "]");
-        }
-
-        return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+        return $wnd.JSON.stringify(obj);
     }-*/;
     
     public static native boolean isInitialized(HALState obj) /*-{

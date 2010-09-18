@@ -15,31 +15,15 @@ public final class HALConnection extends JavaScriptObject  {
         public static final ConnectionDirection FULL_DUPLEX = create(4);
         
         private static native ConnectionDirection create(int number) /*-{
-            return [number];
+            return number;
         }-*/;
         
         protected ConnectionDirection() {}
         
         public native int getNumber() /*-{
-            return this[0];
+            return this;
         }-*/;
         
-        // dev mode
-        public static native JsArray<ConnectionDirection> getArray(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v && v.length && !v[0].length) {
-                for(var i=0,l=v.length; i<l; i++)
-                    v[i] = [v[i]];
-            }
-            return v;
-        }-*/;
-
-        public static native ConnectionDirection get(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v == null)
-                return [1];
-            return v.length ? v : (obj[key] = [v]);
-        }-*/;
     }
 
     public static final class ConnectionType extends JavaScriptObject {
@@ -54,31 +38,15 @@ public final class HALConnection extends JavaScriptObject  {
         public static final ConnectionType INFRARED = create(8);
         
         private static native ConnectionType create(int number) /*-{
-            return [number];
+            return number;
         }-*/;
         
         protected ConnectionType() {}
         
         public native int getNumber() /*-{
-            return this[0];
+            return this;
         }-*/;
         
-        // dev mode
-        public static native JsArray<ConnectionType> getArray(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v && v.length && !v[0].length) {
-                for(var i=0,l=v.length; i<l; i++)
-                    v[i] = [v[i]];
-            }
-            return v;
-        }-*/;
-
-        public static native ConnectionType get(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v == null)
-                return [1];
-            return v.length ? v : (obj[key] = [v]);
-        }-*/;
     }
 
     public static final class ConnectionState extends JavaScriptObject {
@@ -93,31 +61,15 @@ public final class HALConnection extends JavaScriptObject  {
         public static final ConnectionState ERROR = create(9);
         
         private static native ConnectionState create(int number) /*-{
-            return [number];
+            return number;
         }-*/;
         
         protected ConnectionState() {}
         
         public native int getNumber() /*-{
-            return this[0];
+            return this;
         }-*/;
         
-        // dev mode
-        public static native JsArray<ConnectionState> getArray(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v && v.length && !v[0].length) {
-                for(var i=0,l=v.length; i<l; i++)
-                    v[i] = [v[i]];
-            }
-            return v;
-        }-*/;
-
-        public static native ConnectionState get(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v == null)
-                return [1];
-            return v.length ? v : (obj[key] = [v]);
-        }-*/;
     }
 
     /**
@@ -167,7 +119,7 @@ public final class HALConnection extends JavaScriptObject  {
      * @return HALConnection 
      */
     public static native HALConnection parse(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -177,7 +129,7 @@ public final class HALConnection extends JavaScriptObject  {
      * @return JsArray<HALConnection> 
      */
     public static native JsArray<HALConnection> parseArray(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -187,51 +139,7 @@ public final class HALConnection extends JavaScriptObject  {
      * @return String the serialized json string
      */
     public static native String stringify(HALConnection obj) /*-{
-        var buf = [];
-        var _1 = obj["address"];
-        if(_1 != null)
-            buf.push("\"address\":\"" + _1 + "\"");
-        var _2 = obj["name"];
-        if(_2 != null)
-            buf.push("\"name\":\"" + _2 + "\"");
-        var _3 = obj["uuid"];
-        if(_3 != null)
-            buf.push("\"uuid\":\"" + _3 + "\"");
-        var _5 = obj["baudRate"];
-        if(_5 != null)
-            buf.push("\"baudRate\":" + _5);
-        var _6 = obj["readBuffer"];
-        if(_6 != null)
-            buf.push("\"readBuffer\":\"" + _6 + "\"");
-        var _7 = obj["writeBuffer"];
-        if(_7 != null)
-            buf.push("\"writeBuffer\":\"" + _7 + "\"");
-        var _8 = obj["delimiter"];
-        if(_8 != null)
-            buf.push("\"delimiter\":\"" + _8 + "\"");
-        var _9 = obj["rssi"];
-        if(_9 != null)
-            buf.push("\"rssi\":" + _9);
-        var _11 = obj["connectionDirection"];
-        if(_11 != null)
-            buf.push("\"connectionDirection\":" + _11);
-        var _12 = obj["connectionType"];
-        if(_12 != null)
-            buf.push("\"connectionType\":" + _12);
-        var _13 = obj["connectionState"];
-        if(_13 != null)
-            buf.push("\"connectionState\":" + _13);
-        var _14 = obj["prevConnectionState"];
-        if(_14 != null)
-            buf.push("\"prevConnectionState\":" + _14);
-        var _15 = obj["dbgMsg"];
-        if(_15 != null)
-            buf.push("\"dbgMsg\":\"" + _15 + "\"");
-        var _16 = obj["timestamp"];
-        if(_16 != null)
-            buf.push("\"timestamp\":" + _16);
-
-        return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+        return $wnd.JSON.stringify(obj);
     }-*/;
     
     public static native boolean isInitialized(HALConnection obj) /*-{
@@ -389,7 +297,8 @@ public final class HALConnection extends JavaScriptObject  {
     // connectionDirection
 
     public native ConnectionDirection getConnectionDirection() /*-{
-        return @com.cellbots.cellserv.client.HALConnection.ConnectionDirection::get(Lcom/google/gwt/core/client/JavaScriptObject;Ljava/lang/String;)(this, "connectionDirection");
+        var v = this["connectionDirection"];
+        return v == null ? 1 : v;
     }-*/;
 
     public native void setConnectionDirection(ConnectionDirection connectionDirection) /*-{
@@ -407,7 +316,8 @@ public final class HALConnection extends JavaScriptObject  {
     // connectionType
 
     public native ConnectionType getConnectionType() /*-{
-        return @com.cellbots.cellserv.client.HALConnection.ConnectionType::get(Lcom/google/gwt/core/client/JavaScriptObject;Ljava/lang/String;)(this, "connectionType");
+        var v = this["connectionType"];
+        return v == null ? 1 : v;
     }-*/;
 
     public native void setConnectionType(ConnectionType connectionType) /*-{
@@ -425,7 +335,8 @@ public final class HALConnection extends JavaScriptObject  {
     // connectionState
 
     public native ConnectionState getConnectionState() /*-{
-        return @com.cellbots.cellserv.client.HALConnection.ConnectionState::get(Lcom/google/gwt/core/client/JavaScriptObject;Ljava/lang/String;)(this, "connectionState");
+        var v = this["connectionState"];
+        return v == null ? 1 : v;
     }-*/;
 
     public native void setConnectionState(ConnectionState connectionState) /*-{
@@ -443,7 +354,8 @@ public final class HALConnection extends JavaScriptObject  {
     // prevConnectionState
 
     public native ConnectionState getPrevConnectionState() /*-{
-        return @com.cellbots.cellserv.client.HALConnection.ConnectionState::get(Lcom/google/gwt/core/client/JavaScriptObject;Ljava/lang/String;)(this, "prevConnectionState");
+        var v = this["prevConnectionState"];
+        return v == null ? 1 : v;
     }-*/;
 
     public native void setPrevConnectionState(ConnectionState prevConnectionState) /*-{

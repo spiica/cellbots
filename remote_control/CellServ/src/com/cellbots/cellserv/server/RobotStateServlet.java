@@ -77,7 +77,7 @@ public class RobotStateServlet extends HttpServlet
     byte[] bytes;
     if (ps != null)
     {
-      bytes =   JsonIOUtil.toByteArray(ps, schema, true);
+      bytes =   JsonIOUtil.toByteArray(ps, schema, false);
       res.getOutputStream().write(bytes);
     }
 

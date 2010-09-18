@@ -143,10 +143,16 @@ public class WiimoteEntry implements EntryPoint
   void showPhoneState(PhoneState state)
   {
       //vp.add(new Label("Greet #" + greet.getId() + ": " + greet.getMessage() + " | " + greet.getStatus().getNumber()));
+      
       if(state.hasOrientation())
       {
         messageLabel.setText("Azimuth="+state.getOrientation().getAzimuth());
       }
+      else
+      {
+        //messageLabel.setText("Timestamp="+state.getTimestamp());
+      }
+        
   }
   
   static void displayError(String error)
