@@ -12,9 +12,11 @@ import javax.servlet.http.HttpServletResponse;
 import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.ControllerState.Builder;
 import com.cellbots.CellbotProtos.ControllerState.KeyEvent;
+import com.cellbots.CellbotProtos.PhoneState;
 import com.cellbots.cellserv.client.WiimoteService;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+
 
 public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteService
 {
@@ -34,11 +36,8 @@ public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteS
     key.setKeyDown(true);
     key.setKeyCode("" + buttonid);
 
-    StateHolder.addKeyEvent(key);
+    StateHolder.getInstance("").addKeyEvent(key);
     
-    
-
-    // GWT.log("test");Å
     return 1;
   }
 
@@ -52,10 +51,12 @@ public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteS
     key.setKeyUp(true);
     key.setKeyCode("" + buttonid);
 
-    StateHolder.addKeyEvent(key);
+    StateHolder.getInstance("").addKeyEvent(key);
 
     // GWT.log("test");
     return 1;
   }
+  
+ 
 
 }

@@ -27,6 +27,17 @@
     <servlet-name>videoServlet</servlet-name>
     <url-pattern>/video</url-pattern>
   </servlet-mapping>
+  
+  
+   <servlet>
+    <servlet-name>robotStateServlet</servlet-name>
+    <servlet-class>com.cellbots.cellserv.server.RobotStateServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>robotStateServlet</servlet-name>
+    <url-pattern>/robotState</url-pattern>
+  </servlet-mapping>
 
   <!-- Default page to serve -->
   <welcome-file-list>

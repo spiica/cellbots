@@ -8,7 +8,13 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.ErrorEvent;
 import com.google.gwt.event.dom.client.ErrorHandler;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.Response;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.RequestException;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
@@ -25,7 +31,11 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class WiimoteEntry implements EntryPoint
 {
+  
+  static final String JSON_URL = "/robotState";
 
+  
+  final static Label messageLabel = new Label("Status:ok");;
   public void onModuleLoad()
   {
 
@@ -35,6 +45,7 @@ public class WiimoteEntry implements EntryPoint
     final HorizontalPanel horizontalPanel = new HorizontalPanel();
     final HorizontalPanel hudPanel = new HorizontalPanel();
     final Timer elapsedTimer;
+    final Timer sensorTimer;
     
     final Button fwdButton = new Button("FWD");
     fwdButton.addClickHandler(new AndroidClickHandler(wiiService,AndroidKeyCode.KEYCODE_DPAD_UP));
@@ -48,7 +59,7 @@ public class WiimoteEntry implements EntryPoint
     stopButton.addClickHandler(new AndroidClickHandler(wiiService,AndroidKeyCode.KEYCODE_DPAD_CENTER));
     
     final Image videoImage = new Image("/video");
-    final Label messageLabel = new Label("Status:ok");
+    
 
     videoImage.addErrorHandler(new ErrorHandler()
     {
@@ -94,9 +105,53 @@ public class WiimoteEntry implements EntryPoint
       }
     };
     
+    // Create a new timer
+    sensorTimer = new Timer () {
+      public void run() {
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.POST, JSON_URL);
+        try 
+        {
+            builder.setHeader("Content-Type", "application/json");
+            builder.sendRequest(null, new RequestCallback() {
+                public void onError(Request request, Throwable exception) 
+                {
+                    displayError("Couldn't retrieve JSON");
+                }
+                public void onResponseReceived(Request request, Response response) 
+                {
+                    if (response.getStatusCode() == 200)
+                      showPhoneState(PhoneState.parse(response.getText()));
+                    else
+                        displayError("Couldn't retrieve JSON");
+                }
+            });
+        }
+        catch (RequestException e) 
+        {
+            displayError("Couldn't retrieve JSON");
+        }
+      }
+    };
+    
     // Schedule the timer for every 1/2 second (500 milliseconds)
     elapsedTimer.scheduleRepeating(50);
+    sensorTimer.scheduleRepeating(1000);
 
+  }
+
+  
+  void showPhoneState(PhoneState state)
+  {
+      //vp.add(new Label("Greet #" + greet.getId() + ": " + greet.getMessage() + " | " + greet.getStatus().getNumber()));
+      if(state.hasOrientation())
+      {
+        messageLabel.setText("Aimuth="+state.getOrientation().getAzimuth());
+      }
+  }
+  
+  static void displayError(String error)
+  {
+    messageLabel.setText(error);
   }
 
 }
