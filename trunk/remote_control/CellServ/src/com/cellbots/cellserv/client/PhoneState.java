@@ -56,7 +56,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return Compass 
          */
         public static native Compass parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -66,7 +66,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return JsArray<Compass> 
          */
         public static native JsArray<Compass> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -76,18 +76,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Compass obj) /*-{
-            var buf = [];
-            var _1 = obj["x"];
-            if(_1 != null)
-                buf.push("\"x\":" + _1);
-            var _2 = obj["y"];
-            if(_2 != null)
-                buf.push("\"y\":" + _2);
-            var _3 = obj["z"];
-            if(_3 != null)
-                buf.push("\"z\":" + _3);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Compass obj) /*-{
@@ -203,7 +192,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return Accelerometer 
          */
         public static native Accelerometer parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -213,7 +202,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return JsArray<Accelerometer> 
          */
         public static native JsArray<Accelerometer> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -223,18 +212,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Accelerometer obj) /*-{
-            var buf = [];
-            var _1 = obj["x"];
-            if(_1 != null)
-                buf.push("\"x\":" + _1);
-            var _2 = obj["y"];
-            if(_2 != null)
-                buf.push("\"y\":" + _2);
-            var _3 = obj["z"];
-            if(_3 != null)
-                buf.push("\"z\":" + _3);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Accelerometer obj) /*-{
@@ -350,7 +328,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return Orientation 
          */
         public static native Orientation parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -360,7 +338,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return JsArray<Orientation> 
          */
         public static native JsArray<Orientation> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -370,18 +348,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Orientation obj) /*-{
-            var buf = [];
-            var _6 = obj["azimuth"];
-            if(_6 != null)
-                buf.push("\"azimuth\":" + _6);
-            var _7 = obj["pitch"];
-            if(_7 != null)
-                buf.push("\"pitch\":" + _7);
-            var _8 = obj["roll"];
-            if(_8 != null)
-                buf.push("\"roll\":" + _8);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Orientation obj) /*-{
@@ -497,7 +464,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return WIFI 
          */
         public static native WIFI parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -507,7 +474,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return JsArray<WIFI> 
          */
         public static native JsArray<WIFI> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -517,33 +484,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(WIFI obj) /*-{
-            var buf = [];
-            var _1 = obj["enabled"];
-            if(_1 != null)
-                buf.push("\"enabled\":" + _1);
-            var _2 = obj["connected"];
-            if(_2 != null)
-                buf.push("\"connected\":" + _2);
-            var _3 = obj["strength"];
-            if(_3 != null)
-                buf.push("\"strength\":" + _3);
-            var _4 = obj["kbps"];
-            if(_4 != null)
-                buf.push("\"kbps\":" + _4);
-            var _5 = obj["ssid"];
-            if(_5 != null)
-                buf.push("\"ssid\":" + _5);
-            var _6 = obj["ip"];
-            if(_6 != null)
-                buf.push("\"ip\":" + _6);
-            var _7 = obj["chanel"];
-            if(_7 != null)
-                buf.push("\"chanel\":" + _7);
-            var _8 = obj["adhoc"];
-            if(_8 != null)
-                buf.push("\"adhoc\":" + _8);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(WIFI obj) /*-{
@@ -749,7 +690,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return Cellular 
          */
         public static native Cellular parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -759,7 +700,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return JsArray<Cellular> 
          */
         public static native JsArray<Cellular> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -769,27 +710,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Cellular obj) /*-{
-            var buf = [];
-            var _1 = obj["enabled"];
-            if(_1 != null)
-                buf.push("\"enabled\":" + _1);
-            var _2 = obj["connected"];
-            if(_2 != null)
-                buf.push("\"connected\":" + _2);
-            var _3 = obj["strength"];
-            if(_3 != null)
-                buf.push("\"strength\":" + _3);
-            var _4 = obj["kbps"];
-            if(_4 != null)
-                buf.push("\"kbps\":" + _4);
-            var _5 = obj["ip"];
-            if(_5 != null)
-                buf.push("\"ip\":" + _5);
-            var _6 = obj["roaming"];
-            if(_6 != null)
-                buf.push("\"roaming\":" + _6);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Cellular obj) /*-{
@@ -959,7 +880,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return Location 
          */
         public static native Location parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -969,7 +890,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return JsArray<Location> 
          */
         public static native JsArray<Location> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -979,33 +900,7 @@ public final class PhoneState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(Location obj) /*-{
-            var buf = [];
-            var _1 = obj["accuracy"];
-            if(_1 != null)
-                buf.push("\"accuracy\":" + _1);
-            var _2 = obj["altitude"];
-            if(_2 != null)
-                buf.push("\"altitude\":" + _2);
-            var _3 = obj["bearing"];
-            if(_3 != null)
-                buf.push("\"bearing\":" + _3);
-            var _4 = obj["latitude"];
-            if(_4 != null)
-                buf.push("\"latitude\":" + _4);
-            var _5 = obj["longitude"];
-            if(_5 != null)
-                buf.push("\"longitude\":" + _5);
-            var _6 = obj["provider"];
-            if(_6 != null)
-                buf.push("\"provider\":\"" + _6 + "\"");
-            var _7 = obj["speed"];
-            if(_7 != null)
-                buf.push("\"speed\":" + _7);
-            var _8 = obj["time"];
-            if(_8 != null)
-                buf.push("\"time\":" + _8);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(Location obj) /*-{
@@ -1211,7 +1106,7 @@ public final class PhoneState extends JavaScriptObject  {
      * @return PhoneState 
      */
     public static native PhoneState parse(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -1221,7 +1116,7 @@ public final class PhoneState extends JavaScriptObject  {
      * @return JsArray<PhoneState> 
      */
     public static native JsArray<PhoneState> parseArray(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -1231,69 +1126,7 @@ public final class PhoneState extends JavaScriptObject  {
      * @return String the serialized json string
      */
     public static native String stringify(PhoneState obj) /*-{
-        var buf = [];
-        var _1 = obj["timestamp"];
-        if(_1 != null)
-            buf.push("\"timestamp\":" + _1);
-        var _2 = obj["botID"];
-        if(_2 != null)
-            buf.push("\"botID\":\"" + _2 + "\"");
-        var _3 = obj["dbgMsg"];
-        if(_3 != null)
-            buf.push("\"dbgMsg\":\"" + _3 + "\"");
-        var _4 = obj["compass"];
-        if(_4 != null)
-            buf.push("\"compass\":" + @com.cellbots.cellserv.client.PhoneState.Compass::stringify(Lcom/cellbots/cellserv/client/PhoneState$Compass;)(_4));
-        var _5 = obj["accelerometer"];
-        if(_5 != null)
-            buf.push("\"accelerometer\":" + @com.cellbots.cellserv.client.PhoneState.Accelerometer::stringify(Lcom/cellbots/cellserv/client/PhoneState$Accelerometer;)(_5));
-        var _6 = obj["orientation"];
-        if(_6 != null)
-            buf.push("\"orientation\":" + @com.cellbots.cellserv.client.PhoneState.Orientation::stringify(Lcom/cellbots/cellserv/client/PhoneState$Orientation;)(_6));
-        var _7 = obj["phoneBatteryLevel"];
-        if(_7 != null)
-            buf.push("\"phoneBatteryLevel\":" + _7);
-        var _8 = obj["phoneBatteryTemp"];
-        if(_8 != null)
-            buf.push("\"phoneBatteryTemp\":" + _8);
-        var _9 = obj["lightLevel"];
-        if(_9 != null)
-            buf.push("\"lightLevel\":" + _9);
-        var _10 = obj["vibrating"];
-        if(_10 != null)
-            buf.push("\"vibrating\":" + _10);
-        var _11 = obj["notificationLightOn"];
-        if(_11 != null)
-            buf.push("\"notificationLightOn\":" + _11);
-        var _12 = obj["notificationLightFreq"];
-        if(_12 != null)
-            buf.push("\"notificationLightFreq\":" + _12);
-        var _13 = obj["notificationLightColor"];
-        if(_13 != null)
-            buf.push("\"notificationLightColor\":" + _13);
-        var _14 = obj["proximity"];
-        if(_14 != null)
-            buf.push("\"proximity\":" + _14);
-        var _15 = obj["screenBrightness"];
-        if(_15 != null)
-            buf.push("\"screenBrightness\":" + _15);
-        var _16 = obj["wifi"];
-        if(_16 != null)
-            buf.push("\"wifi\":" + @com.cellbots.cellserv.client.PhoneState.WIFI::stringify(Lcom/cellbots/cellserv/client/PhoneState$WIFI;)(_16));
-        var _17 = obj["cellular"];
-        if(_17 != null)
-            buf.push("\"cellular\":" + @com.cellbots.cellserv.client.PhoneState.Cellular::stringify(Lcom/cellbots/cellserv/client/PhoneState$Cellular;)(_17));
-        var _18 = obj["location"];
-        if(_18 != null)
-            buf.push("\"location\":" + @com.cellbots.cellserv.client.PhoneState.Location::stringify(Lcom/cellbots/cellserv/client/PhoneState$Location;)(_18));
-        var _19 = obj["gpsEnabled"];
-        if(_19 != null)
-            buf.push("\"gpsEnabled\":" + _19);
-        var _20 = obj["hALConnection"];
-        if(_20 != null)
-            buf.push("\"hALConnection\":" + @com.cellbots.cellserv.client.HALConnection::stringify(Lcom/cellbots/cellserv/client/HALConnection;)(_20));
-
-        return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+        return $wnd.JSON.stringify(obj);
     }-*/;
     
     public static native boolean isInitialized(PhoneState obj) /*-{

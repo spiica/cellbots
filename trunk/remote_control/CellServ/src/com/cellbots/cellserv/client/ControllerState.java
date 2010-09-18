@@ -56,7 +56,7 @@ public final class ControllerState extends JavaScriptObject  {
          * @return KeyEvent 
          */
         public static native KeyEvent parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -66,7 +66,7 @@ public final class ControllerState extends JavaScriptObject  {
          * @return JsArray<KeyEvent> 
          */
         public static native JsArray<KeyEvent> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -76,21 +76,7 @@ public final class ControllerState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(KeyEvent obj) /*-{
-            var buf = [];
-            var _1 = obj["keyCode"];
-            if(_1 != null)
-                buf.push("\"keyCode\":\"" + _1 + "\"");
-            var _2 = obj["keyDown"];
-            if(_2 != null)
-                buf.push("\"keyDown\":" + _2);
-            var _3 = obj["keyUp"];
-            if(_3 != null)
-                buf.push("\"keyUp\":" + _3);
-            var _4 = obj["keyPressure"];
-            if(_4 != null)
-                buf.push("\"keyPressure\":" + _4);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(KeyEvent obj) /*-{
@@ -189,31 +175,15 @@ public final class ControllerState extends JavaScriptObject  {
             public static final StickType MOUSE = create(7);
             
             private static native StickType create(int number) /*-{
-                return [number];
+                return number;
             }-*/;
             
             protected StickType() {}
             
             public native int getNumber() /*-{
-                return this[0];
+                return this;
             }-*/;
             
-            // dev mode
-            public static native JsArray<StickType> getArray(JavaScriptObject obj, String key) /*-{
-                var v = obj[key];
-                if(v && v.length && !v[0].length) {
-                    for(var i=0,l=v.length; i<l; i++)
-                        v[i] = [v[i]];
-                }
-                return v;
-            }-*/;
-
-            public static native StickType get(JavaScriptObject obj, String key) /*-{
-                var v = obj[key];
-                if(v == null)
-                    return [1];
-                return v.length ? v : (obj[key] = [v]);
-            }-*/;
         }
 
         /**
@@ -263,7 +233,7 @@ public final class ControllerState extends JavaScriptObject  {
          * @return StickEvent 
          */
         public static native StickEvent parse(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -273,7 +243,7 @@ public final class ControllerState extends JavaScriptObject  {
          * @return JsArray<StickEvent> 
          */
         public static native JsArray<StickEvent> parseArray(String json) /*-{
-            return eval("(" + json + ")");
+            return $wnd.JSON.parse(json);
         }-*/;
         
         /**
@@ -283,24 +253,7 @@ public final class ControllerState extends JavaScriptObject  {
          * @return String the serialized json string
          */
         public static native String stringify(StickEvent obj) /*-{
-            var buf = [];
-            var _1 = obj["stickType"];
-            if(_1 != null)
-                buf.push("\"stickType\":" + _1);
-            var _2 = obj["stickNumber"];
-            if(_2 != null)
-                buf.push("\"stickNumber\":" + _2);
-            var _3 = obj["x"];
-            if(_3 != null)
-                buf.push("\"x\":" + _3);
-            var _4 = obj["y"];
-            if(_4 != null)
-                buf.push("\"y\":" + _4);
-            var _5 = obj["z"];
-            if(_5 != null)
-                buf.push("\"z\":" + _5);
-
-            return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+            return $wnd.JSON.stringify(obj);
         }-*/;
         
         public static native boolean isInitialized(StickEvent obj) /*-{
@@ -316,7 +269,8 @@ public final class ControllerState extends JavaScriptObject  {
         // stickType
 
         public native StickType getStickType() /*-{
-            return @com.cellbots.cellserv.client.ControllerState.StickEvent.StickType::get(Lcom/google/gwt/core/client/JavaScriptObject;Ljava/lang/String;)(this, "stickType");
+            var v = this["stickType"];
+            return v == null ? 1 : v;
         }-*/;
 
         public native void setStickType(StickType stickType) /*-{
@@ -452,7 +406,7 @@ public final class ControllerState extends JavaScriptObject  {
      * @return ControllerState 
      */
     public static native ControllerState parse(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -462,7 +416,7 @@ public final class ControllerState extends JavaScriptObject  {
      * @return JsArray<ControllerState> 
      */
     public static native JsArray<ControllerState> parseArray(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -472,32 +426,7 @@ public final class ControllerState extends JavaScriptObject  {
      * @return String the serialized json string
      */
     public static native String stringify(ControllerState obj) /*-{
-        var buf = [];
-        var _1 = obj["timestamp"];
-        if(_1 != null)
-            buf.push("\"timestamp\":" + _1);
-        var _2 = obj["keyEvent"];
-        if(_2 != null && _2.length != 0) {
-            var b = [], fn = @com.cellbots.cellserv.client.ControllerState.KeyEvent::stringify(Lcom/cellbots/cellserv/client/ControllerState$KeyEvent;);
-            for(var i=0,l=_2.length; i<l; i++)
-                b.push(fn(_2[i]));
-            buf.push("\"keyEvent\":[" + b.join(",") + "]");
-        }
-        var _3 = obj["stickEvent"];
-        if(_3 != null && _3.length != 0) {
-            var b = [], fn = @com.cellbots.cellserv.client.ControllerState.StickEvent::stringify(Lcom/cellbots/cellserv/client/ControllerState$StickEvent;);
-            for(var i=0,l=_3.length; i<l; i++)
-                b.push(fn(_3[i]));
-            buf.push("\"stickEvent\":[" + b.join(",") + "]");
-        }
-        var _4 = obj["txtCommand"];
-        if(_4 != null)
-            buf.push("\"txtCommand\":\"" + _4 + "\"");
-        var _5 = obj["controllerID"];
-        if(_5 != null)
-            buf.push("\"controllerID\":\"" + _5 + "\"");
-
-        return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+        return $wnd.JSON.stringify(obj);
     }-*/;
     
     public static native boolean isInitialized(ControllerState obj) /*-{

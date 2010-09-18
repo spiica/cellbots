@@ -160,13 +160,43 @@ public final class SchemaCellbotProtos
         }
         public static String getFieldName(int number)
         {
-            return String.valueOf(number);
+            switch(number)
+            {
+                case 1: return "timestamp";
+                case 2: return "data";
+                case 3: return "frameNumber";
+                case 4: return "sourceID";
+                case 5: return "whiteBalance";
+                case 6: return "zoomLevel";
+                case 7: return "compressionLevel";
+                case 8: return "widthPx";
+                case 9: return "heightPx";
+                case 10: return "timeSpan";
+                case 11: return "lightOn";
+                case 12: return "encoding";
+                default: return null;
+            }
         }
         public static int getFieldNumber(String name)
         {
-            return Integer.parseInt(name);
+            Integer number = fieldMap.get(name);
+            return number == null ? 0 : number.intValue();
         }
-
+        private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+        {
+            fieldMap.put("timestamp", 1);
+            fieldMap.put("data", 2);
+            fieldMap.put("frameNumber", 3);
+            fieldMap.put("sourceID", 4);
+            fieldMap.put("whiteBalance", 5);
+            fieldMap.put("zoomLevel", 6);
+            fieldMap.put("compressionLevel", 7);
+            fieldMap.put("widthPx", 8);
+            fieldMap.put("heightPx", 9);
+            fieldMap.put("timeSpan", 10);
+            fieldMap.put("lightOn", 11);
+            fieldMap.put("encoding", 12);
+        }
     }
 
     public static final class HALConnection
@@ -329,13 +359,47 @@ public final class SchemaCellbotProtos
         }
         public static String getFieldName(int number)
         {
-            return String.valueOf(number);
+            switch(number)
+            {
+                case 1: return "address";
+                case 2: return "name";
+                case 3: return "uuid";
+                case 5: return "baudRate";
+                case 6: return "readBuffer";
+                case 7: return "writeBuffer";
+                case 8: return "delimiter";
+                case 9: return "rssi";
+                case 11: return "connectionDirection";
+                case 12: return "connectionType";
+                case 13: return "connectionState";
+                case 14: return "prevConnectionState";
+                case 15: return "dbgMsg";
+                case 16: return "timestamp";
+                default: return null;
+            }
         }
         public static int getFieldNumber(String name)
         {
-            return Integer.parseInt(name);
+            Integer number = fieldMap.get(name);
+            return number == null ? 0 : number.intValue();
         }
-
+        private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+        {
+            fieldMap.put("address", 1);
+            fieldMap.put("name", 2);
+            fieldMap.put("uuid", 3);
+            fieldMap.put("baudRate", 5);
+            fieldMap.put("readBuffer", 6);
+            fieldMap.put("writeBuffer", 7);
+            fieldMap.put("delimiter", 8);
+            fieldMap.put("rssi", 9);
+            fieldMap.put("connectionDirection", 11);
+            fieldMap.put("connectionType", 12);
+            fieldMap.put("connectionState", 13);
+            fieldMap.put("prevConnectionState", 14);
+            fieldMap.put("dbgMsg", 15);
+            fieldMap.put("timestamp", 16);
+        }
     }
 
     public static final class PhoneState
@@ -443,13 +507,25 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "x";
+                    case 2: return "y";
+                    case 3: return "z";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("x", 1);
+                fieldMap.put("y", 2);
+                fieldMap.put("z", 3);
+            }
         }
 
         public static final class Accelerometer
@@ -554,13 +630,25 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "x";
+                    case 2: return "y";
+                    case 3: return "z";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("x", 1);
+                fieldMap.put("y", 2);
+                fieldMap.put("z", 3);
+            }
         }
 
         public static final class Orientation
@@ -665,13 +753,25 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 6: return "azimuth";
+                    case 7: return "pitch";
+                    case 8: return "roll";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("azimuth", 6);
+                fieldMap.put("pitch", 7);
+                fieldMap.put("roll", 8);
+            }
         }
 
         public static final class WIFI
@@ -801,13 +901,35 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "enabled";
+                    case 2: return "connected";
+                    case 3: return "strength";
+                    case 4: return "kbps";
+                    case 5: return "ssid";
+                    case 6: return "ip";
+                    case 7: return "chanel";
+                    case 8: return "adhoc";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("enabled", 1);
+                fieldMap.put("connected", 2);
+                fieldMap.put("strength", 3);
+                fieldMap.put("kbps", 4);
+                fieldMap.put("ssid", 5);
+                fieldMap.put("ip", 6);
+                fieldMap.put("chanel", 7);
+                fieldMap.put("adhoc", 8);
+            }
         }
 
         public static final class Cellular
@@ -927,13 +1049,31 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "enabled";
+                    case 2: return "connected";
+                    case 3: return "strength";
+                    case 4: return "kbps";
+                    case 5: return "ip";
+                    case 6: return "roaming";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("enabled", 1);
+                fieldMap.put("connected", 2);
+                fieldMap.put("strength", 3);
+                fieldMap.put("kbps", 4);
+                fieldMap.put("ip", 5);
+                fieldMap.put("roaming", 6);
+            }
         }
 
         public static final class Location
@@ -1063,13 +1203,35 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "accuracy";
+                    case 2: return "altitude";
+                    case 3: return "bearing";
+                    case 4: return "latitude";
+                    case 5: return "longitude";
+                    case 6: return "provider";
+                    case 7: return "speed";
+                    case 8: return "time";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("accuracy", 1);
+                fieldMap.put("altitude", 2);
+                fieldMap.put("bearing", 3);
+                fieldMap.put("latitude", 4);
+                fieldMap.put("longitude", 5);
+                fieldMap.put("provider", 6);
+                fieldMap.put("speed", 7);
+                fieldMap.put("time", 8);
+            }
         }
 
         public static final MessageSchema WRITE = new MessageSchema();
@@ -1271,13 +1433,59 @@ public final class SchemaCellbotProtos
         }
         public static String getFieldName(int number)
         {
-            return String.valueOf(number);
+            switch(number)
+            {
+                case 1: return "timestamp";
+                case 2: return "botID";
+                case 3: return "dbgMsg";
+                case 4: return "compass";
+                case 5: return "accelerometer";
+                case 6: return "orientation";
+                case 7: return "phoneBatteryLevel";
+                case 8: return "phoneBatteryTemp";
+                case 9: return "lightLevel";
+                case 10: return "vibrating";
+                case 11: return "notificationLightOn";
+                case 12: return "notificationLightFreq";
+                case 13: return "notificationLightColor";
+                case 14: return "proximity";
+                case 15: return "screenBrightness";
+                case 16: return "wifi";
+                case 17: return "cellular";
+                case 18: return "location";
+                case 19: return "gpsEnabled";
+                case 20: return "hALConnection";
+                default: return null;
+            }
         }
         public static int getFieldNumber(String name)
         {
-            return Integer.parseInt(name);
+            Integer number = fieldMap.get(name);
+            return number == null ? 0 : number.intValue();
         }
-
+        private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+        {
+            fieldMap.put("timestamp", 1);
+            fieldMap.put("botID", 2);
+            fieldMap.put("dbgMsg", 3);
+            fieldMap.put("compass", 4);
+            fieldMap.put("accelerometer", 5);
+            fieldMap.put("orientation", 6);
+            fieldMap.put("phoneBatteryLevel", 7);
+            fieldMap.put("phoneBatteryTemp", 8);
+            fieldMap.put("lightLevel", 9);
+            fieldMap.put("vibrating", 10);
+            fieldMap.put("notificationLightOn", 11);
+            fieldMap.put("notificationLightFreq", 12);
+            fieldMap.put("notificationLightColor", 13);
+            fieldMap.put("proximity", 14);
+            fieldMap.put("screenBrightness", 15);
+            fieldMap.put("wifi", 16);
+            fieldMap.put("cellular", 17);
+            fieldMap.put("location", 18);
+            fieldMap.put("gpsEnabled", 19);
+            fieldMap.put("hALConnection", 20);
+        }
     }
 
     public static final class ControllerState
@@ -1390,13 +1598,27 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "keyCode";
+                    case 2: return "keyDown";
+                    case 3: return "keyUp";
+                    case 4: return "keyPressure";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("keyCode", 1);
+                fieldMap.put("keyDown", 2);
+                fieldMap.put("keyUp", 3);
+                fieldMap.put("keyPressure", 4);
+            }
         }
 
         public static final class StickEvent
@@ -1511,13 +1733,29 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "stickType";
+                    case 2: return "stickNumber";
+                    case 3: return "x";
+                    case 4: return "y";
+                    case 5: return "z";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("stickType", 1);
+                fieldMap.put("stickNumber", 2);
+                fieldMap.put("x", 3);
+                fieldMap.put("y", 4);
+                fieldMap.put("z", 5);
+            }
         }
 
         public static final MessageSchema WRITE = new MessageSchema();
@@ -1634,13 +1872,29 @@ public final class SchemaCellbotProtos
         }
         public static String getFieldName(int number)
         {
-            return String.valueOf(number);
+            switch(number)
+            {
+                case 1: return "timestamp";
+                case 2: return "keyEvent";
+                case 3: return "stickEvent";
+                case 4: return "txtCommand";
+                case 5: return "controllerID";
+                default: return null;
+            }
         }
         public static int getFieldNumber(String name)
         {
-            return Integer.parseInt(name);
+            Integer number = fieldMap.get(name);
+            return number == null ? 0 : number.intValue();
         }
-
+        private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+        {
+            fieldMap.put("timestamp", 1);
+            fieldMap.put("keyEvent", 2);
+            fieldMap.put("stickEvent", 3);
+            fieldMap.put("txtCommand", 4);
+            fieldMap.put("controllerID", 5);
+        }
     }
 
     public static final class HALCommand
@@ -1758,13 +2012,29 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "iD";
+                    case 3: return "speed";
+                    case 4: return "targetPosition";
+                    case 5: return "torque";
+                    case 6: return "freeWheel";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("iD", 1);
+                fieldMap.put("speed", 3);
+                fieldMap.put("targetPosition", 4);
+                fieldMap.put("torque", 5);
+                fieldMap.put("freeWheel", 6);
+            }
         }
 
         public static final class Motor
@@ -1874,13 +2144,27 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "iD";
+                    case 2: return "steps";
+                    case 3: return "speed";
+                    case 4: return "freeWheel";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("iD", 1);
+                fieldMap.put("steps", 2);
+                fieldMap.put("speed", 3);
+                fieldMap.put("freeWheel", 4);
+            }
         }
 
         public static final class PWM
@@ -1985,13 +2269,25 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "iD";
+                    case 2: return "frequency";
+                    case 3: return "duty";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("iD", 1);
+                fieldMap.put("frequency", 2);
+                fieldMap.put("duty", 3);
+            }
         }
 
         public static final class Relay
@@ -2091,13 +2387,23 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "iD";
+                    case 2: return "on";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("iD", 1);
+                fieldMap.put("on", 2);
+            }
         }
 
         public static final MessageSchema WRITE = new MessageSchema();
@@ -2228,13 +2534,33 @@ public final class SchemaCellbotProtos
         }
         public static String getFieldName(int number)
         {
-            return String.valueOf(number);
+            switch(number)
+            {
+                case 1: return "timestamp";
+                case 2: return "txtCommand";
+                case 3: return "allStop";
+                case 4: return "servo";
+                case 5: return "motor";
+                case 6: return "pwm";
+                case 7: return "relay";
+                default: return null;
+            }
         }
         public static int getFieldNumber(String name)
         {
-            return Integer.parseInt(name);
+            Integer number = fieldMap.get(name);
+            return number == null ? 0 : number.intValue();
         }
-
+        private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+        {
+            fieldMap.put("timestamp", 1);
+            fieldMap.put("txtCommand", 2);
+            fieldMap.put("allStop", 3);
+            fieldMap.put("servo", 4);
+            fieldMap.put("motor", 5);
+            fieldMap.put("pwm", 6);
+            fieldMap.put("relay", 7);
+        }
     }
 
     public static final class HALState
@@ -2362,13 +2688,33 @@ public final class SchemaCellbotProtos
             }
             public static String getFieldName(int number)
             {
-                return String.valueOf(number);
+                switch(number)
+                {
+                    case 1: return "iD";
+                    case 2: return "outOfRange";
+                    case 3: return "value";
+                    case 4: return "prevValue";
+                    case 5: return "minSenseableValue";
+                    case 6: return "maxSenseableValue";
+                    case 7: return "sensorUnits";
+                    default: return null;
+                }
             }
             public static int getFieldNumber(String name)
             {
-                return Integer.parseInt(name);
+                Integer number = fieldMap.get(name);
+                return number == null ? 0 : number.intValue();
             }
-
+            private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+            {
+                fieldMap.put("iD", 1);
+                fieldMap.put("outOfRange", 2);
+                fieldMap.put("value", 3);
+                fieldMap.put("prevValue", 4);
+                fieldMap.put("minSenseableValue", 5);
+                fieldMap.put("maxSenseableValue", 6);
+                fieldMap.put("sensorUnits", 7);
+            }
         }
 
         public static final MessageSchema WRITE = new MessageSchema();
@@ -2498,13 +2844,35 @@ public final class SchemaCellbotProtos
         }
         public static String getFieldName(int number)
         {
-            return String.valueOf(number);
+            switch(number)
+            {
+                case 1: return "timestamp";
+                case 2: return "dbgMessage";
+                case 3: return "vBat";
+                case 4: return "currentDraw";
+                case 5: return "powerUsed";
+                case 6: return "batteryTemp";
+                case 7: return "vCC";
+                case 8: return "sensorValue";
+                default: return null;
+            }
         }
         public static int getFieldNumber(String name)
         {
-            return Integer.parseInt(name);
+            Integer number = fieldMap.get(name);
+            return number == null ? 0 : number.intValue();
         }
-
+        private static final java.util.HashMap<String,Integer> fieldMap = new java.util.HashMap<String,Integer>();
+        {
+            fieldMap.put("timestamp", 1);
+            fieldMap.put("dbgMessage", 2);
+            fieldMap.put("vBat", 3);
+            fieldMap.put("currentDraw", 4);
+            fieldMap.put("powerUsed", 5);
+            fieldMap.put("batteryTemp", 6);
+            fieldMap.put("vCC", 7);
+            fieldMap.put("sensorValue", 8);
+        }
     }
 
 }

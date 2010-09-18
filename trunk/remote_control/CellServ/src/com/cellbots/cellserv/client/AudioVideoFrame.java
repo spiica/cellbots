@@ -17,31 +17,15 @@ public final class AudioVideoFrame extends JavaScriptObject  {
         public static final Encoding WAV = create(6);
         
         private static native Encoding create(int number) /*-{
-            return [number];
+            return number;
         }-*/;
         
         protected Encoding() {}
         
         public native int getNumber() /*-{
-            return this[0];
+            return this;
         }-*/;
         
-        // dev mode
-        public static native JsArray<Encoding> getArray(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v && v.length && !v[0].length) {
-                for(var i=0,l=v.length; i<l; i++)
-                    v[i] = [v[i]];
-            }
-            return v;
-        }-*/;
-
-        public static native Encoding get(JavaScriptObject obj, String key) /*-{
-            var v = obj[key];
-            if(v == null)
-                return [1];
-            return v.length ? v : (obj[key] = [v]);
-        }-*/;
     }
 
     /**
@@ -91,7 +75,7 @@ public final class AudioVideoFrame extends JavaScriptObject  {
      * @return AudioVideoFrame 
      */
     public static native AudioVideoFrame parse(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -101,7 +85,7 @@ public final class AudioVideoFrame extends JavaScriptObject  {
      * @return JsArray<AudioVideoFrame> 
      */
     public static native JsArray<AudioVideoFrame> parseArray(String json) /*-{
-        return eval("(" + json + ")");
+        return $wnd.JSON.parse(json);
     }-*/;
     
     /**
@@ -111,45 +95,7 @@ public final class AudioVideoFrame extends JavaScriptObject  {
      * @return String the serialized json string
      */
     public static native String stringify(AudioVideoFrame obj) /*-{
-        var buf = [];
-        var _1 = obj["timestamp"];
-        if(_1 != null)
-            buf.push("\"timestamp\":" + _1);
-        var _2 = obj["data"];
-        if(_2 != null)
-            buf.push("\"data\":\"" + _2 + "\"");
-        var _3 = obj["frameNumber"];
-        if(_3 != null)
-            buf.push("\"frameNumber\":" + _3);
-        var _4 = obj["sourceID"];
-        if(_4 != null)
-            buf.push("\"sourceID\":\"" + _4 + "\"");
-        var _5 = obj["whiteBalance"];
-        if(_5 != null)
-            buf.push("\"whiteBalance\":" + _5);
-        var _6 = obj["zoomLevel"];
-        if(_6 != null)
-            buf.push("\"zoomLevel\":" + _6);
-        var _7 = obj["compressionLevel"];
-        if(_7 != null)
-            buf.push("\"compressionLevel\":" + _7);
-        var _8 = obj["widthPx"];
-        if(_8 != null)
-            buf.push("\"widthPx\":" + _8);
-        var _9 = obj["heightPx"];
-        if(_9 != null)
-            buf.push("\"heightPx\":" + _9);
-        var _10 = obj["timeSpan"];
-        if(_10 != null)
-            buf.push("\"timeSpan\":" + _10);
-        var _11 = obj["lightOn"];
-        if(_11 != null)
-            buf.push("\"lightOn\":" + _11);
-        var _12 = obj["encoding"];
-        if(_12 != null)
-            buf.push("\"encoding\":" + _12);
-
-        return buf.length == 0 ? "{}" : "{" + buf.join(",") + "}";
+        return $wnd.JSON.stringify(obj);
     }-*/;
     
     public static native boolean isInitialized(AudioVideoFrame obj) /*-{
@@ -361,7 +307,8 @@ public final class AudioVideoFrame extends JavaScriptObject  {
     // encoding
 
     public native Encoding getEncoding() /*-{
-        return @com.cellbots.cellserv.client.AudioVideoFrame.Encoding::get(Lcom/google/gwt/core/client/JavaScriptObject;Ljava/lang/String;)(this, "encoding");
+        var v = this["encoding"];
+        return v == null ? 1 : v;
     }-*/;
 
     public native void setEncoding(Encoding encoding) /*-{
