@@ -40,6 +40,8 @@ public class VideoServlet extends HttpServlet
 
     if (StateHolder.getInstance("").newVideoFrameAvilble( lastPhoneTimestamp))
     {
+      
+      
       res.getOutputStream().write(StateHolder.getInstance("").getVideoFrame(slotNumber));
     }
 
