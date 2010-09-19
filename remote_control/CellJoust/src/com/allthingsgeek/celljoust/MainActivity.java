@@ -294,7 +294,7 @@ public class MainActivity extends Activity implements Callback
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event)
   {
-    return mover.processKeyDownEvent(keyCode);
+    return mover.processKeyDownEvent(keyCode) != null;
   }
 
   @Override

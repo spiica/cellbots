@@ -108,13 +108,13 @@ public class Movement {
 		speed = s;
 	}
 	
-	public void processControllerStateEvent(ControllerState cs)
+	public String processControllerStateEvent(ControllerState cs)
 	{
 	  for (ControllerState.KeyEvent ev: cs.getKeyEventList())
       {
          if (ev.getKeyDown())
         {
-          processKeyDownEvent(Integer.parseInt(ev.getKeyCode()));
+          return processKeyDownEvent(Integer.parseInt(ev.getKeyCode()));
         }
          
          if (ev.getKeyUp())
@@ -122,6 +122,9 @@ public class Movement {
            processKeyUpEvent(Integer.parseInt(ev.getKeyCode()));
          }
       }
+	  
+	  return "";
+	  
 	  
 	}
 
@@ -149,39 +152,39 @@ public class Movement {
 		}
 	}
 
-	public boolean processKeyDownEvent(int keyCode) {
+	public String processKeyDownEvent(int keyCode) {
 	   
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_DPAD_UP:
 		case KeyEvent.KEYCODE_W:
 			driveFoward();
-			return true;
+			return "f\n";
 		case KeyEvent.KEYCODE_DPAD_DOWN:
 		case KeyEvent.KEYCODE_S:
 			driveBackward();
-			return true;
+			return "b\n";
 		case KeyEvent.KEYCODE_DPAD_LEFT:
 		case KeyEvent.KEYCODE_A:
 			turnLeft();
-			return true;
+			return "l\n";
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
 		case KeyEvent.KEYCODE_D:
 			turnRight();
-			return true;
+			return "r\n";
 		case KeyEvent.KEYCODE_P:
 			if (speed < 50)
 				speed++;
-			return true;
+			return "p\n";
 		case KeyEvent.KEYCODE_M:
 			if (speed > 0)
 				speed--;
-			return true;
+			return "m\n";
 		case KeyEvent.KEYCODE_DPAD_CENTER:
 		case KeyEvent.KEYCODE_SPACE:
 			stop();
-			return true;
+			return "s\n";
 		}
-		return false;
+		return null;
 	}
 	
 	public boolean processKeyUpEvent(int keyCode) {

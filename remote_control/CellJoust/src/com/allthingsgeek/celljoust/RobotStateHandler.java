@@ -50,13 +50,13 @@ public class RobotStateHandler implements SensorListener
 
   private Handler                               uiHandler;
 
-  private static RobotStateHandler              instance      = null;
+  private static RobotStateHandler              instance                = null;
 
-  public boolean                                listening     = false;
+  public boolean                                listening               = false;
 
-  public static String                          TAG           = "RobotStateHandler";
+  public static String                          TAG                     = "RobotStateHandler";
 
-  public static String                          ROBOT_ID      = "Pokey";
+  public static String                          ROBOT_ID                = "Pokey";
 
   private CellbotProtos.PhoneState.Builder      state;
 
@@ -66,9 +66,13 @@ public class RobotStateHandler implements SensorListener
 
   HttpClient                                    httpclient;
 
-  InetSocketAddress                             clientAddress = null;
+  InetSocketAddress                             clientAddress           = null;
 
   private CellbotProtos.AudioVideoFrame.Builder avFrame;
+
+  ControllerState                               controllerState;
+
+  long                                          lastControllerTimeStamp = 0;
 
   private RobotStateHandler(Handler h) throws IOException
   {
@@ -173,8 +177,10 @@ public class RobotStateHandler implements SensorListener
                                              {
                                                public void onReceive(Context arg0, Intent intent)
                                                {
-                                                 //state.setPhoneBatteryLevel(intent.getIntExtra("level", 0));
-                                                 //state.setPhoneBatteryTemp(intent.getIntExtra("temperature", 0));
+                                                 // state.setPhoneBatteryLevel(intent.getIntExtra("level",
+                                                 // 0));
+                                                 // state.setPhoneBatteryTemp(intent.getIntExtra("temperature",
+                                                 // 0));
                                                }
                                              };
 
@@ -246,7 +252,7 @@ public class RobotStateHandler implements SensorListener
     b.setPitch(pitch);
     b.setRoll(roll);
 
-    //state.setOrientation(b);
+    // state.setOrientation(b);
 
   }
 
@@ -307,7 +313,7 @@ public class RobotStateHandler implements SensorListener
       this.listening = true;
 
       this.sensorSender = new SensorSender();
-      
+
       sensorSender.start();
 
       try
@@ -330,12 +336,11 @@ public class RobotStateHandler implements SensorListener
         }
 
         // server.start();
-        /*
-         * 
-         * if(bTcomThread == null) { bTcomThread = new
-         * BTCommThread(BluetoothAdapter.getDefaultAdapter(), this);
-         * bTcomThread.start(); }
-         */
+        if (bTcomThread == null)
+        {
+        //  bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), this);
+         // bTcomThread.start();
+        }
       }
       catch (java.lang.IllegalThreadStateException e)
       {
@@ -391,7 +396,7 @@ public class RobotStateHandler implements SensorListener
           state.setBotID(ROBOT_ID);
 
           post.setEntity(new ByteArrayEntity(state.build().toByteArray()));
-          
+
           state = PhoneState.newBuilder();
 
           HttpResponse resp = httpclient.execute(post);
@@ -400,7 +405,28 @@ public class RobotStateHandler implements SensorListener
 
           ControllerState cs = ControllerState.parseFrom(resStream);
 
-          mover.processControllerStateEvent(cs);
+          String txt = mover.processControllerStateEvent(cs);
+
+          if (bTcomThread != null && cs != null && cs.getTimestamp() != lastControllerTimeStamp)
+          {
+            if (cs.hasTxtCommand())
+            {
+              lastControllerTimeStamp = cs.getTimestamp();
+              Message btMsg = bTcomThread.handler.obtainMessage();
+              btMsg.obj = cs;
+              btMsg.sendToTarget();
+            }
+            else if (txt!=null)
+            {
+              lastControllerTimeStamp = cs.getTimestamp();
+              Message btMsg = bTcomThread.handler.obtainMessage();
+              btMsg.obj = txt;
+              btMsg.sendToTarget();
+            }
+            
+
+          }
+
         }
         catch (UnsupportedEncodingException e)
         {
@@ -421,36 +447,6 @@ public class RobotStateHandler implements SensorListener
           e.printStackTrace();
         }
 
-        /*
-         * if (clientConnection != null) {
-         * 
-         * if (bTcomThread != null && controllerState != null &&
-         * controllerState.timestamp != lastControllerTimeStamp) {
-         * if(controllerState.R3) { //toggle autoaim state.autoAimOn = !
-         * state.autoAimOn; }
-         * 
-         * lastControllerTimeStamp = controllerState.timestamp; Message btMsg =
-         * bTcomThread.handler.obtainMessage(); btMsg.obj = controllerState;
-         * btMsg.sendToTarget(); } //else //{ // Message btMsg =
-         * bTcomThread.handler.obtainMessage(); //btMsg.obj = "K";
-         * //btMsg.sendToTarget(); //} clientConnection.sendTCP(state);
-         * state.message = "";
-         * 
-         * if (targetBlob != null && targetBlob.timestamp !=
-         * lastTargetBlobTimeStamp) { lastTargetBlobTimeStamp =
-         * controllerState.timestamp;
-         * 
-         * targetBlob.calculateAimpoints(targetSettings);
-         * 
-         * clientConnection.sendTCP(targetBlob);
-         * 
-         * //autoaim the head if needed if(bTcomThread != null &&
-         * state.autoAimOn) { Message btMsg =
-         * bTcomThread.handler.obtainMessage(); btMsg.obj = targetBlob;
-         * btMsg.sendToTarget(); }
-         * 
-         * targetBlob = null; } }
-         */
         try
         {
           // Log.d(TAG, "Sleeping");
