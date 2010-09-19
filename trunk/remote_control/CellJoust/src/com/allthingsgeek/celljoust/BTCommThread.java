@@ -19,8 +19,13 @@ package com.allthingsgeek.celljoust;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.UUID;
+
+import com.cellbots.CellbotProtos.ControllerState;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -81,30 +86,48 @@ class BTCommThread extends Thread
     Set<BluetoothDevice> devices = adapter.getBondedDevices();
     for (BluetoothDevice curDevice : devices)
     {
-      if (curDevice.getName().matches(".*BlueRobot.*"))
+      if (curDevice.getName().matches(".*Lift.*"))
       {
         device = curDevice;
         break;
       }
     }
     if (device == null)
-      device = adapter.getRemoteDevice("00:06:66:03:A9:A2");
+      device = adapter.getRemoteDevice("00:06:66:03:A9:A2"); //bluesmirf
+    if (device == null)
+      device = adapter.getRemoteDevice("00:12:6F:09:64:30"); // Rayson BTM-182
 
   }
 
   synchronized private void connect()
   {
-
-    try
+    int socketint = 0;
+    while (socket == null && socketint < 10)
     {
-      
-      adapter.cancelDiscovery(); 
-      socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
-      socket.connect();
+      try
+      {
+        //adapter.cancelDiscovery();
+        if (socketint == 0)
+        {
+          socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+        }else {
+          
+          Method m = device.getClass().getMethod("createRfcommSocket", new Class[] { int.class });
+          socket = (BluetoothSocket) m.invoke(device, Integer.valueOf(socketint));
+        }
+        
+        socket.connect();
+      }
+      catch (Exception e)
+      {
+        Log.e(TAG, "could not connect", e);
+        socket = null;
+        socketint++;
+      }
     }
-    catch (IOException e)
+
+    if (socket == null)
     {
-      socket = null;
       return;
     }
 
@@ -120,7 +143,6 @@ class BTCommThread extends Thread
     {
       disconnect();
       return;
-      
     }
 
     istream = tmpIn;
@@ -149,27 +171,43 @@ class BTCommThread extends Thread
 
         if (connected())
         {
-          
-          /*
 
           if (msg.obj instanceof ControllerState)
           {
             ControllerState cs = ( (ControllerState) msg.obj );
 
-              Log.d(TAG, "Handeling Message" + msg.obj);
-              byte[] bytes = cs.toBytes();
+            Log.d(TAG, "Handeling Message" + msg.obj);
+            byte[] bytes;
+            try
+            {
+              bytes = cs.getTxtCommand().getBytes("ASCI");
               write(bytes);
+            }
+            catch (UnsupportedEncodingException e)
+            {
+              Log.e(TAG, "could not write txt command", e);
+            }
 
           }
 
-          if (msg.obj instanceof TargetBlob)
+          if (msg.obj instanceof String)
           {
-            byte[] bytes = ( (TargetBlob) msg.obj ).toBytes();
+            String s = (String) msg.obj;
 
-            write(bytes);
+            Log.d(TAG, "Handeling String" + s);
+            byte[] bytes;
+            try
+            {
+              bytes = s.getBytes("ASCI");
+              write(bytes);
+            }
+            catch (UnsupportedEncodingException e)
+            {
+              Log.e(TAG, "could not write txt command", e);
+            }
+
           }
-*/
-          
+
           read();
         }
         else
@@ -230,6 +268,7 @@ class BTCommThread extends Thread
           if (inChar == 10)// look for newlines
           {
             String tmp = readBuffer.toString();
+            Log.i(TAG, "got bt data:" + tmp);
             readBuffer.delete(0, readBuffer.length());
             state.onBtDataRecive(tmp);
           }
