@@ -1,108 +1,92 @@
 package com.cellbots.cellserv.server;
 
-import java.io.IOException;
-
+import java.util.HashMap;
 
 import com.cellbots.CellbotProtos;
-import com.gargoylesoftware.htmlunit.Cache;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
-import com.google.protobuf.ByteString;
 
 public class StateHolder
 {
 
+  private CellbotProtos.PhoneState              phoneState;
 
-  private  CellbotProtos.PhoneState      phoneState;
+  private CellbotProtos.ControllerState         controllerState;
 
-  private  CellbotProtos.ControllerState controllerState; 
+  private CellbotProtos.AudioVideoFrame         avFrame;
+
+  private CellbotProtos.ControllerState.Builder csBuilder = CellbotProtos.ControllerState.newBuilder();
   
-  private  CellbotProtos.AudioVideoFrame avFrame; 
-  
-  private  CellbotProtos.ControllerState.Builder csBuilder = CellbotProtos.ControllerState.newBuilder();
-  
-  private static StateHolder instance;
-  
-  
-  //private   MemcacheService phoneStates = MemcacheServiceFactory.getMemcacheService();
-  
-  private StateHolder() 
+  private static HashMap<String, StateHolder> instances = new HashMap<String, StateHolder>();
+
+  // private MemcacheService phoneStates =
+  // MemcacheServiceFactory.getMemcacheService();
+
+  private StateHolder()
   {
   }
-  
-  
-  public static StateHolder getInstance(String botID) 
+
+  public static StateHolder getInstance(String botID)
   {
-    
-    if (instance == null)
+
+    if (! instances.containsKey(botID))
     {
-      instance = new StateHolder();
+      instances.put(botID, new StateHolder());
     }
-    return instance;
+    return instances.get(botID);
   }
-  
+
   public void setPhoneState(CellbotProtos.PhoneState ps)
   {
-    instance.phoneState  = ps;
-   // cache.put()
-
+    phoneState = ps;
   }
 
-  public void setVideoFrame( CellbotProtos.AudioVideoFrame av)
+  public void setVideoFrame(CellbotProtos.AudioVideoFrame av)
   {
-    instance.avFrame = av;
-   // cache.put()
-
+    avFrame = av;
   }
-  
-  public  CellbotProtos.PhoneState getPhoneState()
+
+  public CellbotProtos.PhoneState getPhoneState()
   {
-    return instance.phoneState;
+    return phoneState;
   }
 
-  public  CellbotProtos.ControllerState getControllerState()
+  public CellbotProtos.ControllerState getControllerState()
   {
     CellbotProtos.ControllerState cs = csBuilder.build();
-    csBuilder=null;
-    
+    csBuilder = null;
     return cs;
   }
 
-  public  boolean newVideoFrameAvilble( long timestamp)
+  public boolean newVideoFrameAvilble()
   {
-    return instance.avFrame != null ;//&& instance.avFrame.getTimestamp() != timestamp;
+    return avFrame != null;// && instance.avFrame.getTimestamp() !=
   }
 
-  
-  public  boolean newPhoneStateAvilble(long timestamp)
+  public boolean newPhoneStateAvilble()
   {
-    return instance.phoneState != null;//&& instance.phoneState.getTimestamp() != timestamp;
+    return phoneState != null;// && instance.phoneState.getTimestamp()
   }
 
-  public  byte[] getVideoFrame(int slotNumber)
+  public byte[] getVideoFrame()
   {
-    if (instance.avFrame != null && instance.avFrame.hasData())
-      return instance.avFrame.getData().toByteArray();
+    if (avFrame != null && avFrame.hasData())
+      return avFrame.getData().toByteArray();
     else
       return null;
   }
 
-  public  boolean newControllerStateAvailble( long timestamp)
+  public boolean newControllerStateAvailble()
   {
-    //controllerState[slotNumber] != null &&
-    
-    return csBuilder!=null && csBuilder.getKeyEventCount() > 0;
+    return csBuilder != null && csBuilder.getKeyEventCount() > 0;
   }
 
-  public  void addKeyEvent(com.cellbots.CellbotProtos.ControllerState.KeyEvent.Builder key)
+  public void addKeyEvent(com.cellbots.CellbotProtos.ControllerState.KeyEvent.Builder key)
   {
-    
-    if(csBuilder == null)
-    csBuilder = CellbotProtos.ControllerState.newBuilder(); 
-    
+    if (csBuilder == null)
+      csBuilder = CellbotProtos.ControllerState.newBuilder();
+
     csBuilder.setTimestamp(System.currentTimeMillis());
     csBuilder.addKeyEvent(key);
-    
   }
-  
 }

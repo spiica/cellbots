@@ -194,6 +194,13 @@ public final class CellbotProtos {
     public boolean hasEncoding() { return hasEncoding; }
     public com.cellbots.CellbotProtos.AudioVideoFrame.Encoding getEncoding() { return encoding_; }
     
+    // optional string botID = 16;
+    public static final int BOTID_FIELD_NUMBER = 16;
+    private boolean hasBotID;
+    private java.lang.String botID_ = "";
+    public boolean hasBotID() { return hasBotID; }
+    public java.lang.String getBotID() { return botID_; }
+    
     private void initFields() {
       encoding_ = com.cellbots.CellbotProtos.AudioVideoFrame.Encoding.JPEG;
     }
@@ -239,6 +246,9 @@ public final class CellbotProtos {
       }
       if (hasEncoding()) {
         output.writeEnum(12, getEncoding().getNumber());
+      }
+      if (hasBotID()) {
+        output.writeString(16, getBotID());
       }
       getUnknownFields().writeTo(output);
     }
@@ -296,6 +306,10 @@ public final class CellbotProtos {
       if (hasEncoding()) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(12, getEncoding().getNumber());
+      }
+      if (hasBotID()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(16, getBotID());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -491,6 +505,9 @@ public final class CellbotProtos {
         if (other.hasEncoding()) {
           setEncoding(other.getEncoding());
         }
+        if (other.hasBotID()) {
+          setBotID(other.getBotID());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -568,6 +585,10 @@ public final class CellbotProtos {
               } else {
                 setEncoding(value);
               }
+              break;
+            }
+            case 130: {
+              setBotID(input.readString());
               break;
             }
           }
@@ -797,6 +818,27 @@ public final class CellbotProtos {
       public Builder clearEncoding() {
         result.hasEncoding = false;
         result.encoding_ = com.cellbots.CellbotProtos.AudioVideoFrame.Encoding.JPEG;
+        return this;
+      }
+      
+      // optional string botID = 16;
+      public boolean hasBotID() {
+        return result.hasBotID();
+      }
+      public java.lang.String getBotID() {
+        return result.getBotID();
+      }
+      public Builder setBotID(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasBotID = true;
+        result.botID_ = value;
+        return this;
+      }
+      public Builder clearBotID() {
+        result.hasBotID = false;
+        result.botID_ = getDefaultInstance().getBotID();
         return this;
       }
       
@@ -1152,19 +1194,26 @@ public final class CellbotProtos {
     public boolean hasPrevConnectionState() { return hasPrevConnectionState; }
     public com.cellbots.CellbotProtos.HALConnection.ConnectionState getPrevConnectionState() { return prevConnectionState_; }
     
-    // optional string dbgMsg = 15;
-    public static final int DBGMSG_FIELD_NUMBER = 15;
-    private boolean hasDbgMsg;
-    private java.lang.String dbgMsg_ = "";
-    public boolean hasDbgMsg() { return hasDbgMsg; }
-    public java.lang.String getDbgMsg() { return dbgMsg_; }
-    
-    // optional int64 timestamp = 16;
-    public static final int TIMESTAMP_FIELD_NUMBER = 16;
+    // optional int64 timestamp = 15;
+    public static final int TIMESTAMP_FIELD_NUMBER = 15;
     private boolean hasTimestamp;
     private long timestamp_ = 0L;
     public boolean hasTimestamp() { return hasTimestamp; }
     public long getTimestamp() { return timestamp_; }
+    
+    // optional string botID = 16;
+    public static final int BOTID_FIELD_NUMBER = 16;
+    private boolean hasBotID;
+    private java.lang.String botID_ = "";
+    public boolean hasBotID() { return hasBotID; }
+    public java.lang.String getBotID() { return botID_; }
+    
+    // optional string dbgMsg = 17;
+    public static final int DBGMSG_FIELD_NUMBER = 17;
+    private boolean hasDbgMsg;
+    private java.lang.String dbgMsg_ = "";
+    public boolean hasDbgMsg() { return hasDbgMsg; }
+    public java.lang.String getDbgMsg() { return dbgMsg_; }
     
     private void initFields() {
       connectionDirection_ = com.cellbots.CellbotProtos.HALConnection.ConnectionDirection.READ_ONLY;
@@ -1215,11 +1264,14 @@ public final class CellbotProtos {
       if (hasPrevConnectionState()) {
         output.writeEnum(14, getPrevConnectionState().getNumber());
       }
-      if (hasDbgMsg()) {
-        output.writeString(15, getDbgMsg());
-      }
       if (hasTimestamp()) {
-        output.writeInt64(16, getTimestamp());
+        output.writeInt64(15, getTimestamp());
+      }
+      if (hasBotID()) {
+        output.writeString(16, getBotID());
+      }
+      if (hasDbgMsg()) {
+        output.writeString(17, getDbgMsg());
       }
       getUnknownFields().writeTo(output);
     }
@@ -1278,13 +1330,17 @@ public final class CellbotProtos {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(14, getPrevConnectionState().getNumber());
       }
-      if (hasDbgMsg()) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeStringSize(15, getDbgMsg());
-      }
       if (hasTimestamp()) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(16, getTimestamp());
+          .computeInt64Size(15, getTimestamp());
+      }
+      if (hasBotID()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(16, getBotID());
+      }
+      if (hasDbgMsg()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(17, getDbgMsg());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1480,11 +1536,14 @@ public final class CellbotProtos {
         if (other.hasPrevConnectionState()) {
           setPrevConnectionState(other.getPrevConnectionState());
         }
-        if (other.hasDbgMsg()) {
-          setDbgMsg(other.getDbgMsg());
-        }
         if (other.hasTimestamp()) {
           setTimestamp(other.getTimestamp());
+        }
+        if (other.hasBotID()) {
+          setBotID(other.getBotID());
+        }
+        if (other.hasDbgMsg()) {
+          setDbgMsg(other.getDbgMsg());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1583,12 +1642,16 @@ public final class CellbotProtos {
               }
               break;
             }
-            case 122: {
-              setDbgMsg(input.readString());
+            case 120: {
+              setTimestamp(input.readInt64());
               break;
             }
-            case 128: {
-              setTimestamp(input.readInt64());
+            case 130: {
+              setBotID(input.readString());
+              break;
+            }
+            case 138: {
+              setDbgMsg(input.readString());
               break;
             }
           }
@@ -1842,7 +1905,46 @@ public final class CellbotProtos {
         return this;
       }
       
-      // optional string dbgMsg = 15;
+      // optional int64 timestamp = 15;
+      public boolean hasTimestamp() {
+        return result.hasTimestamp();
+      }
+      public long getTimestamp() {
+        return result.getTimestamp();
+      }
+      public Builder setTimestamp(long value) {
+        result.hasTimestamp = true;
+        result.timestamp_ = value;
+        return this;
+      }
+      public Builder clearTimestamp() {
+        result.hasTimestamp = false;
+        result.timestamp_ = 0L;
+        return this;
+      }
+      
+      // optional string botID = 16;
+      public boolean hasBotID() {
+        return result.hasBotID();
+      }
+      public java.lang.String getBotID() {
+        return result.getBotID();
+      }
+      public Builder setBotID(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasBotID = true;
+        result.botID_ = value;
+        return this;
+      }
+      public Builder clearBotID() {
+        result.hasBotID = false;
+        result.botID_ = getDefaultInstance().getBotID();
+        return this;
+      }
+      
+      // optional string dbgMsg = 17;
       public boolean hasDbgMsg() {
         return result.hasDbgMsg();
       }
@@ -1860,24 +1962,6 @@ public final class CellbotProtos {
       public Builder clearDbgMsg() {
         result.hasDbgMsg = false;
         result.dbgMsg_ = getDefaultInstance().getDbgMsg();
-        return this;
-      }
-      
-      // optional int64 timestamp = 16;
-      public boolean hasTimestamp() {
-        return result.hasTimestamp();
-      }
-      public long getTimestamp() {
-        return result.getTimestamp();
-      }
-      public Builder setTimestamp(long value) {
-        result.hasTimestamp = true;
-        result.timestamp_ = value;
-        return this;
-      }
-      public Builder clearTimestamp() {
-        result.hasTimestamp = false;
-        result.timestamp_ = 0L;
         return this;
       }
       
@@ -6793,6 +6877,13 @@ public final class CellbotProtos {
     public boolean hasControllerID() { return hasControllerID; }
     public java.lang.String getControllerID() { return controllerID_; }
     
+    // optional string botID = 16;
+    public static final int BOTID_FIELD_NUMBER = 16;
+    private boolean hasBotID;
+    private java.lang.String botID_ = "";
+    public boolean hasBotID() { return hasBotID; }
+    public java.lang.String getBotID() { return botID_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
@@ -6824,6 +6915,9 @@ public final class CellbotProtos {
       if (hasControllerID()) {
         output.writeString(5, getControllerID());
       }
+      if (hasBotID()) {
+        output.writeString(16, getBotID());
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -6852,6 +6946,10 @@ public final class CellbotProtos {
       if (hasControllerID()) {
         size += com.google.protobuf.CodedOutputStream
           .computeStringSize(5, getControllerID());
+      }
+      if (hasBotID()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(16, getBotID());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -7040,6 +7138,9 @@ public final class CellbotProtos {
         if (other.hasControllerID()) {
           setControllerID(other.getControllerID());
         }
+        if (other.hasBotID()) {
+          setBotID(other.getBotID());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -7087,6 +7188,10 @@ public final class CellbotProtos {
             }
             case 42: {
               setControllerID(input.readString());
+              break;
+            }
+            case 130: {
+              setBotID(input.readString());
               break;
             }
           }
@@ -7253,6 +7358,27 @@ public final class CellbotProtos {
       public Builder clearControllerID() {
         result.hasControllerID = false;
         result.controllerID_ = getDefaultInstance().getControllerID();
+        return this;
+      }
+      
+      // optional string botID = 16;
+      public boolean hasBotID() {
+        return result.hasBotID();
+      }
+      public java.lang.String getBotID() {
+        return result.getBotID();
+      }
+      public Builder setBotID(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasBotID = true;
+        result.botID_ = value;
+        return this;
+      }
+      public Builder clearBotID() {
+        result.hasBotID = false;
+        result.botID_ = getDefaultInstance().getBotID();
         return this;
       }
       
@@ -8909,6 +9035,13 @@ public final class CellbotProtos {
       return relay_.get(index);
     }
     
+    // optional string botID = 16;
+    public static final int BOTID_FIELD_NUMBER = 16;
+    private boolean hasBotID;
+    private java.lang.String botID_ = "";
+    public boolean hasBotID() { return hasBotID; }
+    public java.lang.String getBotID() { return botID_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
@@ -8951,6 +9084,9 @@ public final class CellbotProtos {
       for (com.cellbots.CellbotProtos.HALCommand.Relay element : getRelayList()) {
         output.writeMessage(7, element);
       }
+      if (hasBotID()) {
+        output.writeString(16, getBotID());
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -8987,6 +9123,10 @@ public final class CellbotProtos {
       for (com.cellbots.CellbotProtos.HALCommand.Relay element : getRelayList()) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(7, element);
+      }
+      if (hasBotID()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(16, getBotID());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -9195,6 +9335,9 @@ public final class CellbotProtos {
           }
           result.relay_.addAll(other.relay_);
         }
+        if (other.hasBotID()) {
+          setBotID(other.getBotID());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -9254,6 +9397,10 @@ public final class CellbotProtos {
               com.cellbots.CellbotProtos.HALCommand.Relay.Builder subBuilder = com.cellbots.CellbotProtos.HALCommand.Relay.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addRelay(subBuilder.buildPartial());
+              break;
+            }
+            case 130: {
+              setBotID(input.readString());
               break;
             }
           }
@@ -9519,6 +9666,27 @@ public final class CellbotProtos {
       }
       public Builder clearRelay() {
         result.relay_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // optional string botID = 16;
+      public boolean hasBotID() {
+        return result.hasBotID();
+      }
+      public java.lang.String getBotID() {
+        return result.getBotID();
+      }
+      public Builder setBotID(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasBotID = true;
+        result.botID_ = value;
+        return this;
+      }
+      public Builder clearBotID() {
+        result.hasBotID = false;
+        result.botID_ = getDefaultInstance().getBotID();
         return this;
       }
       
@@ -10244,6 +10412,13 @@ public final class CellbotProtos {
       return sensorValue_.get(index);
     }
     
+    // optional string botID = 16;
+    public static final int BOTID_FIELD_NUMBER = 16;
+    private boolean hasBotID;
+    private java.lang.String botID_ = "";
+    public boolean hasBotID() { return hasBotID; }
+    public java.lang.String getBotID() { return botID_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
@@ -10280,6 +10455,9 @@ public final class CellbotProtos {
       }
       for (com.cellbots.CellbotProtos.HALState.SensorValue element : getSensorValueList()) {
         output.writeMessage(8, element);
+      }
+      if (hasBotID()) {
+        output.writeString(16, getBotID());
       }
       getUnknownFields().writeTo(output);
     }
@@ -10321,6 +10499,10 @@ public final class CellbotProtos {
       for (com.cellbots.CellbotProtos.HALState.SensorValue element : getSensorValueList()) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(8, element);
+      }
+      if (hasBotID()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(16, getBotID());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -10511,6 +10693,9 @@ public final class CellbotProtos {
           }
           result.sensorValue_.addAll(other.sensorValue_);
         }
+        if (other.hasBotID()) {
+          setBotID(other.getBotID());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -10568,6 +10753,10 @@ public final class CellbotProtos {
               com.cellbots.CellbotProtos.HALState.SensorValue.Builder subBuilder = com.cellbots.CellbotProtos.HALState.SensorValue.newBuilder();
               input.readMessage(subBuilder, extensionRegistry);
               addSensorValue(subBuilder.buildPartial());
+              break;
+            }
+            case 130: {
+              setBotID(input.readString());
               break;
             }
           }
@@ -10752,6 +10941,27 @@ public final class CellbotProtos {
       }
       public Builder clearSensorValue() {
         result.sensorValue_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // optional string botID = 16;
+      public boolean hasBotID() {
+        return result.hasBotID();
+      }
+      public java.lang.String getBotID() {
+        return result.getBotID();
+      }
+      public Builder setBotID(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasBotID = true;
+        result.botID_ = value;
+        return this;
+      }
+      public Builder clearBotID() {
+        result.hasBotID = false;
+        result.botID_ = getDefaultInstance().getBotID();
         return this;
       }
       
@@ -11924,126 +12134,128 @@ public final class CellbotProtos {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\016Cellbots.proto\022\010cellbots\"\335\002\n\017AudioVide" +
+      "\n\016Cellbots.proto\022\010cellbots\"\354\002\n\017AudioVide" +
       "oFrame\022\021\n\ttimestamp\030\001 \001(\003\022\014\n\004data\030\002 \001(\014\022" +
       "\023\n\013frameNumber\030\003 \001(\003\022\020\n\010sourceID\030\004 \001(\t\022\024" +
       "\n\014whiteBalance\030\005 \001(\005\022\021\n\tzoomLevel\030\006 \001(\005\022" +
       "\030\n\020compressionLevel\030\007 \001(\005\022\017\n\007widthPx\030\010 \001" +
       "(\005\022\020\n\010heightPx\030\t \001(\005\022\020\n\010timeSpan\030\n \001(\005\022\017" +
       "\n\007lightOn\030\013 \001(\010\0224\n\010encoding\030\014 \001(\0162\".cell" +
-      "bots.AudioVideoFrame.Encoding\"C\n\010Encodin" +
-      "g\022\010\n\004JPEG\020\001\022\010\n\004H263\020\002\022\010\n\004H264\020\003\022\007\n\003MP3\020\004" +
-      "\022\007\n\003AAC\020\005\022\007\n\003WAV\020\006\"\270\006\n\rHALConnection\022\017\n\007",
-      "address\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\014\n\004uuid\030\003 \001(" +
-      "\t\022\020\n\010baudRate\030\005 \001(\005\022\022\n\nreadBuffer\030\006 \001(\014\022" +
-      "\023\n\013writeBuffer\030\007 \001(\014\022\021\n\tdelimiter\030\010 \001(\014\022" +
-      "\014\n\004rssi\030\t \001(\005\022H\n\023connectionDirection\030\013 \001" +
-      "(\0162+.cellbots.HALConnection.ConnectionDi" +
-      "rection\022>\n\016connectionType\030\014 \001(\0162&.cellbo" +
-      "ts.HALConnection.ConnectionType\022@\n\017conne" +
-      "ctionState\030\r \001(\0162\'.cellbots.HALConnectio" +
-      "n.ConnectionState\022D\n\023prevConnectionState" +
-      "\030\016 \001(\0162\'.cellbots.HALConnection.Connecti",
-      "onState\022\016\n\006dbgMsg\030\017 \001(\t\022\021\n\ttimestamp\030\020 \001" +
-      "(\003\"V\n\023ConnectionDirection\022\r\n\tREAD_ONLY\020\001" +
-      "\022\016\n\nWRITE_ONLY\020\002\022\017\n\013HALF_DUPLEX\020\003\022\017\n\013FUL" +
-      "L_DUPLEX\020\004\"\225\001\n\016ConnectionType\022\023\n\017HARDWAR" +
-      "E_SERIAL\020\001\022\024\n\020BLUETOOTH_SERIAL\020\002\022\020\n\014AUDI" +
-      "O_SERIAL\020\003\022\r\n\tAUDIO_PWM\020\004\022\r\n\tAUDIO_PPM\020\005" +
-      "\022\014\n\010AUDIO_AM\020\006\022\014\n\010AUDIO_FM\020\007\022\014\n\010INFRARED" +
-      "\020\010\"y\n\017ConnectionState\022\020\n\014DISCONNECTED\020\001\022" +
-      "\n\n\006PAIRED\020\002\022\013\n\007BONDING\020\003\022\n\n\006BONDED\020\004\022\013\n\007" +
-      "TALKING\020\005\022\013\n\007WAITING\020\007\022\n\n\006PAUSED\020\010\022\t\n\005ER",
-      "ROR\020\t\"\267\t\n\nPhoneState\022\021\n\ttimestamp\030\001 \002(\003\022" +
-      "\r\n\005botID\030\002 \001(\t\022\016\n\006dbgMsg\030\003 \001(\t\022-\n\007compas" +
-      "s\030\004 \001(\0132\034.cellbots.PhoneState.Compass\0229\n" +
-      "\raccelerometer\030\005 \001(\0132\".cellbots.PhoneSta" +
-      "te.Accelerometer\0225\n\013orientation\030\006 \001(\0132 ." +
-      "cellbots.PhoneState.Orientation\022\031\n\021phone" +
-      "BatteryLevel\030\007 \001(\002\022\030\n\020phoneBatteryTemp\030\010" +
-      " \001(\005\022\022\n\nlightLevel\030\t \001(\002\022\021\n\tvibrating\030\n " +
-      "\001(\010\022\033\n\023notificationLightOn\030\013 \001(\010\022\035\n\025noti" +
-      "ficationLightFreq\030\014 \001(\005\022\036\n\026notificationL",
-      "ightColor\030\r \001(\005\022\021\n\tproximity\030\016 \001(\005\022\030\n\020sc" +
-      "reenBrightness\030\017 \001(\005\022\'\n\004wifi\030\020 \001(\0132\031.cel" +
-      "lbots.PhoneState.WIFI\022/\n\010cellular\030\021 \001(\0132" +
-      "\035.cellbots.PhoneState.Cellular\022/\n\010locati" +
-      "on\030\022 \001(\0132\035.cellbots.PhoneState.Location\022" +
-      "\022\n\ngpsEnabled\030\023 \001(\010\022.\n\rHALConnection\030\024 \001" +
-      "(\0132\027.cellbots.HALConnection\032*\n\007Compass\022\t" +
-      "\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022\t\n\001z\030\003 \001(\002\0320\n\rAccel" +
-      "erometer\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022\t\n\001z\030\003 \001(" +
-      "\002\032;\n\013Orientation\022\017\n\007azimuth\030\006 \001(\002\022\r\n\005pit",
-      "ch\030\007 \001(\002\022\014\n\004roll\030\010 \001(\002\032\203\001\n\004WIFI\022\017\n\007enabl" +
-      "ed\030\001 \001(\010\022\021\n\tconnected\030\002 \001(\010\022\020\n\010strength\030" +
-      "\003 \001(\005\022\014\n\004kbps\030\004 \001(\005\022\014\n\004ssid\030\005 \001(\005\022\n\n\002ip\030" +
-      "\006 \001(\005\022\016\n\006chanel\030\007 \001(\005\022\r\n\005adhoc\030\010 \001(\010\032k\n\010" +
-      "Cellular\022\017\n\007enabled\030\001 \001(\010\022\021\n\tconnected\030\002" +
-      " \001(\010\022\020\n\010strength\030\003 \001(\005\022\014\n\004kbps\030\004 \001(\005\022\n\n\002" +
-      "ip\030\005 \001(\005\022\017\n\007roaming\030\006 \001(\010\032\223\001\n\010Location\022\020" +
-      "\n\010accuracy\030\001 \001(\002\022\020\n\010altitude\030\002 \001(\001\022\017\n\007be" +
-      "aring\030\003 \001(\002\022\020\n\010latitude\030\004 \002(\001\022\021\n\tlongitu" +
-      "de\030\005 \002(\001\022\020\n\010provider\030\006 \001(\t\022\r\n\005speed\030\007 \001(",
-      "\002\022\014\n\004time\030\010 \001(\003\"\211\004\n\017ControllerState\022\021\n\tt" +
-      "imestamp\030\001 \002(\003\0224\n\010keyEvent\030\002 \003(\0132\".cellb" +
-      "ots.ControllerState.KeyEvent\0228\n\nstickEve" +
-      "nt\030\003 \003(\0132$.cellbots.ControllerState.Stic" +
-      "kEvent\022\022\n\ntxtCommand\030\004 \001(\t\022\024\n\014controller" +
-      "ID\030\005 \001(\t\032P\n\010KeyEvent\022\017\n\007keyCode\030\001 \002(\t\022\017\n" +
-      "\007keyDown\030\002 \001(\010\022\r\n\005keyUp\030\003 \001(\010\022\023\n\013keyPres" +
-      "sure\030\004 \001(\002\032\366\001\n\nStickEvent\022A\n\tstickType\030\001" +
-      " \002(\0162..cellbots.ControllerState.StickEve" +
-      "nt.StickType\022\023\n\013stickNumber\030\002 \002(\005\022\t\n\001x\030\003",
-      " \001(\002\022\t\n\001y\030\004 \001(\002\022\t\n\001z\030\005 \001(\002\"o\n\tStickType\022" +
-      "\n\n\006ANALOG\020\001\022\017\n\013ORIENTATION\020\002\022\020\n\014LINEAR_A" +
-      "CCEL\020\003\022\021\n\rANGULAR_ACCEL\020\004\022\n\n\006SLIDER\020\005\022\t\n" +
-      "\005WHEEL\020\006\022\t\n\005MOUSE\020\007\"\346\003\n\nHALCommand\022\021\n\tti" +
-      "mestamp\030\001 \001(\003\022\022\n\ntxtCommand\030\002 \001(\t\022\017\n\007all" +
-      "Stop\030\003 \001(\010\022)\n\005servo\030\004 \003(\0132\032.cellbots.HAL" +
-      "Command.Servo\022)\n\005motor\030\005 \003(\0132\032.cellbots." +
-      "HALCommand.Motor\022%\n\003pwm\030\006 \003(\0132\030.cellbots" +
-      ".HALCommand.PWM\022)\n\005relay\030\007 \003(\0132\032.cellbot" +
-      "s.HALCommand.Relay\032]\n\005Servo\022\n\n\002ID\030\001 \002(\t\022",
-      "\r\n\005speed\030\003 \001(\005\022\026\n\016targetPosition\030\004 \001(\005\022\016" +
-      "\n\006torque\030\005 \001(\005\022\021\n\tfreeWheel\030\006 \001(\010\032D\n\005Mot" +
-      "or\022\n\n\002ID\030\001 \002(\t\022\r\n\005steps\030\002 \001(\005\022\r\n\005speed\030\003" +
-      " \001(\005\022\021\n\tfreeWheel\030\004 \001(\010\0322\n\003PWM\022\n\n\002ID\030\001 \002" +
-      "(\t\022\021\n\tfrequency\030\002 \002(\005\022\014\n\004duty\030\003 \002(\005\032\037\n\005R" +
-      "elay\022\n\n\002ID\030\001 \002(\t\022\n\n\002on\030\002 \002(\010\"\372\004\n\010HALStat" +
-      "e\022\021\n\ttimestamp\030\001 \002(\003\022\022\n\ndbgMessage\030\002 \001(\t" +
-      "\022\014\n\004vBat\030\003 \001(\005\022\023\n\013currentDraw\030\004 \001(\005\022\021\n\tp" +
-      "owerUsed\030\005 \001(\005\022\023\n\013batteryTemp\030\006 \001(\005\022\013\n\003v" +
-      "CC\030\007 \001(\005\0223\n\013sensorValue\030\010 \003(\0132\036.cellbots",
-      ".HALState.SensorValue\032\271\003\n\013SensorValue\022\n\n" +
-      "\002ID\030\001 \002(\t\022\022\n\noutOfRange\030\002 \001(\010\022\r\n\005value\030\003" +
-      " \001(\005\022\021\n\tprevValue\030\004 \001(\005\022\031\n\021minSenseableV" +
-      "alue\030\005 \001(\005\022\031\n\021maxSenseableValue\030\006 \001(\005\022?\n" +
-      "\013sensorUnits\030\007 \001(\0162*.cellbots.HALState.S" +
-      "ensorValue.SensorUnits\"\360\001\n\013SensorUnits\022\r" +
-      "\n\tMILIVOLTS\020\001\022\014\n\010MILIAMPS\020\002\022\017\n\013DEG_CELIS" +
-      "US\020\003\022\017\n\013CENTIMETERS\020\004\022\t\n\005COUNT\020\005\022\007\n\003LUX\020" +
-      "\010\022\021\n\rSATURATON_RED\020\t\022\023\n\017SATURATON_GREEN\020" +
-      "\n\022\022\n\016SATURATON_BLUE\020\013\022\013\n\007TIME_MS\020\014\022\006\n\002HZ",
-      "\020\r\022\022\n\016PULSE_WIDTH_MS\020\r\022\023\n\017RESISTNACE_OHM" +
-      "S\020\016\022\024\n\020PRESSURE_MILIBAR\020\0172\307\001\n\nHALService" +
-      "\022;\n\007connect\022\027.cellbots.HALConnection\032\027.c" +
-      "ellbots.HALConnection\0223\n\007execute\022\024.cellb" +
-      "ots.HALCommand\032\022.cellbots.HALState\022G\n\023ge" +
-      "tConnectionStatus\022\027.cellbots.HALConnecti" +
-      "on\032\027.cellbots.HALConnection2\355\001\n\024MasterCo" +
-      "ntrolService\022I\n\026processControllerEvent\022\031" +
-      ".cellbots.ControllerState\032\024.cellbots.Pho" +
-      "neState\022G\n\017setVideoOptions\022\031.cellbots.Au",
-      "dioVideoFrame\032\031.cellbots.AudioVideoFrame" +
-      "\022A\n\016processAVFrame\022\031.cellbots.AudioVideo" +
-      "Frame\032\024.cellbots.PhoneState2\341\001\n\nHIDServi" +
-      "ce\022F\n\016displayAVFrame\022\031.cellbots.AudioVid" +
-      "eoFrame\032\031.cellbots.ControllerState\022D\n\021di" +
-      "splayPhoneState\022\024.cellbots.PhoneState\032\031." +
-      "cellbots.ControllerState\022E\n\024displayHALSe" +
-      "nsorData\022\022.cellbots.HALState\032\031.cellbots." +
-      "ControllerStateB\035\n\014com.cellbotsB\rCellbot" +
-      "Protos"
+      "bots.AudioVideoFrame.Encoding\022\r\n\005botID\030\020" +
+      " \001(\t\"C\n\010Encoding\022\010\n\004JPEG\020\001\022\010\n\004H263\020\002\022\010\n\004" +
+      "H264\020\003\022\007\n\003MP3\020\004\022\007\n\003AAC\020\005\022\007\n\003WAV\020\006\"\307\006\n\rHA",
+      "LConnection\022\017\n\007address\030\001 \001(\t\022\014\n\004name\030\002 \001" +
+      "(\t\022\014\n\004uuid\030\003 \001(\t\022\020\n\010baudRate\030\005 \001(\005\022\022\n\nre" +
+      "adBuffer\030\006 \001(\014\022\023\n\013writeBuffer\030\007 \001(\014\022\021\n\td" +
+      "elimiter\030\010 \001(\014\022\014\n\004rssi\030\t \001(\005\022H\n\023connecti" +
+      "onDirection\030\013 \001(\0162+.cellbots.HALConnecti" +
+      "on.ConnectionDirection\022>\n\016connectionType" +
+      "\030\014 \001(\0162&.cellbots.HALConnection.Connecti" +
+      "onType\022@\n\017connectionState\030\r \001(\0162\'.cellbo" +
+      "ts.HALConnection.ConnectionState\022D\n\023prev" +
+      "ConnectionState\030\016 \001(\0162\'.cellbots.HALConn",
+      "ection.ConnectionState\022\021\n\ttimestamp\030\017 \001(" +
+      "\003\022\r\n\005botID\030\020 \001(\t\022\016\n\006dbgMsg\030\021 \001(\t\"V\n\023Conn" +
+      "ectionDirection\022\r\n\tREAD_ONLY\020\001\022\016\n\nWRITE_" +
+      "ONLY\020\002\022\017\n\013HALF_DUPLEX\020\003\022\017\n\013FULL_DUPLEX\020\004" +
+      "\"\225\001\n\016ConnectionType\022\023\n\017HARDWARE_SERIAL\020\001" +
+      "\022\024\n\020BLUETOOTH_SERIAL\020\002\022\020\n\014AUDIO_SERIAL\020\003" +
+      "\022\r\n\tAUDIO_PWM\020\004\022\r\n\tAUDIO_PPM\020\005\022\014\n\010AUDIO_" +
+      "AM\020\006\022\014\n\010AUDIO_FM\020\007\022\014\n\010INFRARED\020\010\"y\n\017Conn" +
+      "ectionState\022\020\n\014DISCONNECTED\020\001\022\n\n\006PAIRED\020" +
+      "\002\022\013\n\007BONDING\020\003\022\n\n\006BONDED\020\004\022\013\n\007TALKING\020\005\022",
+      "\013\n\007WAITING\020\007\022\n\n\006PAUSED\020\010\022\t\n\005ERROR\020\t\"\267\t\n\n" +
+      "PhoneState\022\021\n\ttimestamp\030\001 \002(\003\022\r\n\005botID\030\002" +
+      " \001(\t\022\016\n\006dbgMsg\030\003 \001(\t\022-\n\007compass\030\004 \001(\0132\034." +
+      "cellbots.PhoneState.Compass\0229\n\raccelerom" +
+      "eter\030\005 \001(\0132\".cellbots.PhoneState.Acceler" +
+      "ometer\0225\n\013orientation\030\006 \001(\0132 .cellbots.P" +
+      "honeState.Orientation\022\031\n\021phoneBatteryLev" +
+      "el\030\007 \001(\002\022\030\n\020phoneBatteryTemp\030\010 \001(\005\022\022\n\nli" +
+      "ghtLevel\030\t \001(\002\022\021\n\tvibrating\030\n \001(\010\022\033\n\023not" +
+      "ificationLightOn\030\013 \001(\010\022\035\n\025notificationLi",
+      "ghtFreq\030\014 \001(\005\022\036\n\026notificationLightColor\030" +
+      "\r \001(\005\022\021\n\tproximity\030\016 \001(\005\022\030\n\020screenBright" +
+      "ness\030\017 \001(\005\022\'\n\004wifi\030\020 \001(\0132\031.cellbots.Phon" +
+      "eState.WIFI\022/\n\010cellular\030\021 \001(\0132\035.cellbots" +
+      ".PhoneState.Cellular\022/\n\010location\030\022 \001(\0132\035" +
+      ".cellbots.PhoneState.Location\022\022\n\ngpsEnab" +
+      "led\030\023 \001(\010\022.\n\rHALConnection\030\024 \001(\0132\027.cellb" +
+      "ots.HALConnection\032*\n\007Compass\022\t\n\001x\030\001 \001(\002\022" +
+      "\t\n\001y\030\002 \001(\002\022\t\n\001z\030\003 \001(\002\0320\n\rAccelerometer\022\t" +
+      "\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\022\t\n\001z\030\003 \001(\002\032;\n\013Orien",
+      "tation\022\017\n\007azimuth\030\006 \001(\002\022\r\n\005pitch\030\007 \001(\002\022\014" +
+      "\n\004roll\030\010 \001(\002\032\203\001\n\004WIFI\022\017\n\007enabled\030\001 \001(\010\022\021" +
+      "\n\tconnected\030\002 \001(\010\022\020\n\010strength\030\003 \001(\005\022\014\n\004k" +
+      "bps\030\004 \001(\005\022\014\n\004ssid\030\005 \001(\005\022\n\n\002ip\030\006 \001(\005\022\016\n\006c" +
+      "hanel\030\007 \001(\005\022\r\n\005adhoc\030\010 \001(\010\032k\n\010Cellular\022\017" +
+      "\n\007enabled\030\001 \001(\010\022\021\n\tconnected\030\002 \001(\010\022\020\n\010st" +
+      "rength\030\003 \001(\005\022\014\n\004kbps\030\004 \001(\005\022\n\n\002ip\030\005 \001(\005\022\017" +
+      "\n\007roaming\030\006 \001(\010\032\223\001\n\010Location\022\020\n\010accuracy" +
+      "\030\001 \001(\002\022\020\n\010altitude\030\002 \001(\001\022\017\n\007bearing\030\003 \001(" +
+      "\002\022\020\n\010latitude\030\004 \002(\001\022\021\n\tlongitude\030\005 \002(\001\022\020",
+      "\n\010provider\030\006 \001(\t\022\r\n\005speed\030\007 \001(\002\022\014\n\004time\030" +
+      "\010 \001(\003\"\230\004\n\017ControllerState\022\021\n\ttimestamp\030\001" +
+      " \002(\003\0224\n\010keyEvent\030\002 \003(\0132\".cellbots.Contro" +
+      "llerState.KeyEvent\0228\n\nstickEvent\030\003 \003(\0132$" +
+      ".cellbots.ControllerState.StickEvent\022\022\n\n" +
+      "txtCommand\030\004 \001(\t\022\024\n\014controllerID\030\005 \001(\t\022\r" +
+      "\n\005botID\030\020 \001(\t\032P\n\010KeyEvent\022\017\n\007keyCode\030\001 \002" +
+      "(\t\022\017\n\007keyDown\030\002 \001(\010\022\r\n\005keyUp\030\003 \001(\010\022\023\n\013ke" +
+      "yPressure\030\004 \001(\002\032\366\001\n\nStickEvent\022A\n\tstickT" +
+      "ype\030\001 \002(\0162..cellbots.ControllerState.Sti",
+      "ckEvent.StickType\022\023\n\013stickNumber\030\002 \002(\005\022\t" +
+      "\n\001x\030\003 \001(\002\022\t\n\001y\030\004 \001(\002\022\t\n\001z\030\005 \001(\002\"o\n\tStick" +
+      "Type\022\n\n\006ANALOG\020\001\022\017\n\013ORIENTATION\020\002\022\020\n\014LIN" +
+      "EAR_ACCEL\020\003\022\021\n\rANGULAR_ACCEL\020\004\022\n\n\006SLIDER" +
+      "\020\005\022\t\n\005WHEEL\020\006\022\t\n\005MOUSE\020\007\"\365\003\n\nHALCommand\022" +
+      "\021\n\ttimestamp\030\001 \001(\003\022\022\n\ntxtCommand\030\002 \001(\t\022\017" +
+      "\n\007allStop\030\003 \001(\010\022)\n\005servo\030\004 \003(\0132\032.cellbot" +
+      "s.HALCommand.Servo\022)\n\005motor\030\005 \003(\0132\032.cell" +
+      "bots.HALCommand.Motor\022%\n\003pwm\030\006 \003(\0132\030.cel" +
+      "lbots.HALCommand.PWM\022)\n\005relay\030\007 \003(\0132\032.ce",
+      "llbots.HALCommand.Relay\022\r\n\005botID\030\020 \001(\t\032]" +
+      "\n\005Servo\022\n\n\002ID\030\001 \002(\t\022\r\n\005speed\030\003 \001(\005\022\026\n\016ta" +
+      "rgetPosition\030\004 \001(\005\022\016\n\006torque\030\005 \001(\005\022\021\n\tfr" +
+      "eeWheel\030\006 \001(\010\032D\n\005Motor\022\n\n\002ID\030\001 \002(\t\022\r\n\005st" +
+      "eps\030\002 \001(\005\022\r\n\005speed\030\003 \001(\005\022\021\n\tfreeWheel\030\004 " +
+      "\001(\010\0322\n\003PWM\022\n\n\002ID\030\001 \002(\t\022\021\n\tfrequency\030\002 \002(" +
+      "\005\022\014\n\004duty\030\003 \002(\005\032\037\n\005Relay\022\n\n\002ID\030\001 \002(\t\022\n\n\002" +
+      "on\030\002 \002(\010\"\211\005\n\010HALState\022\021\n\ttimestamp\030\001 \002(\003" +
+      "\022\022\n\ndbgMessage\030\002 \001(\t\022\014\n\004vBat\030\003 \001(\005\022\023\n\013cu" +
+      "rrentDraw\030\004 \001(\005\022\021\n\tpowerUsed\030\005 \001(\005\022\023\n\013ba",
+      "tteryTemp\030\006 \001(\005\022\013\n\003vCC\030\007 \001(\005\0223\n\013sensorVa" +
+      "lue\030\010 \003(\0132\036.cellbots.HALState.SensorValu" +
+      "e\022\r\n\005botID\030\020 \001(\t\032\271\003\n\013SensorValue\022\n\n\002ID\030\001" +
+      " \002(\t\022\022\n\noutOfRange\030\002 \001(\010\022\r\n\005value\030\003 \001(\005\022" +
+      "\021\n\tprevValue\030\004 \001(\005\022\031\n\021minSenseableValue\030" +
+      "\005 \001(\005\022\031\n\021maxSenseableValue\030\006 \001(\005\022?\n\013sens" +
+      "orUnits\030\007 \001(\0162*.cellbots.HALState.Sensor" +
+      "Value.SensorUnits\"\360\001\n\013SensorUnits\022\r\n\tMIL" +
+      "IVOLTS\020\001\022\014\n\010MILIAMPS\020\002\022\017\n\013DEG_CELISUS\020\003\022" +
+      "\017\n\013CENTIMETERS\020\004\022\t\n\005COUNT\020\005\022\007\n\003LUX\020\010\022\021\n\r",
+      "SATURATON_RED\020\t\022\023\n\017SATURATON_GREEN\020\n\022\022\n\016" +
+      "SATURATON_BLUE\020\013\022\013\n\007TIME_MS\020\014\022\006\n\002HZ\020\r\022\022\n" +
+      "\016PULSE_WIDTH_MS\020\r\022\023\n\017RESISTNACE_OHMS\020\016\022\024" +
+      "\n\020PRESSURE_MILIBAR\020\0172\307\001\n\nHALService\022;\n\007c" +
+      "onnect\022\027.cellbots.HALConnection\032\027.cellbo" +
+      "ts.HALConnection\0223\n\007execute\022\024.cellbots.H" +
+      "ALCommand\032\022.cellbots.HALState\022G\n\023getConn" +
+      "ectionStatus\022\027.cellbots.HALConnection\032\027." +
+      "cellbots.HALConnection2\355\001\n\024MasterControl" +
+      "Service\022I\n\026processControllerEvent\022\031.cell",
+      "bots.ControllerState\032\024.cellbots.PhoneSta" +
+      "te\022G\n\017setVideoOptions\022\031.cellbots.AudioVi" +
+      "deoFrame\032\031.cellbots.AudioVideoFrame\022A\n\016p" +
+      "rocessAVFrame\022\031.cellbots.AudioVideoFrame" +
+      "\032\024.cellbots.PhoneState2\341\001\n\nHIDService\022F\n" +
+      "\016displayAVFrame\022\031.cellbots.AudioVideoFra" +
+      "me\032\031.cellbots.ControllerState\022D\n\021display" +
+      "PhoneState\022\024.cellbots.PhoneState\032\031.cellb" +
+      "ots.ControllerState\022E\n\024displayHALSensorD" +
+      "ata\022\022.cellbots.HALState\032\031.cellbots.Contr",
+      "ollerStateB\035\n\014com.cellbotsB\rCellbotProto" +
+      "s"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -12055,7 +12267,7 @@ public final class CellbotProtos {
           internal_static_cellbots_AudioVideoFrame_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_cellbots_AudioVideoFrame_descriptor,
-              new java.lang.String[] { "Timestamp", "Data", "FrameNumber", "SourceID", "WhiteBalance", "ZoomLevel", "CompressionLevel", "WidthPx", "HeightPx", "TimeSpan", "LightOn", "Encoding", },
+              new java.lang.String[] { "Timestamp", "Data", "FrameNumber", "SourceID", "WhiteBalance", "ZoomLevel", "CompressionLevel", "WidthPx", "HeightPx", "TimeSpan", "LightOn", "Encoding", "BotID", },
               com.cellbots.CellbotProtos.AudioVideoFrame.class,
               com.cellbots.CellbotProtos.AudioVideoFrame.Builder.class);
           internal_static_cellbots_HALConnection_descriptor =
@@ -12063,7 +12275,7 @@ public final class CellbotProtos {
           internal_static_cellbots_HALConnection_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_cellbots_HALConnection_descriptor,
-              new java.lang.String[] { "Address", "Name", "Uuid", "BaudRate", "ReadBuffer", "WriteBuffer", "Delimiter", "Rssi", "ConnectionDirection", "ConnectionType", "ConnectionState", "PrevConnectionState", "DbgMsg", "Timestamp", },
+              new java.lang.String[] { "Address", "Name", "Uuid", "BaudRate", "ReadBuffer", "WriteBuffer", "Delimiter", "Rssi", "ConnectionDirection", "ConnectionType", "ConnectionState", "PrevConnectionState", "Timestamp", "BotID", "DbgMsg", },
               com.cellbots.CellbotProtos.HALConnection.class,
               com.cellbots.CellbotProtos.HALConnection.Builder.class);
           internal_static_cellbots_PhoneState_descriptor =
@@ -12127,7 +12339,7 @@ public final class CellbotProtos {
           internal_static_cellbots_ControllerState_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_cellbots_ControllerState_descriptor,
-              new java.lang.String[] { "Timestamp", "KeyEvent", "StickEvent", "TxtCommand", "ControllerID", },
+              new java.lang.String[] { "Timestamp", "KeyEvent", "StickEvent", "TxtCommand", "ControllerID", "BotID", },
               com.cellbots.CellbotProtos.ControllerState.class,
               com.cellbots.CellbotProtos.ControllerState.Builder.class);
           internal_static_cellbots_ControllerState_KeyEvent_descriptor =
@@ -12151,7 +12363,7 @@ public final class CellbotProtos {
           internal_static_cellbots_HALCommand_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_cellbots_HALCommand_descriptor,
-              new java.lang.String[] { "Timestamp", "TxtCommand", "AllStop", "Servo", "Motor", "Pwm", "Relay", },
+              new java.lang.String[] { "Timestamp", "TxtCommand", "AllStop", "Servo", "Motor", "Pwm", "Relay", "BotID", },
               com.cellbots.CellbotProtos.HALCommand.class,
               com.cellbots.CellbotProtos.HALCommand.Builder.class);
           internal_static_cellbots_HALCommand_Servo_descriptor =
@@ -12191,7 +12403,7 @@ public final class CellbotProtos {
           internal_static_cellbots_HALState_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_cellbots_HALState_descriptor,
-              new java.lang.String[] { "Timestamp", "DbgMessage", "VBat", "CurrentDraw", "PowerUsed", "BatteryTemp", "VCC", "SensorValue", },
+              new java.lang.String[] { "Timestamp", "DbgMessage", "VBat", "CurrentDraw", "PowerUsed", "BatteryTemp", "VCC", "SensorValue", "BotID", },
               com.cellbots.CellbotProtos.HALState.class,
               com.cellbots.CellbotProtos.HALState.Builder.class);
           internal_static_cellbots_HALState_SensorValue_descriptor =
