@@ -323,4 +323,22 @@ public final class AudioVideoFrame extends JavaScriptObject  {
         return this["encoding"] != null;
     }-*/;
 
+    // botID
+
+    public native String getBotID() /*-{
+        return this["botID"] || "";
+    }-*/;
+
+    public native void setBotID(String botID) /*-{
+        this["botID"] = botID;
+    }-*/;
+
+    public native void clearBotID() /*-{
+        delete this["botID"];
+    }-*/;
+
+    public native boolean hasBotID() /*-{
+        return this["botID"] != null;
+    }-*/;
+
 }

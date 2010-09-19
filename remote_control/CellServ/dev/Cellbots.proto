@@ -1,4 +1,6 @@
-//to compile:  protoc --java_out=../src/  Cellbots.proto
+//to Create cellbotProtos.java:  protoc --java_out=../src/  Cellbots.proto
+//to create the protostuff schmeas: java -jar ../war/WEB-INF/lib/protostuff-compiler-1.0.0.M4-jarjar.jar complileserver.properties
+//to create the protostuff overlays: java -jar ../war/WEB-INF/lib/protostuff-compiler-1.0.0.M4-jarjar.jar complileclient.properties
 package cellbots;
 
 option java_package = "com.cellbots";
@@ -26,6 +28,7 @@ message  AudioVideoFrame{ //can be used for setting params or sending data
       WAV = 6;
   }
   optional Encoding encoding = 12;
+  optional string botID = 16;
 }
 
 message HALConnection{
@@ -71,8 +74,9 @@ message HALConnection{
     optional ConnectionType connectionType = 12;
     optional ConnectionState  connectionState  = 13; 
     optional ConnectionState  prevConnectionState   = 14;
-    optional string dbgMsg = 15;
-    optional int64 timestamp = 16;
+    optional int64 timestamp = 15;
+    optional string botID = 16;
+    optional string dbgMsg = 17;
 }
 
 
@@ -183,6 +187,7 @@ message ControllerState {
  
   optional string txtCommand = 4;
   optional string controllerID = 5;
+  optional string botID = 16;
 }
 
 message  HALCommand {
@@ -219,6 +224,7 @@ message  HALCommand {
     required bool on = 2;
   }
   repeated Relay relay =  7;
+  optional string botID = 16;
 }
 
 message  HALState{
@@ -259,6 +265,7 @@ message  HALState{
     optional SensorUnits sensorUnits = 7;
   }
   repeated SensorValue sensorValue = 8;
+  optional string botID = 16;
 }
 
 

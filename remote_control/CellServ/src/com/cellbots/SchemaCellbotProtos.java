@@ -46,6 +46,8 @@ public final class SchemaCellbotProtos
                     output.writeBool(11, message.getLightOn(), false);
                 if(message.hasEncoding())
                     output.writeEnum(12, message.getEncoding().getNumber(), false);
+                if(message.hasBotID())
+                    output.writeString(16, message.getBotID(), false);
             }
             public boolean isInitialized(com.cellbots.CellbotProtos.AudioVideoFrame message)
             {
@@ -122,6 +124,9 @@ public final class SchemaCellbotProtos
                         case 12:
                             builder.setEncoding(com.cellbots.CellbotProtos.AudioVideoFrame.Encoding.valueOf(input.readEnum()));
                             break;
+                        case 16:
+                            builder.setBotID(input.readString());
+                            break;
                         default:
                             input.handleUnknownField(number, this);
                     }
@@ -174,6 +179,7 @@ public final class SchemaCellbotProtos
                 case 10: return "timeSpan";
                 case 11: return "lightOn";
                 case 12: return "encoding";
+                case 16: return "botID";
                 default: return null;
             }
         }
@@ -196,6 +202,7 @@ public final class SchemaCellbotProtos
             fieldMap.put("timeSpan", 10);
             fieldMap.put("lightOn", 11);
             fieldMap.put("encoding", 12);
+            fieldMap.put("botID", 16);
         }
     }
 
@@ -235,10 +242,12 @@ public final class SchemaCellbotProtos
                     output.writeEnum(13, message.getConnectionState().getNumber(), false);
                 if(message.hasPrevConnectionState())
                     output.writeEnum(14, message.getPrevConnectionState().getNumber(), false);
-                if(message.hasDbgMsg())
-                    output.writeString(15, message.getDbgMsg(), false);
                 if(message.hasTimestamp())
-                    output.writeInt64(16, message.getTimestamp(), false);
+                    output.writeInt64(15, message.getTimestamp(), false);
+                if(message.hasBotID())
+                    output.writeString(16, message.getBotID(), false);
+                if(message.hasDbgMsg())
+                    output.writeString(17, message.getDbgMsg(), false);
             }
             public boolean isInitialized(com.cellbots.CellbotProtos.HALConnection message)
             {
@@ -316,10 +325,13 @@ public final class SchemaCellbotProtos
                             builder.setPrevConnectionState(com.cellbots.CellbotProtos.HALConnection.ConnectionState.valueOf(input.readEnum()));
                             break;
                         case 15:
-                            builder.setDbgMsg(input.readString());
+                            builder.setTimestamp(input.readInt64());
                             break;
                         case 16:
-                            builder.setTimestamp(input.readInt64());
+                            builder.setBotID(input.readString());
+                            break;
+                        case 17:
+                            builder.setDbgMsg(input.readString());
                             break;
                         default:
                             input.handleUnknownField(number, this);
@@ -373,8 +385,9 @@ public final class SchemaCellbotProtos
                 case 12: return "connectionType";
                 case 13: return "connectionState";
                 case 14: return "prevConnectionState";
-                case 15: return "dbgMsg";
-                case 16: return "timestamp";
+                case 15: return "timestamp";
+                case 16: return "botID";
+                case 17: return "dbgMsg";
                 default: return null;
             }
         }
@@ -397,8 +410,9 @@ public final class SchemaCellbotProtos
             fieldMap.put("connectionType", 12);
             fieldMap.put("connectionState", 13);
             fieldMap.put("prevConnectionState", 14);
-            fieldMap.put("dbgMsg", 15);
-            fieldMap.put("timestamp", 16);
+            fieldMap.put("timestamp", 15);
+            fieldMap.put("botID", 16);
+            fieldMap.put("dbgMsg", 17);
         }
     }
 
@@ -1777,6 +1791,8 @@ public final class SchemaCellbotProtos
                     output.writeString(4, message.getTxtCommand(), false);
                 if(message.hasControllerID())
                     output.writeString(5, message.getControllerID(), false);
+                if(message.hasBotID())
+                    output.writeString(16, message.getBotID(), false);
             }
             public boolean isInitialized(com.cellbots.CellbotProtos.ControllerState message)
             {
@@ -1834,6 +1850,9 @@ public final class SchemaCellbotProtos
                         case 5:
                             builder.setControllerID(input.readString());
                             break;
+                        case 16:
+                            builder.setBotID(input.readString());
+                            break;
                         default:
                             input.handleUnknownField(number, this);
                     }
@@ -1879,6 +1898,7 @@ public final class SchemaCellbotProtos
                 case 3: return "stickEvent";
                 case 4: return "txtCommand";
                 case 5: return "controllerID";
+                case 16: return "botID";
                 default: return null;
             }
         }
@@ -1894,6 +1914,7 @@ public final class SchemaCellbotProtos
             fieldMap.put("stickEvent", 3);
             fieldMap.put("txtCommand", 4);
             fieldMap.put("controllerID", 5);
+            fieldMap.put("botID", 16);
         }
     }
 
@@ -2431,6 +2452,8 @@ public final class SchemaCellbotProtos
                 for(com.cellbots.CellbotProtos.HALCommand.Relay relay : message.getRelayList())
                     output.writeObject(7, relay, com.cellbots.SchemaCellbotProtos.HALCommand.Relay.WRITE, true);
 
+                if(message.hasBotID())
+                    output.writeString(16, message.getBotID(), false);
             }
             public boolean isInitialized(com.cellbots.CellbotProtos.HALCommand message)
             {
@@ -2496,6 +2519,9 @@ public final class SchemaCellbotProtos
                             builder.addRelay(input.mergeObject(com.cellbots.CellbotProtos.HALCommand.Relay.newBuilder(), com.cellbots.SchemaCellbotProtos.HALCommand.Relay.MERGE));
 
                             break;
+                        case 16:
+                            builder.setBotID(input.readString());
+                            break;
                         default:
                             input.handleUnknownField(number, this);
                     }
@@ -2543,6 +2569,7 @@ public final class SchemaCellbotProtos
                 case 5: return "motor";
                 case 6: return "pwm";
                 case 7: return "relay";
+                case 16: return "botID";
                 default: return null;
             }
         }
@@ -2560,6 +2587,7 @@ public final class SchemaCellbotProtos
             fieldMap.put("motor", 5);
             fieldMap.put("pwm", 6);
             fieldMap.put("relay", 7);
+            fieldMap.put("botID", 16);
         }
     }
 
@@ -2741,6 +2769,8 @@ public final class SchemaCellbotProtos
                 for(com.cellbots.CellbotProtos.HALState.SensorValue sensorValue : message.getSensorValueList())
                     output.writeObject(8, sensorValue, com.cellbots.SchemaCellbotProtos.HALState.SensorValue.WRITE, true);
 
+                if(message.hasBotID())
+                    output.writeString(16, message.getBotID(), false);
             }
             public boolean isInitialized(com.cellbots.CellbotProtos.HALState message)
             {
@@ -2806,6 +2836,9 @@ public final class SchemaCellbotProtos
                             builder.addSensorValue(input.mergeObject(com.cellbots.CellbotProtos.HALState.SensorValue.newBuilder(), com.cellbots.SchemaCellbotProtos.HALState.SensorValue.MERGE));
 
                             break;
+                        case 16:
+                            builder.setBotID(input.readString());
+                            break;
                         default:
                             input.handleUnknownField(number, this);
                     }
@@ -2854,6 +2887,7 @@ public final class SchemaCellbotProtos
                 case 6: return "batteryTemp";
                 case 7: return "vCC";
                 case 8: return "sensorValue";
+                case 16: return "botID";
                 default: return null;
             }
         }
@@ -2872,6 +2906,7 @@ public final class SchemaCellbotProtos
             fieldMap.put("batteryTemp", 6);
             fieldMap.put("vCC", 7);
             fieldMap.put("sensorValue", 8);
+            fieldMap.put("botID", 16);
         }
     }
 

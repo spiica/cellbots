@@ -370,24 +370,6 @@ public final class HALConnection extends JavaScriptObject  {
         return this["prevConnectionState"] != null;
     }-*/;
 
-    // dbgMsg
-
-    public native String getDbgMsg() /*-{
-        return this["dbgMsg"] || "";
-    }-*/;
-
-    public native void setDbgMsg(String dbgMsg) /*-{
-        this["dbgMsg"] = dbgMsg;
-    }-*/;
-
-    public native void clearDbgMsg() /*-{
-        delete this["dbgMsg"];
-    }-*/;
-
-    public native boolean hasDbgMsg() /*-{
-        return this["dbgMsg"] != null;
-    }-*/;
-
     // timestamp
 
     public native double getTimestamp() /*-{
@@ -404,6 +386,42 @@ public final class HALConnection extends JavaScriptObject  {
 
     public native boolean hasTimestamp() /*-{
         return this["timestamp"] != null;
+    }-*/;
+
+    // botID
+
+    public native String getBotID() /*-{
+        return this["botID"] || "";
+    }-*/;
+
+    public native void setBotID(String botID) /*-{
+        this["botID"] = botID;
+    }-*/;
+
+    public native void clearBotID() /*-{
+        delete this["botID"];
+    }-*/;
+
+    public native boolean hasBotID() /*-{
+        return this["botID"] != null;
+    }-*/;
+
+    // dbgMsg
+
+    public native String getDbgMsg() /*-{
+        return this["dbgMsg"] || "";
+    }-*/;
+
+    public native void setDbgMsg(String dbgMsg) /*-{
+        this["dbgMsg"] = dbgMsg;
+    }-*/;
+
+    public native void clearDbgMsg() /*-{
+        delete this["dbgMsg"];
+    }-*/;
+
+    public native boolean hasDbgMsg() /*-{
+        return this["dbgMsg"] != null;
     }-*/;
 
 }
