@@ -14,6 +14,8 @@ public class StateHolder
   private CellbotProtos.ControllerState         controllerState;
 
   private CellbotProtos.AudioVideoFrame         avFrame;
+  
+  private static boolean MERGE_PHONE_STATE     = true;
 
   private CellbotProtos.ControllerState.Builder csBuilder = CellbotProtos.ControllerState.newBuilder();
   
@@ -38,7 +40,15 @@ public class StateHolder
 
   public void setPhoneState(CellbotProtos.PhoneState ps)
   {
-    phoneState = ps;
+    
+    if(phoneState != null && MERGE_PHONE_STATE )
+    {
+      //we merge sensor data because it may not come in that often.
+      phoneState = CellbotProtos.PhoneState.newBuilder(ps).mergeFrom(phoneState).build();
+    }
+    else {
+      phoneState = ps;
+    }
   }
 
   public void setVideoFrame(CellbotProtos.AudioVideoFrame av)
@@ -53,9 +63,9 @@ public class StateHolder
 
   public CellbotProtos.ControllerState getControllerState()
   {
-    CellbotProtos.ControllerState cs = csBuilder.build();
+    controllerState = csBuilder.build();
     csBuilder = null;
-    return cs;
+    return controllerState;
   }
 
   public boolean newVideoFrameAvilble()

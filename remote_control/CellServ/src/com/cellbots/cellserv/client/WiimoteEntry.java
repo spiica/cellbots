@@ -1,7 +1,6 @@
 package com.cellbots.cellserv.client;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -32,13 +31,24 @@ import com.google.gwt.user.client.ui.Widget;
 public class WiimoteEntry implements EntryPoint
 {
   
-  static final String JSON_URL = "/cellserv/robotState";
+  static  String SENSORSTATE_URL = "/robotState";
+  static  String VIDEO_URL = "/video";
+  
 
+  public static  String BOT_ID = "";
   
   final static Label messageLabel = new Label("Status:ok");;
   public void onModuleLoad()
   {
-
+    
+    String path = Window.Location.getPath();
+    if(path.endsWith("/"))
+      path = path.substring(0, path.length()-1);
+    SENSORSTATE_URL = path +SENSORSTATE_URL;
+    
+    BOT_ID = Window.Location.getParameter("BOTID");
+    
+    Window.setTitle(BOT_ID+" Cellserv");
     final WiimoteServiceAsync wiiService = GWT.create(WiimoteService.class);
     final VerticalPanel mainPanel = new VerticalPanel();
     final VerticalPanel controlPanel = new VerticalPanel();
@@ -58,7 +68,7 @@ public class WiimoteEntry implements EntryPoint
     final Button stopButton = new Button("STOP");
     stopButton.addClickHandler(new AndroidClickHandler(wiiService,AndroidKeyCode.KEYCODE_DPAD_CENTER));
     
-    final Image videoImage = new Image("/video");
+    final Image videoImage = new Image(VIDEO_URL);
     
 
     videoImage.addErrorHandler(new ErrorHandler()
@@ -101,17 +111,18 @@ public class WiimoteEntry implements EntryPoint
     // Create a new timer
     elapsedTimer = new Timer () {
       public void run() {
-        videoImage.setUrl("video?"+System.currentTimeMillis());
+        videoImage.setUrl("video?BOTID="+BOT_ID+"&ts="+System.currentTimeMillis());
       }
     };
     
     // Create a new timer
     sensorTimer = new Timer () {
       public void run() {
-        RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, JSON_URL);
+        RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, SENSORSTATE_URL+"?BOTID="+BOT_ID);
         try 
         {
             builder.setHeader("Content-Type", "application/json");
+            
             builder.sendRequest(null, new RequestCallback() {
                 public void onError(Request request, Throwable exception) 
                 {
@@ -132,27 +143,22 @@ public class WiimoteEntry implements EntryPoint
         }
       }
     };
-    
-    // Schedule the timer for every 1/2 second (500 milliseconds)
     elapsedTimer.scheduleRepeating(50);
     sensorTimer.scheduleRepeating(500);
-
   }
 
   
   void showPhoneState(PhoneState state)
   {
-      //vp.add(new Label("Greet #" + greet.getId() + ": " + greet.getMessage() + " | " + greet.getStatus().getNumber()));
-      
       if(state.hasOrientation())
       {
         messageLabel.setText("Azimuth="+state.getOrientation().getAzimuth());
       }
-      else
+      if(state.hasBotID())
       {
-        //messageLabel.setText("Timestamp="+state.getTimestamp());
+        BOT_ID = state.getBotID();
+        Window.setTitle(BOT_ID + " Cellserv");
       }
-        
   }
   
   static void displayError(String error)

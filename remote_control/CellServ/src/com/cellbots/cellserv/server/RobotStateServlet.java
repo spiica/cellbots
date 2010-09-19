@@ -28,14 +28,20 @@ public class RobotStateServlet extends HttpServlet
 
   public String getServletInfo()
   {
-    return "Servlet for handeling communication with phone";
+    return "Servlet for handeling communication with phone and sensor data";
   }
 
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException
   {
+    String botID = "";
+    if(req.getParameter("BOTID") != null)
+    {
+      botID = req.getParameter("BOTID");
+    }
+    
     Schema<com.cellbots.CellbotProtos.PhoneState> schema = new SchemaCellbotProtos.PhoneState.MessageSchema();
 
-    PhoneState ps = StateHolder.getInstance("").getPhoneState();
+    PhoneState ps = StateHolder.getInstance(botID).getPhoneState();
 
     byte[] bytes;
     if (ps != null)
