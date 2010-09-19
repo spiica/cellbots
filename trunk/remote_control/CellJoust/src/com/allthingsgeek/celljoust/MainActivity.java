@@ -157,6 +157,7 @@ public class MainActivity extends Activity implements Callback
     noise.setOffsetPulsePercent(settings.getInt("servo3Percent", 50), 2);
     noise.setOffsetPulsePercent(settings.getInt("servo4Percent", 50), 3);
     mover.setOffset(settings.getInt("wheelOffset", 0));
+    RobotStateHandler.ROBOT_ID = settings.getString("ROBOT_ID", RobotStateHandler.ROBOT_ID);
 
   }
 
@@ -200,6 +201,8 @@ public class MainActivity extends Activity implements Callback
       // completes.
 
     }
+    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+    RobotStateHandler.ROBOT_ID = settings.getString("ROBOT_ID", RobotStateHandler.ROBOT_ID);
 
     if (!state.listening)
     {
@@ -214,9 +217,9 @@ public class MainActivity extends Activity implements Callback
       String connectivity_context = Context.WIFI_SERVICE;
       WifiManager wifi = (WifiManager) getSystemService(connectivity_context);
 
-      this.registerReceiver(state.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+      //this.registerReceiver(state.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
-      this.registerReceiver(state.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+      //this.registerReceiver(state.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
 
       state.startListening(btDialog, wifi);
 
@@ -422,6 +425,7 @@ public class MainActivity extends Activity implements Callback
           AudioVideoFrame.Builder avFrame = AudioVideoFrame.newBuilder(); 
           
           avFrame.setData(ByteString.copyFrom(out.toByteArray()));
+          avFrame.setBotID(state.ROBOT_ID);
           
           post.setEntity(new ByteArrayEntity(avFrame.build().toByteArray()));
           
