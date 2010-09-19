@@ -133,6 +133,8 @@ public class SetupActivity extends Activity implements OnSeekBarChangeListener {
 		editor.putInt("servo3Percent", noise.getPulsePercent(2));
 		editor.putInt("servo4Percent", noise.getPulsePercent(3));
 		editor.putString("REMOTE_EYES_PUT_URL", serverUrl.getText().toString());
+		editor.putString("ROBOT_ID", robotId.getText().toString());
+		RobotStateHandler.ROBOT_ID = robotId.getText().toString();
 		editor.putInt("wheelOffset", mover.getOffset());
 		// Commit the edits!
 		editor.commit();

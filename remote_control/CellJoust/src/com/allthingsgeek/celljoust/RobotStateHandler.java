@@ -32,6 +32,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
@@ -245,7 +246,7 @@ public class RobotStateHandler implements SensorListener
     b.setPitch(pitch);
     b.setRoll(roll);
 
-    state.setOrientation(b);
+    //state.setOrientation(b);
 
   }
 
@@ -387,6 +388,7 @@ public class RobotStateHandler implements SensorListener
           HttpPost post = new HttpPost(MainActivity.putUrl + "/robotState");
 
           state.setTimestamp(System.currentTimeMillis());
+          state.setBotID(ROBOT_ID);
 
           post.setEntity(new ByteArrayEntity(state.build().toByteArray()));
           
