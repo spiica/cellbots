@@ -47,7 +47,7 @@
 // ** GENERAL SETTINGS ** - General preference settings
 boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
 const int ledPin = 13; // LED turns on while running servos
-char* driveType = "servo"; // Use "motor" when bots has a DC motor driver or "servo" for servos powering the wheels
+char* driveType = "servo"; // Use "servo" for servos powering the wheels; "motor" when bots has a DC motor driver; "dfrobot" for the kit from RobotShop
 
 // ** SERVO SETTINGS ** - Configurable values based on pins used and servo direction
 const int servoPinLeft = 3;
@@ -68,6 +68,12 @@ int leftMotorPin_2 = 8;
 int rightMotorPin_1 = 10;
 int rightMotorPin_2 = 11;
 int motor_stby = 12;
+
+// ** DF Robot Motor Pin Settings ** - For the DF Robot from RobotShop.com (the pins aren't adjustable on the board)
+int m1SpeedControl = 6; //M1 Speed Control
+int m2SpeedControl = 5; //M2 Speed Control
+int m1DirectionControl = 8; //M1 Direction Control
+int m2DirectionControl = 7; //M2 Direction Control
 
 // ** RANGE FINDING *** - The following settings are for ultrasonic range finders. OK to lave as-is if you don't have them on your robot
 long dist, microseconds, cm, inches; // Used by the range finder for calculating distances
@@ -100,6 +106,12 @@ void setup() {
   pinMode(leftMotorPin_2,OUTPUT);
   pinMode(rightMotorPin_1,OUTPUT);
   pinMode(rightMotorPin_2,OUTPUT);
+  if (driveType == "dfrobot"){
+    pinMode(m1SpeedControl,OUTPUT);
+    pinMode(m2SpeedControl,OUTPUT);
+    pinMode(m1DirectionControl,OUTPUT);
+    pinMode(m2DirectionControl,OUTPUT);
+  }
   pinMode(ledPin, OUTPUT);
   digitalWrite(servoPinLeft,0);
   digitalWrite(servoPinRight,0);
@@ -194,7 +206,7 @@ unsigned long driveWheels(int valueLeft, int valueRight) {
     }
   }
   // Drive the wheels based on "motor" driveType
-  else{
+  else if (driveType == "motor"){
     // Set left motor pins to turn in the desired direction
     if (valueLeft < 0){
       digitalWrite(leftMotorPin_1,LOW);
@@ -218,6 +230,27 @@ unsigned long driveWheels(int valueLeft, int valueRight) {
     valueRight = map(abs(valueRight), 0, 100, 0, 255);
     analogWrite(servoPinLeft,valueLeft);
     analogWrite(servoPinRight,valueRight);
+  }// Drive the wheels based on "dfrobot" driveType
+  else if (driveType == "dfrobot"){
+    // Set left motor pins to turn in the desired direction
+    if (valueLeft < 0){
+      digitalWrite(m1DirectionControl,HIGH);
+    }
+    else {
+      digitalWrite(m1DirectionControl,LOW);
+    }
+    // Set right motor pins to turn in the desired direction
+    if (valueRight < 0){
+      digitalWrite(m2DirectionControl,HIGH);
+    }
+    else {
+      digitalWrite(m2DirectionControl,LOW);
+    }
+    // Maps "w" values to the wider range that the motor responds to
+    valueLeft = map(abs(valueLeft), 0, 100, 0, 255);
+    valueRight = map(abs(valueRight), 0, 100, 0, 255);
+    analogWrite(m1SpeedControl,valueLeft);
+    analogWrite(m2SpeedControl,valueRight);
   }
 
   stopTime=millis() + maxRunTime; // Set time to stop running based on allowable running time
