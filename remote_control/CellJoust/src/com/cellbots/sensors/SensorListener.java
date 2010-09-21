@@ -1,6 +1,5 @@
 package com.cellbots.sensors;
 
-import android.hardware.SensorManager;
 
   public interface SensorListener {
     

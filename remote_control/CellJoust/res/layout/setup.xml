@@ -1,148 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+
+<ScrollView
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
+  android:id="@+id/ScrollView01"
   android:layout_width="fill_parent"
-  android:layout_height="wrap_content">
-
-  <TextView
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:text="CellServ Adddress"/>
-  <EditText
-    android:text="@+id/serverUrl"
-    android:id="@+id/serverUrl"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"></EditText>
-  <TextView
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:text="Robot ID"/>
-  <EditText
-    android:text="@+id/robotID"
-    android:id="@+id/robotID"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"></EditText>
-  <TextView
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:text="ServoBot Calibration"/>
-  <TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:id="@+id/TextViewInstructions"
-    android:text="Turn on the PWM signal and slide the sliders until the servos come to a complete stop."></TextView>
-
-
-    <SeekBar
-      android:id="@+id/LeftServo"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:progress="50"
-      android:layout_marginLeft="4px"
-      android:layout_marginRight="4px">
-    </SeekBar>
-    <TextView
-      android:text="@+id/LeftServoValue"
-      android:id="@+id/LeftServoValue"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"></TextView>
-    <SeekBar
-      android:id="@+id/LeftServo2"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:progress="50"
-      android:layout_marginLeft="4px"
-      android:layout_marginRight="4px"></SeekBar>
-    <TextView
-      android:text="@+id/LeftServoValue2"
-      android:id="@+id/LeftServoValue2"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"></TextView>
-    <SeekBar
-      android:id="@+id/RightServo"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:progress="50"
-      android:layout_marginLeft="4px"
-      android:layout_marginRight="4px"></SeekBar>
-    <TextView
-      android:text="@+id/RightServoValue"
-      android:id="@+id/RightServoValue"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"></TextView>
-    <SeekBar
-      android:id="@+id/RightServo2"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:progress="50"
-      android:layout_marginLeft="4px"
-      android:layout_marginRight="4px"></SeekBar>
-    <TextView
-      android:text="@+id/RightServoValue2"
-      android:id="@+id/RightServoValue2"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"></TextView>
-
-
-  <SeekBar
-    android:layout_height="wrap_content"
-    android:layout_width="fill_parent"
-    android:layout_marginLeft="4px"
-    android:layout_marginRight="4px"
-    android:progress="50"
-    android:id="@+id/LROffset"></SeekBar>
-  <TextView
-    android:text="@+id/TextView02"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:id="@+id/WheelOffestValue"></TextView>
-
+  android:layout_height="fill_parent">
   <LinearLayout
-    android:id="@+id/LinearLayout01"
+    android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:layout_margin="4px">
-    
-  <CheckBox
-    android:text="Rev1"
-    android:id="@+id/RevServo1"
-    android:layout_width="wrap_content"
     android:layout_height="wrap_content">
-  </CheckBox>
-  
-  
-  <CheckBox
-    android:text="Rev3"
-    android:id="@+id/RevServo3"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
-  </CheckBox>
     
-    
+   
+
+    <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:paddingLeft="10pt"
+      android:textSize="10pt"
+      android:text="Networking"/>
+       <LinearLayout
+      android:id="@+id/LinearLayout01"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:layout_margin="4px">
+      <CheckBox
+        android:text="Connect to Cellserv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+      </CheckBox>
+    </LinearLayout>
+    <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="CellServ Adddress"/>
+    <EditText
+      android:text="@+id/serverUrl"
+      android:id="@+id/serverUrl"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"></EditText>
+    <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="Robot ID"/>
+    <EditText
+      android:text="@+id/robotID"
+      android:id="@+id/robotID"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"></EditText>
+
+    <View
+      android:layout_height="5px"
+      android:layout_width="fill_parent"
+      android:background="#FFFFFF"/>
+
+    <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:paddingLeft="10pt"
+      android:paddingTop="10pt"
+      android:textSize="10pt"
+      android:text="Bot Comm"/>
+
+    <LinearLayout
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:layout_margin="4px">
+      <CheckBox
+        android:text="Use Bluetooth Connection"
+        android:id="@+id/RevServo1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+      </CheckBox>
+    </LinearLayout>
+
+
+    <LinearLayout
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:layout_margin="4px">
+      <CheckBox
+        android:text="Use Serial Port Connection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+      </CheckBox>
+    </LinearLayout>
+
+
+    <LinearLayout
+      android:id="@+id/LinearLayout01"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:layout_margin="4px">
+      <CheckBox
+        android:text="Use Audio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+      </CheckBox>
+    </LinearLayout>
+
+    <Button
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="Configure Servos"
+      android:onClick="launchServoAdjuster"
+      android:textSize="10pt"/>
+
 
 
   </LinearLayout>
-  <ToggleButton
-    android:text="Toggle Sound"
-    android:id="@+id/ToggleSound"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:textOff="Sound On"
-    android:textOn="Sound Off"
-    android:checked="false"
-    android:onClick="onToggleSound">
-  </ToggleButton>
-  <TextView
-    android:text="If you are not getting any response from the servo, try adjusting the volume control on the side of your phone."
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:id="@+id/TextViewHelp"></TextView>
 
-
-
-
-
-
-</LinearLayout>
+</ScrollView>

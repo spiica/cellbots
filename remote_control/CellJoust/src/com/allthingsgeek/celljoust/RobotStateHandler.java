@@ -42,11 +42,9 @@ import android.util.Log;
 /*
  * This is a class to store the state of the robot.
  */
-public class RobotStateHandler implements SensorListener
+public class RobotStateHandler 
 {
   private BTCommThread                          bTcomThread;
-
-  private WifiManager                           wifi;
 
   private Handler                               uiHandler;
 
@@ -96,18 +94,7 @@ public class RobotStateHandler implements SensorListener
     }
     return instance;
   }
-
-  private Handler handler = new Handler()
-                          {
-
-                            @Override
-                            public void handleMessage(Message msg)
-                            {
-                              state = state.mergeFrom((com.google.protobuf.Message) msg.obj);
-                            }
-
-                          };
-
+                         
   public CellbotProtos.AudioVideoFrame getVideoFrame()
   {
 
@@ -173,138 +160,10 @@ public class RobotStateHandler implements SensorListener
      */
   }
 
-  public BroadcastReceiver mBatInfoReceiver  = new BroadcastReceiver()
-                                             {
-                                               public void onReceive(Context arg0, Intent intent)
-                                               {
-                                                 // state.setPhoneBatteryLevel(intent.getIntExtra("level",
-                                                 // 0));
-                                                 // state.setPhoneBatteryTemp(intent.getIntExtra("temperature",
-                                                 // 0));
-                                               }
-                                             };
-
-  public BroadcastReceiver mWifiInfoReceiver = new BroadcastReceiver()
-                                             {
-
-                                               @Override
-                                               public void onReceive(Context context, Intent intent)
-                                               {
-                                                 WifiInfo info = wifi.getConnectionInfo();
-
-                                                 // state.setWifiStrength(info.getRssi());
-
-                                                 // state.setWifiSpeed(info.getLinkSpeed());
-
-                                               }
-
-                                             };
-
-  /**
-   * onShake callback
-   */
-  public void onShake(float force)
-  {
-    // Toast.makeText(this, "Phone shaked : " + force, 1000).show();
-  }
-
-  /**
-   * onAccelerationChanged callback
-   */
-  public void onAccelerationChanged(float x, float y, float z)
-  {
-
-    CellbotProtos.PhoneState.Accelerometer.Builder b = CellbotProtos.PhoneState.Accelerometer.newBuilder();
-
-    b.setX(x);
-    b.setY(y);
-    b.setZ(z);
-
-  }
-
-  /**
-   * onCompassChanged callback
-   */
-  public void onCompassChanged(float x, float y, float z)
-  {
-    CellbotProtos.PhoneState.Compass.Builder b = CellbotProtos.PhoneState.Compass.newBuilder();
-
-    b.setX(x);
-    b.setY(y);
-    b.setZ(z);
-
-  }
-
-  /**
-   * onLightLevelChanged callback
-   */
-  public void onLightLevelChanged(float level)
-  {
-    state.setLightLevel(level);
-  }
-
-  public void onOrientationChanged(float azimuth, float pitch, float roll)
-  {
-
-    CellbotProtos.PhoneState.Orientation.Builder b = CellbotProtos.PhoneState.Orientation.newBuilder();
-
-    b.setAzimuth(azimuth);
-    b.setPitch(pitch);
-    b.setRoll(roll);
-
-    // state.setOrientation(b);
-
-  }
-
-  public void onBottomUp()
-  {
-    // Toast.makeText(this, "Bottom UP", 1000).show();
-  }
-
-  public void onLeftUp()
-  {
-    // Toast.makeText(this, "Left UP", 1000).show();
-  }
-
-  public void onRightUp()
-  {
-    // / Toast.makeText(this, "Right UP", 1000).show();
-  }
-
-  public void onTopUp()
-  {
-    // / Toast.makeText(this, "Top UP", 1000).show();
-  }
-
-  public String getLocalIpAddress()
-  {
-    try
-    {
-      for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
-      {
-        NetworkInterface intf = en.nextElement();
-        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
-        {
-          InetAddress inetAddress = enumIpAddr.nextElement();
-          if (!inetAddress.isLoopbackAddress())
-          {
-            return inetAddress.getHostAddress().toString();
-          }
-        }
-      }
-    }
-    catch (SocketException ex)
-    {
-      // Log.e(LOG_TAG, ex.toString());
-    }
-    return null;
-  }
-
-  public synchronized void startListening(ProgressDialog btDialog, WifiManager wifi)
+  public synchronized void startListening(ProgressDialog btDialog)
   {
     // Log.d("RobotStateHandler","startListening");
 
-    this.wifi = wifi;
 
     httpclient = new DefaultHttpClient();
     if (!listening)
@@ -320,26 +179,10 @@ public class RobotStateHandler implements SensorListener
       {
         // this.start();
 
-        if (OrientationManager.isSupported())
-        {
-          OrientationManager.startListening(this);
-        }
-
-        if (LightSensorManager.isSupported())
-        {
-          LightSensorManager.startListening(this);
-        }
-
-        if (CompassManager.isSupported())
-        {
-          CompassManager.startListening(this);
-        }
-
-        // server.start();
         if (bTcomThread == null)
         {
-        //  bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), this);
-         // bTcomThread.start();
+         bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), this);
+         bTcomThread.start();
         }
       }
       catch (java.lang.IllegalThreadStateException e)
@@ -398,7 +241,9 @@ public class RobotStateHandler implements SensorListener
           post.setEntity(new ByteArrayEntity(state.build().toByteArray()));
 
           state = PhoneState.newBuilder();
-
+          
+          //httpclient = new DefaultHttpClient();
+           
           HttpResponse resp = httpclient.execute(post);
 
           InputStream resStream = resp.getEntity().getContent();
