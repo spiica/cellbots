@@ -92,8 +92,8 @@ class BTCommThread extends Thread
         break;
       }
     }
-    if (device == null)
-      device = adapter.getRemoteDevice("00:06:66:03:A9:A2"); //bluesmirf
+    //if (device == null)
+     // device = adapter.getRemoteDevice("00:06:66:03:A9:A2"); //bluesmirf
     if (device == null)
       device = adapter.getRemoteDevice("00:12:6F:09:64:30"); // Rayson BTM-182
 
@@ -106,7 +106,7 @@ class BTCommThread extends Thread
     {
       try
       {
-        //adapter.cancelDiscovery();
+        adapter.cancelDiscovery();
         if (socketint == 0)
         {
           socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));

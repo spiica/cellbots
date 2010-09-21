@@ -23,6 +23,10 @@ import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.AudioVideoFrame;
 import com.cellbots.CellbotProtos.ControllerState;
 import com.cellbots.CellbotProtos.PhoneState.Builder;
+import com.cellbots.sensors.CompassManager;
+import com.cellbots.sensors.LightSensorManager;
+import com.cellbots.sensors.OrientationManager;
+import com.cellbots.sensors.SensorListenerImpl;
 import com.google.protobuf.ByteString;
 
 import android.app.Activity;
@@ -101,6 +105,8 @@ public class MainActivity extends Activity implements Callback
   public static SensorManager   sensorManager;
 
   RobotStateHandler             state;
+  
+  SensorListenerImpl            sensorListener;
 
   // public static CellbotProtos.ControllerState controllerState;
 
@@ -118,7 +124,6 @@ public class MainActivity extends Activity implements Callback
 
     WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
     WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-    int ipAddress = wifiInfo.getIpAddress();
 
     noise = PulseGenerator.getInstance();
     mover = Movement.getInstance();
@@ -135,6 +140,8 @@ public class MainActivity extends Activity implements Callback
     {
       sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
     }
+    
+    sensorListener = new SensorListenerImpl();
 
     startListening();
     
@@ -217,11 +224,26 @@ public class MainActivity extends Activity implements Callback
       String connectivity_context = Context.WIFI_SERVICE;
       WifiManager wifi = (WifiManager) getSystemService(connectivity_context);
 
-      //this.registerReceiver(state.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+      this.registerReceiver(sensorListener.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
-      //this.registerReceiver(state.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+      this.registerReceiver(sensorListener.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+      
+      if (OrientationManager.isSupported())
+      {
+        OrientationManager.startListening(sensorListener);
+      }
 
-      state.startListening(btDialog, wifi);
+      if (LightSensorManager.isSupported())
+      {
+        LightSensorManager.startListening(sensorListener);
+      }
+
+      if (CompassManager.isSupported())
+      {
+        CompassManager.startListening(sensorListener);
+      }
+
+      state.startListening(btDialog);
 
     }
 
@@ -236,7 +258,7 @@ public class MainActivity extends Activity implements Callback
     
     try
     {
-      this.unregisterReceiver(state.mBatInfoReceiver);
+      this.unregisterReceiver(sensorListener.mBatInfoReceiver);
     }
     catch (Exception e)
     {
@@ -244,7 +266,7 @@ public class MainActivity extends Activity implements Callback
 
     try
     {
-      this.unregisterReceiver(state.mWifiInfoReceiver);
+      this.unregisterReceiver(sensorListener.mWifiInfoReceiver);
     }
     catch (Exception e)
     {
@@ -252,7 +274,7 @@ public class MainActivity extends Activity implements Callback
 
     //if (state.isAlive())
     //{
-      //state.stopListening();
+      state.stopListening();
     //}
 
   }

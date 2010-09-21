@@ -30,6 +30,14 @@
           android:name="android.intent.action.VIEW"></action>
       </intent-filter>
     </activity>
+      <activity
+      android:name="ServoConfigActivity"
+      android:noHistory="true">
+      <intent-filter>
+        <action
+          android:name="android.intent.action.VIEW"></action>
+      </intent-filter>
+    </activity>
   </application>
 
   <uses-permission
@@ -41,6 +49,10 @@
     android:name="android.permission.INTERNET"/>
   <uses-permission
     android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <uses-permission
+    android:name="android.permission.BLUETOOTH"/>
+  <uses-permission
+    android:name="android.permission.BLUETOOTH_ADMIN"/>
 
   <uses-sdk
     android:targetSdkVersion="4"
