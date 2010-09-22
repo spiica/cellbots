@@ -3,8 +3,6 @@ package com.cellbots.cellserv.server;
 import java.util.HashMap;
 
 import com.cellbots.CellbotProtos;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
 public class StateHolder
 {
@@ -44,7 +42,7 @@ public class StateHolder
     if(phoneState != null && MERGE_PHONE_STATE )
     {
       //we merge sensor data because it may not come in that often.
-      phoneState = CellbotProtos.PhoneState.newBuilder(ps).mergeFrom(phoneState).build();
+      phoneState = CellbotProtos.PhoneState.newBuilder(phoneState).mergeFrom(ps).build();
     }
     else {
       phoneState = ps;
