@@ -18,5 +18,6 @@
   <!-- Specify the paths for translatable code                    -->
   <source path='client'/>
   <source path='shared'/>
+  <inherits name='com.google.gwt.widgetideas.GWTCanvas'/>
 
 </module>

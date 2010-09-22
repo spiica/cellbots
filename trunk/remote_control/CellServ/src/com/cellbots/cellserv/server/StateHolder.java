@@ -89,12 +89,19 @@ public class StateHolder
     return csBuilder != null && csBuilder.getKeyEventCount() > 0;
   }
 
-  public void addKeyEvent(com.cellbots.CellbotProtos.ControllerState.KeyEvent.Builder key)
+  public int addKeyEvent(com.cellbots.CellbotProtos.ControllerState.KeyEvent.Builder key)
   {
     if (csBuilder == null)
       csBuilder = CellbotProtos.ControllerState.newBuilder();
 
     csBuilder.setTimestamp(System.currentTimeMillis());
     csBuilder.addKeyEvent(key);
+    return csBuilder.getKeyEventCount();
+  }
+  
+  public int addKeyTxtCommand(String command)
+  {
+    csBuilder.setTxtCommand(command);
+    return 1;
   }
 }

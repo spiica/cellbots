@@ -21,5 +21,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/protostuff-runtime-1.0.0.M4.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/protostuff-xml-1.0.0.M4.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/protostuff-yaml-1.0.0.M4.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-incubator-20100204-r1747.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

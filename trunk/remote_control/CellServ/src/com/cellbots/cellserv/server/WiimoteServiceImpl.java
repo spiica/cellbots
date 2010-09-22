@@ -13,7 +13,7 @@ public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteS
    */
   private static final long serialVersionUID = -1101119412732207496L;
 
-  public int handleButtonDown(int buttonid)
+  public int handleButtonDown(int buttonid, String botid)
   {
     // TODO Auto-generated method stub
     System.out.println("Got Button Down : " + buttonid);
@@ -22,13 +22,11 @@ public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteS
 
     key.setKeyDown(true);
     key.setKeyCode("" + buttonid);
-    //FIXME:  arg for bot id
-    StateHolder.getInstance("pokey").addKeyEvent(key);
+    return    StateHolder.getInstance(botid).addKeyEvent(key);
     
-    return 1;
   }
 
-  public int handleButtonUp(int buttonid)
+  public int handleButtonUp(int buttonid,String botid)
   {
     // TODO Auto-generated method stub
     System.out.println("Got Button Up : " + buttonid);
@@ -38,11 +36,12 @@ public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteS
     key.setKeyUp(true);
     key.setKeyCode("" + buttonid);
 
-    //FIXME:  arg for bot id
-    StateHolder.getInstance("pokey").addKeyEvent(key);
+    return StateHolder.getInstance(botid).addKeyEvent(key);
+  }
 
-    // GWT.log("test");
-    return 1;
+  public int handleTextCommand(String command, String botid)
+  {
+    return StateHolder.getInstance(botid).addKeyTxtCommand(command);
   }
   
  

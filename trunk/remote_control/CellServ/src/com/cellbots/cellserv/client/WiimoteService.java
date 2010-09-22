@@ -12,8 +12,9 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 public interface WiimoteService extends RemoteService
 {
-  public int handleButtonDown(int buttonid);
-  public int handleButtonUp(int buttonid);
+  public int handleButtonDown(int buttonid, String botid);
+  public int handleButtonUp(int buttonid, String botid);
+  public int handleTextCommand(String command, String botid);
   //public String getPhoneState();
   
 }
