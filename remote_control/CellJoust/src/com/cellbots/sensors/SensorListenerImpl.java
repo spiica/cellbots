@@ -5,21 +5,29 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
+import com.allthingsgeek.celljoust.RobotStateHandler;
 import com.cellbots.CellbotProtos;
+import com.cellbots.CellbotProtos.PhoneState;
+import com.cellbots.CellbotProtos.PhoneState.WIFI.Builder;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.SensorManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Handler;
   public class SensorListenerImpl implements SensorListener {
     private CellbotProtos.PhoneState.Builder      state;
     private WifiManager                           wifi;
+    private long lastTimetamp = 0;
+    private int maxUpdateRate = 50;
+    
+    private Handler stateReciver;
     //public SensorManager getSensorManager();
     
-    public SensorListenerImpl()
+    public SensorListenerImpl(Handler h)
     {
+      stateReciver = h;
       state = CellbotProtos.PhoneState.newBuilder();
     }
     
@@ -64,6 +72,7 @@ import android.net.wifi.WifiManager;
       b.setZ(z);
       state.setAccelerometer(b);
 
+      sendPhoneState();
     }
 
     /**
@@ -77,6 +86,7 @@ import android.net.wifi.WifiManager;
       b.setY(y);
       b.setZ(z);
       state.setCompass(b);
+      sendPhoneState();
     }
 
     
@@ -91,6 +101,7 @@ import android.net.wifi.WifiManager;
       b.setRoll(roll);
 
       state.setOrientation(b);
+      sendPhoneState();
 
     }
 
@@ -101,6 +112,7 @@ import android.net.wifi.WifiManager;
                                                {
                                                   state.setPhoneBatteryLevel(intent.getIntExtra("level", 0));
                                                   state.setPhoneBatteryTemp(intent.getIntExtra("temperature", 0));
+      sendPhoneState();
                                                }
                                              };
 
@@ -113,11 +125,19 @@ import android.net.wifi.WifiManager;
                                                public void onReceive(Context context, Intent intent)
                                                {
                                                  WifiInfo info = wifi.getConnectionInfo();
+                                                 Builder ws =  CellbotProtos.PhoneState.WIFI.newBuilder();
+                                                 
+                                                 ws.setStrength(info.getRssi());
+                                                 ws.setKbps(info.getLinkSpeed());
+                                                 
+                                                 ws.setIp(info.getIpAddress());
+                                                 //ws.setSsid(info.getBSSID());
 
-                                                 //state.setWifiStrength(info.getRssi());
+                                                 //state.setWifiStrength();
 
                                                  //state.setWifiSpeed(info.getLinkSpeed());
 
+                                                  sendPhoneState();
                                                }
 
                                              };
@@ -125,36 +145,24 @@ import android.net.wifi.WifiManager;
   public void onLightLevelChanged(float level)
   {
       state.setLightLevel(level);
+      sendPhoneState();
   }
   
-  public CellbotProtos.PhoneState getPhoneState()
+  private synchronized void sendPhoneState()
   {
-    return state.build();
+    
+    long now = System.currentTimeMillis() ;
+    if ( now - lastTimetamp  > maxUpdateRate)
+    {
+      lastTimetamp = now;
+    }
+    state.setTimestamp(now);
+    state.setBotID(RobotStateHandler.ROBOT_ID);
+    PhoneState  ps = state.build();
+     
+    stateReciver.obtainMessage(0,ps ).sendToTarget();
+    state = CellbotProtos.PhoneState.newBuilder(ps);
+    
   }
   
-  
-
-  public String getLocalIpAddress()
-  {
-    try
-    {
-      for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
-      {
-        NetworkInterface intf = en.nextElement();
-        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
-        {
-          InetAddress inetAddress = enumIpAddr.nextElement();
-          if (!inetAddress.isLoopbackAddress())
-          {
-            return inetAddress.getHostAddress().toString();
-          }
-        }
-      }
-    }
-    catch (SocketException ex)
-    {
-      // Log.e(LOG_TAG, ex.toString());
-    }
-    return null;
-  }
 }

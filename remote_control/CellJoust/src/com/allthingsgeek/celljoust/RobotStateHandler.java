@@ -1,15 +1,9 @@
 package com.allthingsgeek.celljoust;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Date;
-import java.util.Enumeration;
 import java.util.Random;
 
 import org.apache.http.HttpResponse;
@@ -21,28 +15,21 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.ControllerState;
 import com.cellbots.CellbotProtos.PhoneState;
-import com.cellbots.sensors.CompassManager;
-import com.cellbots.sensors.LightSensorManager;
-import com.cellbots.sensors.OrientationManager;
-import com.cellbots.sensors.SensorListener;
+import com.cellbots.CellbotProtos.PhoneState.Builder;
+import com.cellbots.sensors.SensorListenerImpl;
 import com.google.protobuf.ByteString;
 
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
 /*
  * This is a class to store the state of the robot.
  */
-public class RobotStateHandler 
+public class RobotStateHandler extends Thread
 {
   private BTCommThread                          bTcomThread;
 
@@ -56,9 +43,7 @@ public class RobotStateHandler
 
   public static String                          ROBOT_ID                = "Pokey";
 
-  private CellbotProtos.PhoneState.Builder      state;
-
-  private SensorSender                          sensorSender;
+  private CellbotProtos.PhoneState              state;
 
   private Movement                              mover;
 
@@ -72,51 +57,22 @@ public class RobotStateHandler
 
   long                                          lastControllerTimeStamp = 0;
 
-  private RobotStateHandler(Handler h) throws IOException
+  public Handler                                handler;
+
+  
+  HttpPost post;
+  public RobotStateHandler(Handler h)
   {
     uiHandler = h;
 
-    state = CellbotProtos.PhoneState.newBuilder();
-    state.setTimestamp(System.currentTimeMillis());
     avFrame = CellbotProtos.AudioVideoFrame.newBuilder();
     avFrame.setFrameNumber(0);
     Random generator = new Random(System.currentTimeMillis());
     ROBOT_ID = Integer.toHexString(generator.nextInt()).toUpperCase();
 
     mover = Movement.getInstance();
-  }
 
-  public static RobotStateHandler getInstance(Handler h) throws IOException
-  {
-    if (instance == null)
-    {
-      instance = new RobotStateHandler(h);
-    }
-    return instance;
-  }
-                         
-  public CellbotProtos.AudioVideoFrame getVideoFrame()
-  {
 
-    CellbotProtos.AudioVideoFrame av = avFrame.build();
-    // state = CellbotProtos.PhoneState.newBuilder();
-    return av;
-  }
-
-  public void setVideoFrame(ByteString frame)
-  {
-    avFrame.setData(frame);
-    avFrame.setTimestamp(System.currentTimeMillis());
-    avFrame.setEncoding(CellbotProtos.AudioVideoFrame.Encoding.JPEG);
-    avFrame.setFrameNumber(avFrame.getFrameNumber() + 1);
-  }
-
-  synchronized public CellbotProtos.PhoneState getStateAndReset()
-  {
-    state.setTimestamp(System.currentTimeMillis());
-    CellbotProtos.PhoneState s = state.build();
-    state = CellbotProtos.PhoneState.newBuilder();
-    return s;
   }
 
   public void onBtDataRecive(String data)
@@ -160,150 +116,107 @@ public class RobotStateHandler
      */
   }
 
-  public synchronized void startListening(ProgressDialog btDialog)
+  @Override
+  public void run()
   {
-    // Log.d("RobotStateHandler","startListening");
-
-
-    httpclient = new DefaultHttpClient();
-    if (!listening)
+    try
     {
+      
+      
+      // preparing a looper on current thread
+      // the current thread is being detected implicitly
+      Looper.prepare();
 
-      this.listening = true;
+      // now, the handler will automatically bind to the
+      // Looper that is attached to the current thread
+      // You don't need to specify the Looper explicitly
+      
+      httpclient = new DefaultHttpClient();
+      post = new HttpPost(MainActivity.putUrl + "/robotState");
+      
 
-      this.sensorSender = new SensorSender();
-
-      sensorSender.start();
-
-      try
+      handler = new Handler()
       {
-        // this.start();
 
-        if (bTcomThread == null)
+        @Override
+        public void handleMessage(Message msg)
         {
-         bTcomThread = new BTCommThread(BluetoothAdapter.getDefaultAdapter(), this);
-         bTcomThread.start();
-        }
-      }
-      catch (java.lang.IllegalThreadStateException e)
-      {
-        Log.e(TAG, "Robot state handler thead start error", e);
-      }
-
-    }
-
-  }
-
-  public synchronized void stopListening()
-  {
-
-    Log.e(TAG, "Robot state handler STOPING ALL LISTINERS");
-
-    /*
-     * if (OrientationManager.isListening()) {
-     * OrientationManager.stopListening(); }
-     * 
-     * if (CompassManager.isListening()) { CompassManager.stopListening(); }
-     * 
-     * if (LightSensorManager.isListening()) {
-     * LightSensorManager.stopListening(); }
-     * 
-     * 
-     * //watch out for double start
-     * 
-     * if (bTcomThread != null) { try { bTcomThread.handler.getLooper().quit();
-     * } catch(Exception e) {}
-     * 
-     * bTcomThread.disconnect(); }
-     */
-    this.listening = false;
-
-  }
-
-  class SensorSender extends Thread
-  {
-
-    private boolean listening = true;
-
-    public void run()
-    {
-      setName("Robot State Handler");
-
-      while (this.listening)
-      {
-        try
-        {
-          HttpPost post = new HttpPost(MainActivity.putUrl + "/robotState");
-
-          state.setTimestamp(System.currentTimeMillis());
-          state.setBotID(ROBOT_ID);
-
-          post.setEntity(new ByteArrayEntity(state.build().toByteArray()));
-
-          state = PhoneState.newBuilder();
-          
-          //httpclient = new DefaultHttpClient();
-           
-          HttpResponse resp = httpclient.execute(post);
-
-          InputStream resStream = resp.getEntity().getContent();
-
-          ControllerState cs = ControllerState.parseFrom(resStream);
-
-          String txt = mover.processControllerStateEvent(cs);
-
-          if (bTcomThread != null && cs != null && cs.getTimestamp() != lastControllerTimeStamp)
+          // utterTaunt((String) msg.obj);
+          if (msg.obj instanceof PhoneState)
           {
-            if (cs.hasTxtCommand())
+            state = (PhoneState) msg.obj;
+
+            try
             {
-              lastControllerTimeStamp = cs.getTimestamp();
-              Message btMsg = bTcomThread.handler.obtainMessage();
-              btMsg.obj = cs;
-              btMsg.sendToTarget();
+
+              post.setEntity(new ByteArrayEntity(state.toByteArray()));
+
+              HttpResponse resp = httpclient.execute(post);
+
+              InputStream resStream = resp.getEntity().getContent();
+
+              ControllerState cs = ControllerState.parseFrom(resStream);
+
+              String txt = mover.processControllerStateEvent(cs);
+
+              if (bTcomThread != null && cs != null && cs.getTimestamp() != lastControllerTimeStamp)
+              {
+                if (cs.hasTxtCommand())
+                {
+                  lastControllerTimeStamp = cs.getTimestamp();
+                  Message btMsg = bTcomThread.handler.obtainMessage();
+                  btMsg.obj = cs;
+                  btMsg.sendToTarget();
+                }
+                else if (txt != null)
+                {
+                  lastControllerTimeStamp = cs.getTimestamp();
+                  Message btMsg = bTcomThread.handler.obtainMessage();
+                  btMsg.obj = txt;
+                  btMsg.sendToTarget();
+                }
+
+              }
+
             }
-            else if (txt!=null)
+            catch (UnsupportedEncodingException e)
             {
-              lastControllerTimeStamp = cs.getTimestamp();
-              Message btMsg = bTcomThread.handler.obtainMessage();
-              btMsg.obj = txt;
-              btMsg.sendToTarget();
+              // TODO Auto-generated catch block
+              e.printStackTrace();
             }
-            
+            catch (IllegalStateException e)
+            {
+              e.printStackTrace();
+            }
+            catch (com.google.protobuf.InvalidProtocolBufferException e)
+            {
+              // e.printStackTrace();
+              // resetConnection();
+            }
+            catch (IOException e)
+            {
+              e.printStackTrace();
+            }
 
           }
-
-        }
-        catch (UnsupportedEncodingException e)
-        {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        catch (IllegalStateException e)
-        {
-          e.printStackTrace();
-        }
-        catch (com.google.protobuf.InvalidProtocolBufferException e)
-        {
-          // e.printStackTrace();
-          // resetConnection();
-        }
-        catch (IOException e)
-        {
-          e.printStackTrace();
         }
 
-        try
-        {
-          // Log.d(TAG, "Sleeping");
-          Thread.sleep(50);
-        }
+      };
 
-        catch (InterruptedException e)
-        {
-          // TODO Auto-generated catch block
-          // listening = false;
-        }
-      }
+      
+      Log.i(TAG, "Robot State handler is bound to - " + handler.getLooper().getThread().getName());
+      // After the following line the thread will start
+      // running the message loop and will not normally
+      // exit the loop unless a problem happens or you
+      // quit() the looper (see below)
+      Looper.loop();
+
+      Log.i(TAG, "Thread exiting gracefully");
+    }
+    catch (Throwable t)
+    {
+      Log.e(TAG, "Thread halted due to an error", t);
     }
   }
+
 }

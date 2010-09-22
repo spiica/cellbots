@@ -2,27 +2,15 @@ package com.allthingsgeek.celljoust;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.util.Date;
-
-import org.apache.http.HttpConnection;
-import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-
 import com.allthingsgeek.celljoust.R;
-import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.AudioVideoFrame;
-import com.cellbots.CellbotProtos.ControllerState;
-import com.cellbots.CellbotProtos.PhoneState.Builder;
+import com.cellbots.CellbotProtos.PhoneState;
 import com.cellbots.sensors.CompassManager;
 import com.cellbots.sensors.LightSensorManager;
 import com.cellbots.sensors.OrientationManager;
@@ -31,7 +19,6 @@ import com.google.protobuf.ByteString;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -48,9 +35,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.preference.PreferenceManager;
-import android.speech.tts.TextToSpeech;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -58,17 +42,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.SurfaceHolder.Callback;
-import android.view.View.OnClickListener;
-import android.widget.TextView;
-import android.widget.ToggleButton;
 
 public class MainActivity extends Activity implements Callback
 {
-  public static final String    PREFS_NAME    = "ServoBotPrefsFile";
+  public static final String    PREFS_NAME           = "ServoBotPrefsFile";
 
-  private static final String   TAG           = "CellJoust";
+  private static final String   TAG                  = "CellJoust";
 
   PulseGenerator                noise;
 
@@ -76,7 +56,7 @@ public class MainActivity extends Activity implements Callback
 
   private SurfaceHolder         mHolder;
 
-  public static String                putUrl        = "";
+  public static String          putUrl               = "";
 
   private SurfaceView           mPreview;
 
@@ -88,11 +68,13 @@ public class MainActivity extends Activity implements Callback
 
   private Rect                  r;
 
-  private int                   previewHeight = 0;
+  private int                   previewHeight        = 0;
 
-  private int                   previewWidth  = 0;
+  private int                   previewWidth         = 0;
 
-  private int                   previewFormat = 0;
+  private int                   previewFormat        = 0;
+
+  private int                   jpegCompressionLevel = 20;
 
   private byte[]                mCallbackBuffer;
 
@@ -105,9 +87,10 @@ public class MainActivity extends Activity implements Callback
   public static SensorManager   sensorManager;
 
   RobotStateHandler             state;
-  
+
   SensorListenerImpl            sensorListener;
 
+  public boolean sendVideoFrames = true;
   // public static CellbotProtos.ControllerState controllerState;
 
   /** Called when the activity is first created. */
@@ -127,9 +110,9 @@ public class MainActivity extends Activity implements Callback
 
     noise = PulseGenerator.getInstance();
     mover = Movement.getInstance();
-     
+
     loadPrefs();
-    
+
     mTorchMode = false;
 
     out = new ByteArrayOutputStream();
@@ -140,11 +123,9 @@ public class MainActivity extends Activity implements Callback
     {
       sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
     }
-    
-    sensorListener = new SensorListenerImpl();
 
     startListening();
-    
+
     mPreview = (SurfaceView) findViewById(R.id.preview);
     mHolder = mPreview.getHolder();
     mHolder.addCallback(this);
@@ -153,7 +134,7 @@ public class MainActivity extends Activity implements Callback
     noise.pause();
 
   }
-  
+
   private void loadPrefs()
   {
     // Restore preferences
@@ -171,10 +152,10 @@ public class MainActivity extends Activity implements Callback
   @Override
   public void onResume()
   {
-    loadPrefs(); 
+    loadPrefs();
     super.onResume();
   }
-   
+
   private Handler handler = new Handler()
                           {
 
@@ -182,69 +163,73 @@ public class MainActivity extends Activity implements Callback
                             public void handleMessage(Message msg)
                             {
                               // utterTaunt((String) msg.obj);
+                              if (msg.obj instanceof PhoneState)
+                              {
+                                // this.state = msg.obj;
+                              }
                             }
 
                           };
 
+
   private synchronized void startListening()
   {
     Log.d(TAG, "startListening called");
-    
+
     convWorker = new ConversionWorker();
-    
+
     if (state == null)
     {
-      try
+      state = new RobotStateHandler(handler);
+      state.start();
+      while(state.handler == null)
       {
-        state = RobotStateHandler.getInstance(handler);
+        try
+        {
+          Thread.sleep(10);
+        }
+        catch (InterruptedException e)
+        {
+        }
       }
-      catch (IOException e)
-      {
-        // TODO Auto-generated catch block
-        Log.e(TAG, "error getting robot state handler instace", e);
-      }
-      // Initialize text-to-speech. This is an asynchronous operation.
-      // The OnInitListener (second argument) is called after initialization
-      // completes.
-
+      
     }
+
+    if (sensorListener == null)
+    {
+      sensorListener = new SensorListenerImpl(state.handler);
+    }
+
     SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
     RobotStateHandler.ROBOT_ID = settings.getString("ROBOT_ID", RobotStateHandler.ROBOT_ID);
 
-    if (!state.listening)
+    // Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),
+    // Toast.LENGTH_LONG);
+    // ProgressDialog.show(me, msg,
+    // "Searching for a Bluetooth serial port...");
+
+    ProgressDialog btDialog = null;
+
+    String connectivity_context = Context.WIFI_SERVICE;
+    WifiManager wifi = (WifiManager) getSystemService(connectivity_context);
+
+    this.registerReceiver(sensorListener.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+
+    this.registerReceiver(sensorListener.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+
+    if (OrientationManager.isSupported())
     {
+      OrientationManager.startListening(sensorListener);
+    }
 
-      // Toast.makeText(CONTEXT, "Current IP:" + state.getLocalIpAddress(),
-      // Toast.LENGTH_LONG);
-      // ProgressDialog.show(me, msg,
-      // "Searching for a Bluetooth serial port...");
+    if (LightSensorManager.isSupported())
+    {
+      LightSensorManager.startListening(sensorListener);
+    }
 
-      ProgressDialog btDialog = null;
-
-      String connectivity_context = Context.WIFI_SERVICE;
-      WifiManager wifi = (WifiManager) getSystemService(connectivity_context);
-
-      this.registerReceiver(sensorListener.mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-
-      this.registerReceiver(sensorListener.mWifiInfoReceiver, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
-      
-      if (OrientationManager.isSupported())
-      {
-        OrientationManager.startListening(sensorListener);
-      }
-
-      if (LightSensorManager.isSupported())
-      {
-        LightSensorManager.startListening(sensorListener);
-      }
-
-      if (CompassManager.isSupported())
-      {
-        CompassManager.startListening(sensorListener);
-      }
-
-      state.startListening(btDialog);
-
+    if (CompassManager.isSupported())
+    {
+      CompassManager.startListening(sensorListener);
     }
 
   }
@@ -255,7 +240,7 @@ public class MainActivity extends Activity implements Callback
     Log.d(TAG, "stopListening called");
 
     convWorker.kill();
-    
+
     try
     {
       this.unregisterReceiver(sensorListener.mBatInfoReceiver);
@@ -272,10 +257,10 @@ public class MainActivity extends Activity implements Callback
     {
     }
 
-    //if (state.isAlive())
-    //{
-      state.stopListening();
-    //}
+    // if (state.isAlive())
+    // {
+    // state.stopListening();
+    // }
 
   }
 
@@ -395,21 +380,24 @@ public class MainActivity extends Activity implements Callback
   class ConversionWorker extends Thread
   {
 
-    //private HttpConnection mConnection;
-    
+    // private HttpConnection mConnection;
+
     HttpClient httpclient;
-    boolean alive;
-    HttpPost post;
-    boolean sending = false;
-    
+
+    boolean    alive;
+
+    HttpPost   post;
+
+    boolean    sending = false;
+
     public ConversionWorker()
     {
       // setDaemon(true);
-      
-      //this client should automatically reuse its connection
-      httpclient = new DefaultHttpClient();  
+
+      // this client should automatically reuse its connection
+      httpclient = new DefaultHttpClient();
       alive = true;
-      post = new HttpPost(putUrl+"/video");
+      post = new HttpPost(putUrl + "/video");
       start();
     }
 
@@ -418,7 +406,7 @@ public class MainActivity extends Activity implements Callback
       alive = false;
       this.notify();
     }
-    
+
     /*
      * (non-Javadoc)
      * 
@@ -434,40 +422,42 @@ public class MainActivity extends Activity implements Callback
       catch (InterruptedException e)
       {
       }
-      while (alive)
+      while (alive && sendVideoFrames)
       {
 
         try
         {
           YuvImage yuvImage = new YuvImage(mCallbackBuffer, previewFormat, previewWidth, previewHeight, null);
-          yuvImage.compressToJpeg(r, 20, out); // Tweak the quality here
+          yuvImage.compressToJpeg(r, jpegCompressionLevel, out); // Tweak the
+                                                                 // quality here
 
-          //state.setVideoFrame(ByteString.copyFrom(out.toByteArray()));
-          
-          AudioVideoFrame.Builder avFrame = AudioVideoFrame.newBuilder(); 
-          
+          // state.setVideoFrame(ByteString.copyFrom(out.toByteArray()));
+
+          AudioVideoFrame.Builder avFrame = AudioVideoFrame.newBuilder();
+
           avFrame.setData(ByteString.copyFrom(out.toByteArray()));
-          avFrame.setBotID(state.ROBOT_ID);
-          
+          avFrame.setBotID(RobotStateHandler.ROBOT_ID);
+          avFrame.setCompressionLevel(jpegCompressionLevel);
+
           post.setEntity(new ByteArrayEntity(avFrame.build().toByteArray()));
-          
-          Log.i(TAG, "sending video");
+
+          // Log.i(TAG, "sending video");
           sending = true;
           HttpResponse resp = httpclient.execute(post);
           sending = false;
-          Log.i(TAG, "sent video");
-         
-          //InputStream resStream = resp.getEntity().getContent();
+          // Log.i(TAG, "sent video");
 
-          //ControllerState cs = ControllerState.parseFrom(resStream);
+          // InputStream resStream = resp.getEntity().getContent();
 
-          //mover.processControllerStateEvent(cs);
+          // ControllerState cs = ControllerState.parseFrom(resStream);
+
+          // mover.processControllerStateEvent(cs);
         }
         catch (UnsupportedEncodingException e)
         {
           // TODO Auto-generated catch block
           e.printStackTrace();
-          
+
         }
         catch (IllegalStateException e)
         {
@@ -504,7 +494,7 @@ public class MainActivity extends Activity implements Callback
 
     synchronized boolean nextFrame(byte[] frame)
     {
-      if (this.getState() == Thread.State.WAITING && ! sending)
+      if (this.getState() == Thread.State.WAITING && !sending)
       {
         // ok, we are ready for a new frame:
         // curFrame = frame;
