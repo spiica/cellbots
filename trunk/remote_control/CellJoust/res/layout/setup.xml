@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <ScrollView
   xmlns:android="http://schemas.android.com/apk/res/android"
@@ -18,18 +18,11 @@
       android:paddingLeft="10pt"
       android:textSize="10pt"
       android:text="Networking"/>
-       <LinearLayout
-      android:id="@+id/LinearLayout01"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_margin="4px">
       <CheckBox
         android:text="Connect to Cellserv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
       </CheckBox>
-    </LinearLayout>
     <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
@@ -76,17 +69,12 @@
     </LinearLayout>
 
 
-    <LinearLayout
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_margin="4px">
       <CheckBox
         android:text="Use Serial Port Connection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
       </CheckBox>
-    </LinearLayout>
+
 
 
     <LinearLayout

@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.allthingsgeek.celljoust.MainActivity;
  
-import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
