@@ -1,20 +1,7 @@
 package com.cellbots.cellserv.server;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Enumeration;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.cellbots.CellbotProtos;
-import com.cellbots.CellbotProtos.ControllerState.Builder;
 import com.cellbots.CellbotProtos.ControllerState.KeyEvent;
-import com.cellbots.CellbotProtos.PhoneState;
 import com.cellbots.cellserv.client.WiimoteService;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 
@@ -35,8 +22,8 @@ public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteS
 
     key.setKeyDown(true);
     key.setKeyCode("" + buttonid);
-
-    StateHolder.getInstance("").addKeyEvent(key);
+    //FIXME:  arg for bot id
+    StateHolder.getInstance("pokey").addKeyEvent(key);
     
     return 1;
   }
@@ -51,7 +38,8 @@ public class WiimoteServiceImpl extends RemoteServiceServlet implements WiimoteS
     key.setKeyUp(true);
     key.setKeyCode("" + buttonid);
 
-    StateHolder.getInstance("").addKeyEvent(key);
+    //FIXME:  arg for bot id
+    StateHolder.getInstance("pokey").addKeyEvent(key);
 
     // GWT.log("test");
     return 1;

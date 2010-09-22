@@ -2,9 +2,6 @@ package com.cellbots.cellserv.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.ErrorEvent;
 import com.google.gwt.event.dom.client.ErrorHandler;
 import com.google.gwt.http.client.Request;
@@ -14,19 +11,14 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment.HorizontalAlignmentConstant;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.Widget;
 
 public class WiimoteEntry implements EntryPoint
 {
@@ -54,6 +46,9 @@ public class WiimoteEntry implements EntryPoint
     final VerticalPanel controlPanel = new VerticalPanel();
     final HorizontalPanel horizontalPanel = new HorizontalPanel();
     final HorizontalPanel hudPanel = new HorizontalPanel();
+    final TextBox txtCommand = new TextBox();
+
+    
     final Timer elapsedTimer;
     final Timer sensorTimer;
     
@@ -97,6 +92,7 @@ public class WiimoteEntry implements EntryPoint
     hudPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_LEFT);
     hudPanel.add(controlPanel);
     hudPanel.add(messageLabel);
+    hudPanel.add(txtCommand);
 
     mainPanel.setWidth("600px");
     mainPanel.setBorderWidth(2);

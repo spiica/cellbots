@@ -7,8 +7,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.HttpStatus;
-
 import com.cellbots.CellbotProtos;
 import com.cellbots.CellbotProtos.ControllerState;
 import com.cellbots.CellbotProtos.PhoneState;
@@ -79,7 +77,7 @@ public class RobotStateServlet extends HttpServlet
       if (StateHolder.getInstance(botID).newControllerStateAvailble())
       {
         System.out.println("writing new controller msg");
-        ControllerState cs = StateHolder.getInstance("").getControllerState();
+        ControllerState cs = StateHolder.getInstance(botID).getControllerState();
        
         res.getOutputStream().write(cs.toByteArray());
       }
