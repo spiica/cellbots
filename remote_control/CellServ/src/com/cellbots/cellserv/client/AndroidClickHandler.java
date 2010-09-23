@@ -1,6 +1,5 @@
 package com.cellbots.cellserv.client;
 
-
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.core.client.GWT;
@@ -27,25 +26,26 @@ public class AndroidClickHandler implements ChangeHandler, MouseUpHandler, Mouse
     wiiService = service;
     keyCode = code;
   }
-  
-  
+
   public AndroidClickHandler(WiimoteServiceAsync service)
   {
     wiiService = service;
-    //keyCode = code;
   }
 
   public void onClick(ClickEvent event)
   {
-    /*
-     * wiiService.handleButtonDown(keyCode, WiimoteEntry.BOT_ID, new
-     * AsyncCallback<Integer>() { public void onFailure(Throwable caught) {
-     * GWT.log(caught.getMessage()); }
-     * 
-     * public void onSuccess(Integer result) {
-     * 
-     * } });
-     */
+    wiiService.handleButtonDown(keyCode, WiimoteEntry.BOT_ID, new AsyncCallback<Integer>()
+    {
+      public void onFailure(Throwable caught)
+      {
+        GWT.log(caught.getMessage());
+      }
+
+      public void onSuccess(Integer result)
+      {
+
+      }
+    });
 
   }
 
@@ -92,19 +92,19 @@ public class AndroidClickHandler implements ChangeHandler, MouseUpHandler, Mouse
   {
     final TextBox t = (TextBox) event.getSource();
     event.stopPropagation();
-    if(event.getCharCode() == '\n' || event.getCharCode() == '\r')
-    wiiService.handleTextCommand(t.getValue(), WiimoteEntry.BOT_ID, new AsyncCallback<Integer>()
-    {
-      public void onFailure(Throwable caught)
+    if (event.getCharCode() == '\n' || event.getCharCode() == '\r')
+      wiiService.handleTextCommand(t.getValue(), WiimoteEntry.BOT_ID, new AsyncCallback<Integer>()
       {
-        GWT.log(caught.getMessage());
-      }
+        public void onFailure(Throwable caught)
+        {
+          GWT.log(caught.getMessage());
+        }
 
-      public void onSuccess(Integer result)
-      {
-        t.setText("");
-      }
-    });
+        public void onSuccess(Integer result)
+        {
+          t.setText("");
+        }
+      });
 
   }
 }

@@ -157,7 +157,7 @@ public class WiimoteEntry implements EntryPoint
       }
     };
     
-    videoImage.addLoadListener(new LoadListener()
+  /*  videoImage.addLoadListener(new LoadListener()
     {
 
       //do a bit of throttleing 
@@ -178,7 +178,7 @@ public class WiimoteEntry implements EntryPoint
         elapsedTimer.scheduleRepeating(framePoleInterval);
 
       }
-    });
+    });*/
 
 
     // Create a new timer

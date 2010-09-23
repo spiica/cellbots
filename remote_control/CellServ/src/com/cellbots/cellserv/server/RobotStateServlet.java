@@ -71,15 +71,18 @@ public class RobotStateServlet extends HttpServlet
       }
       
       StateHolder.getInstance(botID).setPhoneState(state);
-      
-      
 
       if (StateHolder.getInstance(botID).newControllerStateAvailble())
       {
         System.out.println("writing new controller msg");
         ControllerState cs = StateHolder.getInstance(botID).getControllerState();
        
+        res.setStatus(HttpServletResponse.SC_OK);
         res.getOutputStream().write(cs.toByteArray());
+      }
+      else
+      {
+        res.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       }
 
     }
