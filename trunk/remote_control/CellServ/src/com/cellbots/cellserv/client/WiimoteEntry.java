@@ -230,7 +230,7 @@ public class WiimoteEntry implements EntryPoint
 
     canvas.rotate(rad);
     canvas.setFillStyle(Color.WHITE);
-    canvas.fillRect(-24, -28, 24, 56);
+    canvas.fillRect(-32, -32, 64, 64);
     canvas.scale(.75, .75);
  
     canvas.setLineWidth(3);
@@ -248,14 +248,14 @@ public class WiimoteEntry implements EntryPoint
   void drawBattery(double percent)
   {
     canvas.setFillStyle(Color.GREEN);
-    canvas.fillRect(2, 0, 8, 64);
+    canvas.fillRect(2, 4, 12, 60);
 
-    canvas.setStrokeStyle(Color.WHITE);
-    canvas.fillRect(2, 0, 8, ((100-percent)/100.0)*64.0);
+    canvas.setFillStyle(Color.WHITE);
+    canvas.fillRect(2, 4, 12, ((100-percent)/100.0)*60.0);
     
     canvas.setLineWidth(2);
     canvas.setStrokeStyle(Color.BLACK);
-    canvas.strokeRect(2, 0, 8, 64);
+    canvas.strokeRect(2, 4, 12, 60);
   }
 
   void showPhoneState(PhoneState state)
