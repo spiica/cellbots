@@ -91,7 +91,6 @@ public class MainActivity extends Activity implements Callback
   SensorListenerImpl            sensorListener;
 
   public boolean sendVideoFrames = true;
-  // public static CellbotProtos.ControllerState controllerState;
 
   /** Called when the activity is first created. */
   @Override
@@ -256,6 +255,10 @@ public class MainActivity extends Activity implements Callback
     catch (Exception e)
     {
     }
+    
+    OrientationManager.stopListening();
+    LightSensorManager.stopListening();
+    CompassManager.stopListening();
 
     // if (state.isAlive())
     // {
@@ -266,7 +269,7 @@ public class MainActivity extends Activity implements Callback
 
   protected void onDestroy()
   {
-    noise.stop();
+    //noise.stop();
     super.onDestroy();
   }
 
@@ -275,7 +278,6 @@ public class MainActivity extends Activity implements Callback
   {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.menu, menu);
-
     return super.onCreateOptionsMenu(menu);
   }
 
@@ -386,18 +388,19 @@ public class MainActivity extends Activity implements Callback
 
     boolean    alive;
 
-    HttpPost   post;
+    volatile HttpPost   post;
 
-    boolean    sending = false;
+    volatile boolean    sending = false;
 
     public ConversionWorker()
     {
       // setDaemon(true);
 
       // this client should automatically reuse its connection
+      
       httpclient = new DefaultHttpClient();
       alive = true;
-      post = new HttpPost(putUrl + "/video");
+
       start();
     }
 
@@ -427,6 +430,8 @@ public class MainActivity extends Activity implements Callback
 
         try
         {
+          httpclient = new DefaultHttpClient();
+          sending = true;
           YuvImage yuvImage = new YuvImage(mCallbackBuffer, previewFormat, previewWidth, previewHeight, null);
           yuvImage.compressToJpeg(r, jpegCompressionLevel, out); // Tweak the
                                                                  // quality here
@@ -438,12 +443,16 @@ public class MainActivity extends Activity implements Callback
           avFrame.setData(ByteString.copyFrom(out.toByteArray()));
           avFrame.setBotID(RobotStateHandler.ROBOT_ID);
           avFrame.setCompressionLevel(jpegCompressionLevel);
+          
+          //FIXME:  need to be able to change url
+          post = new HttpPost(putUrl + "/video");
 
           post.setEntity(new ByteArrayEntity(avFrame.build().toByteArray()));
 
           // Log.i(TAG, "sending video");
-          sending = true;
-          HttpResponse resp = httpclient.execute(post);
+          
+          httpclient.execute(post);
+          
           sending = false;
           // Log.i(TAG, "sent video");
 
