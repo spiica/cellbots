@@ -59,8 +59,7 @@ public class RobotStateHandler extends Thread
 
   public Handler                                handler;
 
-  
-  HttpPost post;
+
   public RobotStateHandler(Handler h)
   {
     uiHandler = h;
@@ -121,8 +120,6 @@ public class RobotStateHandler extends Thread
   {
     try
     {
-      
-      
       // preparing a looper on current thread
       // the current thread is being detected implicitly
       Looper.prepare();
@@ -131,8 +128,6 @@ public class RobotStateHandler extends Thread
       // Looper that is attached to the current thread
       // You don't need to specify the Looper explicitly
       
-      httpclient = new DefaultHttpClient();
-      post = new HttpPost(MainActivity.putUrl + "/robotState");
       
 
       handler = new Handler()
@@ -148,7 +143,11 @@ public class RobotStateHandler extends Thread
 
             try
             {
-
+              
+              httpclient = new DefaultHttpClient();
+              
+              HttpPost post = new HttpPost(MainActivity.putUrl + "/robotState");
+              
               post.setEntity(new ByteArrayEntity(state.toByteArray()));
 
               HttpResponse resp = httpclient.execute(post);
@@ -197,6 +196,12 @@ public class RobotStateHandler extends Thread
             {
               e.printStackTrace();
             }
+            catch (NullPointerException e)
+            {
+              Log.e(TAG,"npe",e);
+              e.printStackTrace();
+            }
+
 
           }
         }

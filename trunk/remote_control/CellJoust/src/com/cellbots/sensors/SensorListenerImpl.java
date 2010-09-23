@@ -16,153 +16,153 @@ import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-  public class SensorListenerImpl implements SensorListener {
-    private CellbotProtos.PhoneState.Builder      state;
-    private WifiManager                           wifi;
-    private long lastTimetamp = 0;
-    private int maxUpdateRate = 50;
-    
-    private Handler stateReciver;
-    //public SensorManager getSensorManager();
-    
-    public SensorListenerImpl(Handler h)
-    {
-      stateReciver = h;
-      state = CellbotProtos.PhoneState.newBuilder();
-    }
-    
-    public void onBottomUp()
-    {
-      // Toast.makeText(this, "Bottom UP", 1000).show();
-    }
 
-    public void onLeftUp()
-    {
-      // Toast.makeText(this, "Left UP", 1000).show();
-    }
+public class SensorListenerImpl implements SensorListener
+{
+  private CellbotProtos.PhoneState.Builder state;
 
-    public void onRightUp()
-    {
-      // / Toast.makeText(this, "Right UP", 1000).show();
-    }
+  private WifiManager                      wifi;
 
-    public void onTopUp()
-    {
-      // / Toast.makeText(this, "Top UP", 1000).show();
-    }
-    
-    /**
-     * onShake callback
-     */
-    public void onShake(float force)
-    {
-      // Toast.makeText(this, "Phone shaked : " + force, 1000).show();
-    }
+  private long                             lastTimetamp  = 0;
 
-    /**
-     * onAccelerationChanged callback
-     */
-    public void onAccelerationChanged(float x, float y, float z)
-    {
+  private int                              maxUpdateRate = 100;
 
-      CellbotProtos.PhoneState.Accelerometer.Builder b = CellbotProtos.PhoneState.Accelerometer.newBuilder();
+  private Handler                          stateReciver;
 
-      b.setX(x);
-      b.setY(y);
-      b.setZ(z);
-      state.setAccelerometer(b);
+  // public SensorManager getSensorManager();
 
-      sendPhoneState();
-    }
+  public SensorListenerImpl(Handler h)
+  {
+    stateReciver = h;
+    state = CellbotProtos.PhoneState.newBuilder();
+  }
 
-    /**
-     * onCompassChanged callback
-     */
-    public void onCompassChanged(float x, float y, float z)
-    {
-      CellbotProtos.PhoneState.Compass.Builder b = CellbotProtos.PhoneState.Compass.newBuilder();
+  public void onBottomUp()
+  {
+    // Toast.makeText(this, "Bottom UP", 1000).show();
+  }
 
-      b.setX(x);
-      b.setY(y);
-      b.setZ(z);
-      state.setCompass(b);
-      sendPhoneState();
-    }
+  public void onLeftUp()
+  {
+    // Toast.makeText(this, "Left UP", 1000).show();
+  }
 
-    
-   
+  public void onRightUp()
+  {
+    // / Toast.makeText(this, "Right UP", 1000).show();
+  }
 
-    public void onOrientationChanged(float azimuth, float pitch, float roll)
-    {
-      CellbotProtos.PhoneState.Orientation.Builder b = CellbotProtos.PhoneState.Orientation.newBuilder();
+  public void onTopUp()
+  {
+    // / Toast.makeText(this, "Top UP", 1000).show();
+  }
 
-      b.setAzimuth(azimuth);
-      b.setPitch(pitch);
-      b.setRoll(roll);
+  /**
+   * onShake callback
+   */
+  public void onShake(float force)
+  {
+    // Toast.makeText(this, "Phone shaked : " + force, 1000).show();
+  }
 
-      state.setOrientation(b);
-      sendPhoneState();
+  /**
+   * onAccelerationChanged callback
+   */
+  public void onAccelerationChanged(float x, float y, float z)
+  {
 
-    }
+    CellbotProtos.PhoneState.Accelerometer.Builder b = CellbotProtos.PhoneState.Accelerometer.newBuilder();
 
+    b.setX(x);
+    b.setY(y);
+    b.setZ(z);
+    state.setAccelerometer(b);
+
+    sendPhoneState();
+  }
+
+  /**
+   * onCompassChanged callback
+   */
+  public void onCompassChanged(float x, float y, float z)
+  {
+    CellbotProtos.PhoneState.Compass.Builder b = CellbotProtos.PhoneState.Compass.newBuilder();
+
+    b.setX(x);
+    b.setY(y);
+    b.setZ(z);
+    state.setCompass(b);
+    sendPhoneState();
+  }
+
+  public void onOrientationChanged(float azimuth, float pitch, float roll)
+  {
+    CellbotProtos.PhoneState.Orientation.Builder b = CellbotProtos.PhoneState.Orientation.newBuilder();
+
+    b.setAzimuth(azimuth);
+    b.setPitch(pitch);
+    b.setRoll(roll);
+
+    state.setOrientation(b);
+    sendPhoneState();
+
+  }
 
   public BroadcastReceiver mBatInfoReceiver  = new BroadcastReceiver()
                                              {
                                                public void onReceive(Context arg0, Intent intent)
                                                {
-                                                  state.setPhoneBatteryLevel(intent.getIntExtra("level", 0));
-                                                  state.setPhoneBatteryTemp(intent.getIntExtra("temperature", 0));
-      sendPhoneState();
+                                                 state.setPhoneBatteryLevel(intent.getIntExtra("level", 0));
+                                                 state.setPhoneBatteryTemp(intent.getIntExtra("temperature", 0));
+                                                 sendPhoneState();
                                                }
                                              };
 
   public BroadcastReceiver mWifiInfoReceiver = new BroadcastReceiver()
                                              {
 
-
-
-                                              @Override
+                                               @Override
                                                public void onReceive(Context context, Intent intent)
                                                {
                                                  WifiInfo info = wifi.getConnectionInfo();
-                                                 Builder ws =  CellbotProtos.PhoneState.WIFI.newBuilder();
-                                                 
+                                                 Builder ws = CellbotProtos.PhoneState.WIFI.newBuilder();
+
                                                  ws.setStrength(info.getRssi());
                                                  ws.setKbps(info.getLinkSpeed());
-                                                 
+
                                                  ws.setIp(info.getIpAddress());
-                                                 //ws.setSsid(info.getBSSID());
+                                                 // ws.setSsid(info.getBSSID());
 
-                                                 //state.setWifiStrength();
+                                                 // state.setWifiStrength();
 
-                                                 //state.setWifiSpeed(info.getLinkSpeed());
+                                                 // state.setWifiSpeed(info.getLinkSpeed());
 
-                                                  sendPhoneState();
+                                                 sendPhoneState();
                                                }
 
                                              };
 
   public void onLightLevelChanged(float level)
   {
-      state.setLightLevel(level);
-      sendPhoneState();
+    state.setLightLevel(level);
+    sendPhoneState();
   }
-  
+
   private synchronized void sendPhoneState()
   {
-    
-    long now = System.currentTimeMillis() ;
-    if ( now - lastTimetamp  > maxUpdateRate)
+
+    long now = System.currentTimeMillis();
+    if (now - lastTimetamp > maxUpdateRate)
     {
       lastTimetamp = now;
     }
     state.setTimestamp(now);
     state.setBotID(RobotStateHandler.ROBOT_ID);
-    PhoneState  ps = state.build();
-     
-    stateReciver.obtainMessage(0,ps ).sendToTarget();
+    PhoneState ps = state.build();
+
+    stateReciver.obtainMessage(0, ps).sendToTarget();
     state = CellbotProtos.PhoneState.newBuilder(ps);
-    
+
   }
-  
+
 }
