@@ -73,6 +73,10 @@ public class MainActivity extends Activity implements Callback
   private int                   previewWidth         = 0;
 
   private int                   previewFormat        = 0;
+  
+  //how much to crop the edges
+  private int                   previewShrink        = 0;
+  
 
   private int                   jpegCompressionLevel = 20;
 
@@ -88,6 +92,8 @@ public class MainActivity extends Activity implements Callback
 
   RobotStateHandler             state;
 
+  WifiManager wifiManager;
+  
   SensorListenerImpl            sensorListener;
 
   public boolean sendVideoFrames = true;
@@ -104,7 +110,7 @@ public class MainActivity extends Activity implements Callback
     // wl.acquire();
     // wl.release();
 
-    WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+    wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
     WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 
     noise = PulseGenerator.getInstance();
@@ -196,7 +202,7 @@ public class MainActivity extends Activity implements Callback
 
     if (sensorListener == null)
     {
-      sensorListener = new SensorListenerImpl(state.handler);
+      sensorListener = new SensorListenerImpl(state.handler,wifiManager);
     }
 
     SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -343,8 +349,7 @@ public class MainActivity extends Activity implements Callback
     previewFormat = params.getPreviewFormat();
 
     // Crop the edges of the picture to reduce the image size
-    int crop = 0;
-    r = new Rect(crop, crop, previewWidth - crop, previewHeight - crop);
+    r = new Rect(previewShrink, previewShrink, previewWidth - previewShrink, previewHeight - previewShrink);
 
     mCallbackBuffer = new byte[497664];
 
@@ -445,7 +450,7 @@ public class MainActivity extends Activity implements Callback
           avFrame.setCompressionLevel(jpegCompressionLevel);
           
           //FIXME:  need to be able to change url
-          post = new HttpPost(putUrl + "/video");
+          post = new HttpPost("http://"+putUrl + "/video");
 
           post.setEntity(new ByteArrayEntity(avFrame.build().toByteArray()));
 
@@ -488,6 +493,7 @@ public class MainActivity extends Activity implements Callback
           {
             mCamera.addCallbackBuffer(mCallbackBuffer);
           }
+          sending = false;
           // isUploading = false;
         }
 

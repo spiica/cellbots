@@ -68,7 +68,7 @@ public class SetupActivity extends Activity  {
 
 		SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
 		serverUrl = (EditText) findViewById(R.id.serverUrl);
-		serverUrl.setText(settings.getString("REMOTE_EYES_PUT_URL", "http://192.168.43.242:8080/cellserv"));
+		serverUrl.setText(settings.getString("REMOTE_EYES_PUT_URL", "celljoust.appspot.com"));
 		
 	    robotId = (EditText) findViewById(R.id.robotID);
 	    robotId.setText(settings.getString("ROBOT_ID", RobotStateHandler.ROBOT_ID));
@@ -90,7 +90,7 @@ public class SetupActivity extends Activity  {
 		SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		
-		editor.putString("REMOTE_EYES_PUT_URL", serverUrl.getText().toString());
+		editor.putString("REMOTE_EYES_PUT_URL", serverUrl.getText().toString().replace("http://", "").replace("HTTP://", ""));
 		editor.putString("ROBOT_ID", robotId.getText().toString());
 		RobotStateHandler.ROBOT_ID = robotId.getText().toString();
 		// Commit the edits!
