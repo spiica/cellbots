@@ -45,7 +45,7 @@ public class WiimoteEntry implements EntryPoint
 
   final TextArea       debugConsole      = new TextArea();
 
-  int                  framePoleInterval = 50;
+  int                  framePoleInterval = 200;
 
   boolean              loadingImg        = false;
 
@@ -214,7 +214,7 @@ public class WiimoteEntry implements EntryPoint
       }
     };
     elapsedTimer.scheduleRepeating(framePoleInterval);
-    sensorTimer.scheduleRepeating(500);
+    sensorTimer.scheduleRepeating(framePoleInterval*2);
 
 
     drawCompass(0);
