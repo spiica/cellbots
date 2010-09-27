@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.Random;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -146,13 +147,18 @@ public class RobotStateHandler extends Thread
               
               httpclient = new DefaultHttpClient();
               
-              HttpPost post = new HttpPost(MainActivity.putUrl + "/robotState");
+              HttpPost post = new HttpPost("http://"+MainActivity.putUrl + "/robotState");
               
               post.setEntity(new ByteArrayEntity(state.toByteArray()));
 
               HttpResponse resp = httpclient.execute(post);
 
-              InputStream resStream = resp.getEntity().getContent();
+              HttpEntity ent = resp.getEntity();
+              
+              if(ent==null)
+                return;
+              
+              InputStream resStream = ent.getContent();
 
               ControllerState cs = ControllerState.parseFrom(resStream);
 

@@ -31,10 +31,11 @@ public class SensorListenerImpl implements SensorListener
 
   // public SensorManager getSensorManager();
 
-  public SensorListenerImpl(Handler h)
+  public SensorListenerImpl(Handler h, WifiManager w)
   {
     stateReciver = h;
     state = CellbotProtos.PhoneState.newBuilder();
+    wifi =w;
   }
 
   public void onBottomUp()
