@@ -170,54 +170,49 @@ def runRemoteControl():
   while running:
     try:
       sensor_result = droid.readSensors()
-      pitch=int(sensor_result.result['pitch'])
-      roll=int(sensor_result.result['roll'])
+      pitch=float(sensor_result.result['pitch'])
+      roll=float(sensor_result.result['roll'])
     except TypeError:
       pitch = 0
       roll = 0
       specialToast("Failed to read sensors")
 
-    # Assumes the phone is held in portrait orientation and that
-    # people naturally hold the phone slightly pitched forward.
-    # Translate and scale a bit to keep the values mostly in -150:20
-    # with 50 degrees forward and back multiple by 2 for a full range -100:100
-    if pitch in range(-20, -10):
+    #Convert the radions returned into degrees
+    pitch = pitch * 57.2957795
+    roll = roll * 57.2957795
+
+    # Assumes the phone is flat on table for no speed ad no turning
+    # Translate the pitch into a speed ranging from -100 (full backward) to 100 (full forward).
+    # Also support a gutter (dead spot) in the middle and buzz the phone when user is out of range.
+    if pitch > 50:
       speed = 100
-      droid.vibrate((pitch + 20) * 10)
+      droid.vibrate((pitch -50) * 10)
       specialToast("Too far forward")
-    # Range for forward
-    elif pitch in range(-70, -20):
-      speed = (pitch + 70) * 2
-    # Center gutter
-    elif pitch in range(-100, -70):
-      speed = 0
-    # Range for backward
-    elif pitch in range(-150, -100):
-      speed = (pitch + 100) * 2
-    elif pitch in range(-170, -150):
+    elif pitch < -50:
       speed = -100
-      droid.vibrate(((pitch + 150) *-1) * 10)
+      droid.vibrate(((roll *-1) -50) * 10)
       specialToast("Too far backward")
-    else:
-      # We set speed to zero and fake roll to zero so laying the phone flat stops bot
+    elif pitch in range(-5,5):
       speed = 0
-      roll =0
+    else:
+      # Take the roll that range from 50 to -50 and multiply it by two and reverse the sign
+      speed = pitch * 2
 
     # Translate the roll into a direction ranging from -100 (full left) to 100 (full right).
     # Also support a gutter (dead spot) in the middle and buzz the phone when user is out of range.
     if roll > 50:
-      direction = -100
+      direction = 100
       droid.vibrate((roll -50) * 10)
       specialToast("Too far left")
     elif roll < -50:
-      direction = 100
+      direction = -100
       droid.vibrate(((roll *-1) -50) * 10)
       specialToast("Too far right")
     elif roll in range(-5,5):
       direction = 0
     else:
       # Take the roll that range from 50 to -50 and multiply it by two and reverse the sign
-      direction = roll * 2 * -1
+      direction = roll * 2
 
     # Reverse turning when going backwards to mimic what happens when steering a non-differential drive system
     # where direction is really a "bias" and not a true turning angle.
