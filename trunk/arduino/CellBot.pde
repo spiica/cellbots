@@ -367,23 +367,29 @@ void pairBluetooth() {
 
 // Reads serial input if available and parses command when full command has been sent. 
 void readSerialInput() {
-  serialAvail = Serial.available();
-  //Read what is available
-  for (int i = 0; i < serialAvail; i++) {
+  while(Serial.available() && serialIndex < BUFFERSIZE) {
     //Store into buffer.
-    inBytes[i + serialIndex] = Serial.read();
-    //Check for command end. 
-    
-    if (inBytes[i + serialIndex] == '\n' || inBytes[i + serialIndex] == ';' || inBytes[i + serialIndex] == '>') { //Use ; when using Serial Monitor
-       inBytes[i + serialIndex] = '\0'; //end of string char
+    inBytes[serialIndex] = Serial.read();
+
+    //Check for command end.    
+    if (inBytes[serialIndex] == '\n' || inBytes[serialIndex] == ';' || inBytes[serialIndex] == '>') { //Use ; when using Serial Monitor
+       inBytes[serialIndex] = '\0'; //end of string char
        parseCommand(inBytes); 
        serialIndex = 0;
     }
-    else {
-      //expecting more of the command to come later.
-      serialIndex += serialAvail;
+    else{
+      serialIndex++;
     }
-  }  
+  }
+  
+  if(serialIndex >= BUFFERSIZE){
+    //buffer overflow, reset the buffer and do nothing
+    //TODO: perhaps some sort of feedback to the user?
+    for(int j=0; j < BUFFERSIZE; j++){
+      inBytes[j] = 0;
+      serialIndex = 0;
+    }
+  }
 }
 
 // Cleans and parses the command
@@ -400,12 +406,6 @@ void parseCommand(char* com) {
     }
   }
   start++;
-  //Shift to beginning
-  int i = 0;
-  while (com[i + start - 1] != '\0') {
-    com[i] = com[start + i];
-    i++; 
-  } 
   performCommand(com);
 }
 
