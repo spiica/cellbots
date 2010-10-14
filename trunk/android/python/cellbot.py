@@ -103,7 +103,7 @@ class bluetoothReader(Thread):
 # Initialize Bluetooth outbound if configured for it
 def initializeBluetooth():
   robot.toggleBluetoothState(True)
-  robot.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB") #this is a magic UUID for serial BT devices
+  robot.bluetoothConnect('00001101-0000-1000-8000-00805F9B34FB') #this is a magic UUID for serial BT devices
   robot.makeToast("Initializing Bluetooth connection")
   time.sleep(3)
   
@@ -202,7 +202,7 @@ def changeSpeed(newSpeed):
   if newSpeed in [0,1,2,3,4,5,6,7,8,9]:
     msg = "Changing speed to %s" % newSpeed
     if microcontroller != "AVR_Stepper": 
-      commandOut(newSpeed)
+      commandOut(chr(newSpeed))
     currentSpeed = newSpeed
   else:
     msg = "Speed %s is out of range [0-9]" % newSpeed
@@ -279,13 +279,13 @@ def AVR_Stepper_Controll(leftPWM, rightPWM):
 def commandOut(msg):
   if outputMethod == "outputBluetooth":
     if microcontroller == "AVR_Stepper":
-      robot.bluetoothWrite(msg.split(" ")[2] + "," + msg.split(" ")[1] + '\r\n')
+      robot.bluetoothWrite(msg.split(" ")[1] + "," + msg.split(" ")[2] + '\r\n')
     else:
       robot.bluetoothWrite(msg + '\n')
   elif microcontroller == "serialservo":
     robot.writeSerialOut(r"echo -e '%s' > /dev/ttyMSM2" % msg)
   elif microcontroller == "AVR_Stepper":
-    robot.writeSerialOut(r"echo -e '%s' > /dev/ttyMSM2" % (msg.split(" ")[2] + "," + msg.split(" ")[1] + '\r\n'))
+    robot.writeSerialOut(r"echo -e '%s' > /dev/ttyMSM2" % (msg.split(" ")[1] + "," + msg.split(" ")[2] + '\r\n'))
   else:
     robot.writeSerialOut("echo '<%s>' > /dev/ttyMSM2" % msg)
 
@@ -415,6 +415,7 @@ def commandParse(input):
     commandParse(commandValue)
   elif command in ["send", "pass"]:
     commandOut(commandValue)
+    print "Passing %s" % commandValue
   elif command in ["range", "distance", "dist", "z"]:
     commandOut("fr")
     outputToOperator("Checking distance")    
@@ -505,7 +506,7 @@ def getConfigFileValue(config, section, option, title, valueList, saveToFile):
 
 # Setup the config file for reading and be sure we have a phone type set
 config = ConfigParser.ConfigParser()
-configFilePath = "/sdcard/ase/scripts/cellbotConfig.ini"
+configFilePath = "/sdcard/sl4a/scripts/cellbotConfig.ini"
 config.read(configFilePath)
 if config.has_option("basics", "phoneType"):
   phoneType = config.get("basics", "phoneType")
