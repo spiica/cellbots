@@ -130,7 +130,7 @@ class remoteCommandOptions(Thread):
 # Initialize Bluetooth outbound if configured for it
 def initializeBluetooth():
   droid.toggleBluetoothState(True)
-  droid.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB") #this is a magic UUID for serial BT devices
+  droid.bluetoothConnect("00001101-0000-1000-8000-00805F9B34FB", bluetoothAddress) #this is a magic UUID for serial BT devices
   droid.makeToast("Initializing Bluetooth connection")
   time.sleep(4)
 
@@ -304,7 +304,7 @@ def getConfigFileValue(config, section, option, title, valueList, saveToFile):
 
 # Setup the config file for reading and be sure we have a phone type set
 config = ConfigParser.ConfigParser()
-configFilePath = "/sdcard/ase/scripts/cellbotRemoteConfig.ini"
+configFilePath = "/sdcard/sl4a/scripts/cellbotRemoteConfig.ini"
 config.read(configFilePath)
 if config.has_option("basics", "phoneType"):
   phoneType = config.get("basics", "phoneType")
@@ -324,6 +324,7 @@ pauseSending = False
 outputMethod = getConfigFileValue(config, "control", "outputMethod", "Select Output Method", ['outputXMPP', 'outputBluetooth'], True)
 speedScaleFactor = getConfigFileValue(config, "control", "speedScaleFactor", "Speed scale factor", '', False)
 directionScaleFactor = getConfigFileValue(config, "control", "directionScaleFactor", "Direction scale factor", '', False)
+bluetoothAddress = config.get("control", "bluetoothAddress")
 
 # Only get these settings if we using XMPP
 if outputMethod == "outputXMPP":
