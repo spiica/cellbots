@@ -113,7 +113,7 @@ void setup() {
   digitalWrite(servoPinRight,0);
   digitalWrite(servoPinHead,0);
   digitalWrite(motor_stby,HIGH);
-  Serial.begin(19200);
+  Serial.begin(57600);
   digitalWrite(signalPin, HIGH); // Jump start the range finders
   delay(1);
   pinMode(signalPin, INPUT);  // Set range finder signal pin to high impetance state
@@ -150,7 +150,7 @@ void setEepromsToDefault() {
   EEPROM.write(EEPROM_servoCenterLeft, DEFAULT_servoCenterLeft);
   EEPROM.write(EEPROM_lastNeckValue, DEFAULT_lastNeckValue);
   if (DEBUGGING) {
-      Serial.println("All EEPROM values set to defaults.");
+      Serial.println("dbug:All EEPROM values set to defaults.");
   }
 }
 
@@ -163,7 +163,7 @@ int directionValue(char* directionCommand, int servoDirection) {
     return (-10 * speedMultiplier * servoDirection);
   }
   else {
-    if (DEBUGGING) { Serial.println("Houston, we have a problem!"); }
+    if (DEBUGGING) { Serial.println("dbug:Houston, we have a problem!"); }
     return 0; // Attemp to set value to center - this shouldn't be needed
   }
 }
@@ -211,7 +211,7 @@ unsigned long driveWheels(int valueLeft, int valueRight) {
     myservoRight.write(valueRight);
     // Spit out some diagnosis info over serial
     if (DEBUGGING) {
-      Serial.print("Moving left servo ");
+      Serial.print("dbug:Moving left servo ");
       Serial.print(valueLeft, DEC);
       Serial.print(" and right servo ");
       Serial.println(valueRight, DEC);
@@ -251,7 +251,7 @@ unsigned long driveWheels(int valueLeft, int valueRight) {
 void stopBot() {
   driveWheels(0,0);
   digitalWrite(ledPin, LOW);  // Turn the LED off
-  if (DEBUGGING) { Serial.println("Stopping both wheels"); }
+  if (DEBUGGING) { Serial.println("dbug:Stopping both wheels"); }
   serialReply("i", "st"); // Tell the phone that the robot stopped
 }
 
@@ -282,9 +282,9 @@ long getDistanceSensor(int ultrasonicPin) {
   cm = microsecondsToCentimeters(microseconds);
   inches = microsecondsToInches(microseconds);
   if (DEBUGGING) {
-    Serial.print("Micro: "); Serial.print(microseconds); 
-    Serial.print(" Inches: "); Serial.print(inches);
-    Serial.print(" cm: "); Serial.println(cm);
+    Serial.print("dbug:Micro= "); Serial.print(microseconds); 
+    Serial.print(" Inches= "); Serial.print(inches);
+    Serial.print(" cm= "); Serial.println(cm);
   }
   return cm;
 }
@@ -331,7 +331,7 @@ boolean safeToProceed(){
     safe = false;
   }
   if (DEBUGGING and !safe){
-    Serial.print("Object too close - ");
+    Serial.print("dbug:Object too close - ");
     Serial.print(front_left_range); Serial.print(" ");
     Serial.print(front_range); Serial.print(" ");
     Serial.print(front_right_range); Serial.print(" ");
@@ -427,18 +427,21 @@ void performCommand(char* com) {
   } else if (strcmp(com, "h") == 0) { // Help mode - debugging toggle
     // Print out some basic instructions when first turning on debugging
     if (not DEBUGGING) {
-      Serial.println("Ready to listen to commands! Try ome of these:");
-      Serial.println("F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
-      Serial.println("Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
+      Serial.println("msg:Ready to listen to commands! Try ome of these:");
+      Serial.println("msg:F (forward), B (backward), L (left), R (right), S (stop), D (demo).");
+      Serial.println("msg:Also use numbers 1-9 to adjust speed (0=slow, 9=fast).");
     }
     DEBUGGING = !DEBUGGING;
   } else if (strcmp(com, "1") == 0 || strcmp(com, "2") == 0 || strcmp(com, "3") == 0 || strcmp(com, "4") == 0 || strcmp(com, "5") == 0 || strcmp(com, "6") == 0 || strcmp(com, "7") == 0 || strcmp(com, "8") == 0 || strcmp(com, "9") == 0 || strcmp(com, "0") == 0) {
     //I know the preceeding condition is dodgy but it will change soon 
-    if (DEBUGGING) { Serial.print("Changing speed to "); }
+    if (DEBUGGING) { Serial.print("dbug:Changing speed to "); }
     int i = com[0];
     speedMultiplier = i - 48; // Set the speed multiplier to a range 1-10 from ASCII inputs 0-9
     EEPROM.write(EEPROM_speedMultiplier, speedMultiplier); 
-    if (DEBUGGING) { Serial.println(speedMultiplier); }
+    if (DEBUGGING) { 
+      Serial.print("dbug:");
+      Serial.println(speedMultiplier);
+    }
     // Blink the LED to confirm the new speed setting
     for(int speedBlink = 1 ; speedBlink <= speedMultiplier; speedBlink ++) { 
       digitalWrite(ledPin, HIGH);   // set the LED on           
@@ -456,7 +459,7 @@ void performCommand(char* com) {
     EEPROM.write(EEPROM_servoCenterLeft, servoCenterLeft); 
     EEPROM.write(EEPROM_servoCenterRight, servoCenterRight); 
     if (DEBUGGING) {
-      Serial.print("Calibrated servo centers to ");
+      Serial.print("dbug:Calibrated servo centers to ");
       Serial.print(servoCenterLeft);
       Serial.print(" and ");
       Serial.println(servoCenterRight);
@@ -465,7 +468,7 @@ void performCommand(char* com) {
     servosForcedActive = !servosForcedActive; // Stop only when dangerous
     EEPROM.write(EEPROM_servosForcedActive, servosForcedActive);
     if (DEBUGGING) {
-      Serial.print("Infinite rotation toggled to ");
+      Serial.print("dbug:Infinite rotation toggled to ");
       if (servosForcedActive){Serial.println("on");}
       else {Serial.println("off");}
     }
@@ -482,7 +485,7 @@ void performCommand(char* com) {
     myservoHead.write(lastNeckValue);
     EEPROM.write(EEPROM_lastNeckValue, lastNeckValue); 
     if (DEBUGGING) {
-      Serial.print("Neck moved to ");
+      Serial.print("dbug:Neck moved to ");
       Serial.println(lastNeckValue);
     }
   } else if (com[0] == 'p') { // Initiates Bluetooth pairing so another device can connect
@@ -492,7 +495,7 @@ void performCommand(char* com) {
     front_range = (analogRead(ultraSoundSignalPins[1]) / 2); // front
     front_right_range = (analogRead(ultraSoundSignalPins[2]) / 2); // front right
     rear_range = (analogRead(ultraSoundSignalPins[3]) / 2); // rear
-    Serial.print("Ranges - ");
+    Serial.print("us:");
     Serial.print(front_left_range); Serial.print(" ");
     Serial.print(front_range); Serial.print(" ");
     Serial.print(front_right_range); Serial.print(" ");
@@ -500,7 +503,7 @@ void performCommand(char* com) {
   } else { 
     serialReply("e", com);// Echo unknown command back
     if (DEBUGGING) {
-      Serial.print("Unknown command: ");
+      Serial.print("dbug:Unknown command= ");
       Serial.println(com);
     }
   }
