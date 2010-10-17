@@ -122,9 +122,12 @@ class Robot(object):
     else:
       raise Exception('Unsupported', 'Function unsupported on this phone')
     
-  def bluetoothConnect(self, text):
+  def bluetoothConnect(self, uuid, address):
     if self.phoneType == "android":
-      return self.droid.bluetoothConnect(text)
+      if address:
+        return self.droid.bluetoothConnect(uuid, address)
+      else:
+        return self.droid.bluetoothConnect(uuid)
     else:
       raise Exception('Unsupported', 'Function unsupported on this phone')
     

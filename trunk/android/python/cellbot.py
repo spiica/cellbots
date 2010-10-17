@@ -103,7 +103,8 @@ class bluetoothReader(Thread):
 # Initialize Bluetooth outbound if configured for it
 def initializeBluetooth():
   robot.toggleBluetoothState(True)
-  robot.bluetoothConnect('00001101-0000-1000-8000-00805F9B34FB') #this is a magic UUID for serial BT devices
+  if bluetoothAddress:
+    robot.bluetoothConnect('00001101-0000-1000-8000-00805F9B34FB', bluetoothAddress) #this is a magic UUID for serial BT devices
   robot.makeToast("Initializing Bluetooth connection")
   time.sleep(3)
   
@@ -523,6 +524,7 @@ audioOn = config.getboolean("basics", "audioOn")
 currentSpeed = config.getint("basics", "currentSpeed")
 cardinalMargin = config.getint("basics", "cardinalMargin")
 telnetPort = config.getint("control", "port")
+bluetoothAddress = config.get("control", "bluetoothAddress")
 
 # Only get these settings if we using XMPP
 if inputMethod == "commandByXMPP":
