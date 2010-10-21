@@ -12,7 +12,9 @@
 * the License.
 */
 
+#include "Util.nxc"
 #include "CellBotsParser.nxc"
+#include "DemoBehaviors.nxc"
 
 task main() {
     string msg;
@@ -22,18 +24,16 @@ task main() {
         c = ReceiveRemoteString(b, true, msg);
         if (msg[0] == 0 || StrLen(msg) == 0) continue;
         ClearScreen();
-        bool result = cellBotsParseCommand(msg);
-        string resultString = "false";
-        if (result) {
-         resultString = "true";
-        }
-        // Debugging Messages
         TextOut(0, LCD_LINE2, msg);
-        Wait(500);
+        
+        if (cellBotsParseCommand(msg)) {
+            TextOut(0, LCD_LINE4, "cellBots Command");
+        } else if (demoBehaviorsParseCommand(msg)) {
+            TextOut(0, LCD_LINE4, "demoBehaviors Command");
+        } else {
+            TextOut(0, LCD_LINE4, "Unknown Command");
+        }
+        
+        Wait(10);
     }
-     TextOut(0, LCD_LINE2, "Hello World!");
-	 OnFwd(OUT_ABC, 70);
-	 Wait(1000);
-	 OnFwd(OUT_ABC, 0);
-     until(ButtonPressed(BTNCENTER, true));
 }
