@@ -36,6 +36,10 @@
 #define EEPROM_speedMultiplier 3
 #define EEPROM_servosForcedActive 4
 #define EEPROM_lastNeckValue 5
+#define EEPROM_leftRangeThreshold 6
+#define EEPROM_frontRangeThreshold 7
+#define EEPROM_rightRangeThreshold 8
+#define EEPROM_backRangeThreshold 9
 
 #define DEFAULT_servoCenterLeft 90
 #define DEFAULT_servoCenterRight 90
@@ -43,6 +47,10 @@
 #define DEFAULT_servosForcedActive false
 #define DEFAULT_servosForcedActive false
 #define DEFAULT_lastNeckValue 255
+#define DEFAULT_leftRangeThreshold 15
+#define DEFAULT_frontRangeThreshold 15
+#define DEFAULT_rightRangeThreshold 15
+#define DEFAULT_backRangeThreshold 15
 
 // ** GENERAL SETTINGS ** - General preference settings
 boolean DEBUGGING = false; // Whether debugging output over serial is on by defauly (can be flipped with 'h' command)
@@ -83,6 +91,10 @@ int front_left_range;
 int front_range;
 int front_right_range;
 int rear_range;
+int leftRangeThreshold = DEFAULT_leftRangeThreshold; // Point at which the robot will stop when sending nearby object
+int frontRangeThreshold = DEFAULT_frontRangeThreshold;
+int rightRangeThreshold = DEFAULT_rightRangeThreshold;
+int backRangeThreshold = DEFAULT_backRangeThreshold;
 
 // Create servo objects to control the servos
 Servo myservoLeft;
@@ -122,6 +134,10 @@ void setup() {
   speedMultiplier = readSetting(EEPROM_speedMultiplier, speedMultiplier);  
   servosForcedActive = readSetting(EEPROM_servosForcedActive, servosForcedActive);  
   lastNeckValue = readSetting(EEPROM_lastNeckValue, lastNeckValue);
+  leftRangeThreshold = readSetting(EEPROM_leftRangeThreshold, leftRangeThreshold); // Point at which the robot will stop when sending nearby object
+  frontRangeThreshold = readSetting(EEPROM_frontRangeThreshold, frontRangeThreshold);
+  rightRangeThreshold = readSetting(EEPROM_rightRangeThreshold, rightRangeThreshold);
+  backRangeThreshold = readSetting(EEPROM_backRangeThreshold, backRangeThreshold);
   if (lastNeckValue != DEFAULT_lastNeckValue) {
     myservoHead.attach(servoPinHead);
     myservoHead.write(lastNeckValue);
@@ -144,11 +160,19 @@ void setEepromsToDefault() {
   servoCenterRight = DEFAULT_servoCenterRight;
   servoCenterLeft = DEFAULT_servoCenterLeft;
   lastNeckValue = DEFAULT_lastNeckValue;
+  leftRangeThreshold = DEFAULT_leftRangeThreshold; // Point at which the robot will stop when sending nearby object
+  frontRangeThreshold = DEFAULT_frontRangeThreshold;
+  rightRangeThreshold = DEFAULT_rightRangeThreshold;
+  backRangeThreshold = DEFAULT_backRangeThreshold;
   EEPROM.write(EEPROM_servosForcedActive, DEFAULT_servosForcedActive);
   EEPROM.write(EEPROM_speedMultiplier, DEFAULT_speedMultiplier);
   EEPROM.write(EEPROM_servoCenterRight, DEFAULT_servoCenterRight);
   EEPROM.write(EEPROM_servoCenterLeft, DEFAULT_servoCenterLeft);
   EEPROM.write(EEPROM_lastNeckValue, DEFAULT_lastNeckValue);
+  EEPROM.write(EEPROM_leftRangeThreshold, DEFAULT_leftRangeThreshold);
+  EEPROM.write(EEPROM_frontRangeThreshold, DEFAULT_frontRangeThreshold);
+  EEPROM.write(EEPROM_rightRangeThreshold, DEFAULT_rightRangeThreshold);
+  EEPROM.write(EEPROM_backRangeThreshold, DEFAULT_backRangeThreshold);
   if (DEBUGGING) {
       Serial.println("dbug:All EEPROM values set to defaults.");
   }
@@ -324,10 +348,10 @@ boolean safeToProceed(){
   front_right_range = (analogRead(ultraSoundSignalPins[2]) / 2); // front right
   rear_range = (analogRead(ultraSoundSignalPins[3]) / 2); // rear
   // Check the distance to the nearest objects around the bot and stop if too close
-  if ((front_left_range < 30 or front_range < 20 or front_right_range < 30) and movementStatus == "forward") {
+  if ((front_left_range < leftRangeThreshold or front_range < frontRangeThreshold or front_right_range < rightRangeThreshold) and movementStatus == "forward") {
     safe = false;
   }
-  if (rear_range < 50 and movementStatus == "backward") {
+  if (rear_range < backRangeThreshold and movementStatus == "backward") {
     safe = false;
   }
   if (DEBUGGING and !safe){
@@ -420,10 +444,6 @@ void performCommand(char* com) {
     dist = getDistanceSensor(rangePinForward);
     itoa(dist, msg, 10); // Turn the dist int into a char
     serialReply("x", msg); // Send the distance out the serial line
-  } else if (strcmp(com, "z") == 0) { // Read and print ground facing distance sensor
-    dist = getDistanceSensor(rangePinForwardGround);
-    itoa(dist, msg, 10); // Turn the dist int into a char
-    serialReply("z", msg); // Send the distance out the serial line
   } else if (strcmp(com, "h") == 0) { // Help mode - debugging toggle
     // Print out some basic instructions when first turning on debugging
     if (not DEBUGGING) {
@@ -500,6 +520,28 @@ void performCommand(char* com) {
     Serial.print(front_range); Serial.print(" ");
     Serial.print(front_right_range); Serial.print(" ");
     Serial.print(rear_range); Serial.print("\n");
+  } else if (com[0] == 'z') { // Set the range threshold for ultrasonics
+    int leftTmp=15, frontTmp=15, rightTmp=15, backTmp=15;
+    sscanf (com,"z %d %d %d %d",&leftTmp, &frontTmp, &rightTmp, &backTmp); // Parse the input into multiple values
+    leftRangeThreshold = leftTmp; // Point at which the robot will stop when sending nearby object
+    frontRangeThreshold = frontTmp;
+    rightRangeThreshold = rightTmp;
+    backRangeThreshold = backTmp;
+    EEPROM.write(EEPROM_leftRangeThreshold, leftRangeThreshold);
+    EEPROM.write(EEPROM_frontRangeThreshold, frontRangeThreshold);
+    EEPROM.write(EEPROM_rightRangeThreshold, rightRangeThreshold);
+    EEPROM.write(EEPROM_backRangeThreshold, backRangeThreshold);
+    if (DEBUGGING) {
+      Serial.print("dbug:Set thresholds ");
+      Serial.print(leftRangeThreshold);
+      Serial.print(" ");
+      Serial.println(frontRangeThreshold);
+      Serial.print(" ");
+      Serial.print(rightRangeThreshold);
+      Serial.print(" ");
+      Serial.print(backRangeThreshold);
+      Serial.print("\n");
+    }
   } else { 
     serialReply("e", com);// Echo unknown command back
     if (DEBUGGING) {
