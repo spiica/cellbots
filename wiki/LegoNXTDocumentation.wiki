@@ -1,12 +1,20 @@
 #summary Documentation on the Lego NXT code provided
 
-= Introduction =
+= Lego and cellbots =
 
 The Lego directory in the source code provides example code for receiving and interpreting cellbots commands as well as commands to run demo behaviors. These can be used with any program that wraps text commands into messages using Lego's Bluetooth message system and mailbox 1. They can also be used as a starting point for writing other behaviors or commands for communicating with a Lego NXT robot.
 
 = Lego NXT Setup =
 
 The demo code is designed to work with the shooter bot base for movement. For the demo behaviors add an ultrasonic sensor aimed forward using sensor port 4 and an active light sensor on the front pointing down using sensor port 3.
+
+= Compiling the code =
+
+The source for the sample program can be found in lego/nxc/source from the root of your cellbots svn directory. You will need the NXC compiler to build the sample project. Instructions for downloading and installing the compiler can be found on the [http://bricxcc.sourceforge.net/nbc/ NXC site].
+
+A Makefile for using make on Mac and Linux is included in lego/nxc, though before using it you must set a path to the nbc compiler by setting the variable NXC_PATH to the path to the nbc and nxtcom runnables. This can be done with the command "export NXC_PATH=<path to nbc>" or by adding the line "NXC_PATH=<path to nbc>" to the Makefile near the top. For Windows machines follow the NXC instructions for building a Lego program.
+
+Running "make all" from the lego/nxc directory after you've set up the NXC_PATH will create a build directory, compile the demo program into that directory, and send it to an NXT connected with a USB cable. It will download to the first NXT found.
 
 = Sending Commands =
 
