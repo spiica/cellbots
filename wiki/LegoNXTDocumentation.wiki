@@ -1,0 +1,38 @@
+#summary Documentation on the Lego NXT code provided
+
+= Introduction =
+
+The Lego directory in the source code provides example code for receiving and interpreting cellbots commands as well as commands to run demo behaviors. These can be used with any program that wraps text commands into messages using Lego's Bluetooth message system and mailbox 1. They can also be used as a starting point for writing other behaviors or commands for communicating with a Lego NXT robot.
+
+
+= Details =
+
+To send messages to the software on the Lego NXT you need to pair and connect a bluetooth device with your NXT, then wrap the message in a mailbox message. The demo software uses mailbox '1' which is index 0. Essentially, you use the following format:
+
+ * Byte 0: 0x80 (direct command with no response from the NXT)
+ * Byte 1: 0x09 (message command type)
+ * Byte 2: 0x00 (Mailbox number, 0-9)
+ * Byte 3: Message Size (including null terminating character)
+ * Byte 4-N: Message data, where N = Message size + 3 and ends with a null terminating character
+
+See Lego's Bluetooth Developer Kit for more detailed information on sending commands to the NXT.
+
+The following commands are supported by the demo code using message wrapping:
+
+|| command <required argument> (optional argument) || argument description || argument description || notes ||
+|| f (speed) || speed: '0' to '9' || || drive forward ||
+|| b (speed) || speed: '0' to '9' || || drive backward ||
+|| l (speed) || speed: '0' to '9' || || turn left ||
+|| r (speed) ||speed: '0' to '9' || || turn right ||
+|| s || || || stop the wheels||
+|| w <velocity> <velocity> || velocity: "-100" to "100" || || set wheel velocities ||
+|| hl (speed) || speed: '0' to '9' || || turn the third motor left (arbitrary) ||
+|| hr (speed) || speed: '0' to '9' || || turn the third motor right ||
+|| df <distance> (speed) || distance: in degrees. || speed: '0' to '9' || drive forward a set distance ||
+|| db <distance> (speed) || distance: in degrees. || speed: '0' to '9' || drive backward a set distance ||
+|| dl <distance> (speed) || distance: in degrees. || speed: '0' to '9' || turn left a set distance ||
+|| dr <distance> (speed) || distance: in degrees. || speed: '0' to '9' || turn right a set distance ||
+|| hdl <distance> (speed) || distance: in degrees. || speed: '0' to '9' || turn head a set distance left ||
+|| hdr <distance> (speed) || distance: in degrees. || speed: '0' to '9' || turn head a set distance right ||
+|| demoLineFollow || || || Follows a line ||
+|| demoFindWall (distance) || distance: in cm, distance from wall to stop || || Drives until within [distance] or 20 cm of a wall ||
