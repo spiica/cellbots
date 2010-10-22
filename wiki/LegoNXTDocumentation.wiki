@@ -4,8 +4,11 @@
 
 The Lego directory in the source code provides example code for receiving and interpreting cellbots commands as well as commands to run demo behaviors. These can be used with any program that wraps text commands into messages using Lego's Bluetooth message system and mailbox 1. They can also be used as a starting point for writing other behaviors or commands for communicating with a Lego NXT robot.
 
+= Lego NXT Setup =
 
-= Details =
+The demo code is designed to work with the shooter bot base for movement. For the demo behaviors add an ultrasonic sensor aimed forward using sensor port 4 and an active light sensor on the front pointing down using sensor port 3.
+
+= Sending Commands =
 
 To send messages to the software on the Lego NXT you need to pair and connect a bluetooth device with your NXT, then wrap the message in a mailbox message. The demo software uses mailbox '1' which is index 0. Essentially, you use the following format:
 
