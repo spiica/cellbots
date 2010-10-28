@@ -22,7 +22,7 @@ To send messages to the software on the Lego NXT you need to pair and connect a 
 
  * Byte 0: 0x80 (direct command with no response from the NXT)
  * Byte 1: 0x09 (message command type)
- * Byte 2: 0x00 (Mailbox number, 0-9)
+ * Byte 2: 0x01 (Mailbox number, 0-9)
  * Byte 3: Message Size (including null terminating character)
  * Byte 4-N: Message data, where N = Message size + 3 and ends with a null terminating character
 
