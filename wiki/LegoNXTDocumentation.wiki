@@ -47,3 +47,4 @@ The following commands are supported by the demo code using message wrapping:
 || hdr {distance} (speed) || distance: in degrees. || speed: '0' to '9' || turn head a set distance right ||
 || demoLineFollow || || || Follows a line ||
 || demoFindWall (distance) || distance: in cm, distance from wall to stop || || Drives until within (distance) or 20 cm of a wall ||
+|| demoStop || || || Stops any in progress demo behaviors ||
