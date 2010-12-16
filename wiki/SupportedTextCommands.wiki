@@ -2,7 +2,7 @@
 
 = Commands =
 
-The following single commands can be sent into the phone. 
+The following commands can be sent into the phone. 
 See the source code for a full set of word based commands to use.
 
 ? : List commands.
