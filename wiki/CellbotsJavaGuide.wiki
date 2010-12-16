@@ -1,0 +1,18 @@
+#summary Cellbots Java Application Developer Guide
+
+
+*Cellbots* is a Java application for the Android. You will need the [http://developer.android.com/sdk/index.html Android SDK] in order to make modifications to the application. 
+
+== Overview ==
+
+The cellbots application consists of the following layers
+ * The Logic layer that sets the mode of operation for the phone and gathers the necessary information. 
+ * The Communication layer that implements the  communication between two Andriod phones. This layer supports channels such as custom HTTP relay, App Engine HTTP relay or XMPP
+ * The Translation layer that translates the commands received from the user to platform specific commands. The platforms supported are iRobot Create, LEGO Mindstorms, VEX Pro,  Arduino.
+
+=== Extending the application ===
+
+    * [AddController Adding a new Controller service to the application]
+    * [AddView Adding a new View to the application]
+    * [CommandSet Command Control API’s / Protocol for each of the robot platforms]
+    * The personas App Engine system 
