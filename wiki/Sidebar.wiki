@@ -6,7 +6,8 @@
  * [ConfigurableOptions Configuration Settings]
  * [SupportedTextCommands Supported Text Commands]
  * [TheoryPages Theory and Math]
- * [DeveloperGuide Developer Guide]
+ * Developer Guide
+  * [CellbotsJava Cellbots Java Application]
  * [http://code.google.com/p/cellbots/wiki/ more wiki pages...]
 
 == External Links ==
