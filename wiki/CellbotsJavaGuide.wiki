@@ -1,4 +1,4 @@
-#summary Cellbots Java Application Developer Guide
+#summary Cellbots Application Developer Guide
 
 
 *Cellbots* is a Java application for the Android. You will need the [http://developer.android.com/sdk/index.html Android SDK] in order to make modifications to the application. 
