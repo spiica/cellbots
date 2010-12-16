@@ -4,5 +4,5 @@
 
 Cellbots provides an IRobotControllerService Interface which developers must implement, in order to make their robot drivable through Cellbots. More specifically, a developer must 
 
- # Implement an Android Service which implements the . For an implementation, take a look at the class com.cellbots.local.robotcontrollerservice.DefaultRobotControllerService 
- # The service’s `<service>` declaration in the AndroidManifest.xml file should contain an Action in the Intent filter with the name "com.cellbots.controller.ROBOT_CONTROLLER_SERVICE", by which Cellbots identifies the controller. Please see the AndroidManifest.xml for Cellbots.
+ # Implement an Android Service which implements the interface. For example, take a look at the class com.cellbots.local.robotcontrollerservice.!DefaultRobotControllerService 
+ # The service’s `<service>` declaration in the !AndroidManifest.xml file should contain an Action in the Intent filter with the name "com.cellbots.controller.ROBOT_CONTROLLER_SERVICE", by which Cellbots identifies the controller. Please see the !AndroidManifest.xml for Cellbots.
