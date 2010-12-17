@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">CellDroid</string>
-    <string name="robot_name">mycellbot</string>
-    <string name="robot_pass">myrandompassword</string>
-    <string name="robot_bt">mybtdevicename</string>
-    <string name="settings">Settings</string>
-</resources>
