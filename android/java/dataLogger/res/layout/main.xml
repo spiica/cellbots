@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent" android:layout_height="fill_parent">
+
+  <LinearLayout android:layout_width="fill_parent"
+    android:layout_height="fill_parent" android:orientation="vertical">
+
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="\n\n\n\n\n\n\n" />
+
+    <com.cellbots.logger.FrontCamcorderPreview
+      android:id="@+id/surface" android:layout_width="fill_parent"
+      android:layout_height="fill_parent" android:enabled="false"
+      android:focusable="true" android:clickable="true" />
+  </LinearLayout>
+
+  <LinearLayout android:layout_width="fill_parent"
+    android:layout_height="fill_parent" android:orientation="vertical">
+
+    <!-- Start/stop control buttons -->
+    <LinearLayout android:layout_width="fill_parent"
+      android:layout_height="wrap_content" android:orientation="horizontal"
+      android:layout_marginTop="16dip">
+
+      <LinearLayout android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:orientation="vertical">
+        <TextView android:layout_width="wrap_content"
+          android:textColor="#FFFF0000" android:textStyle="bold"
+          android:layout_height="wrap_content" android:text="BattTemp: " />
+        <TextView android:id="@+id/batteryTemp_text"
+          android:layout_width="wrap_content" android:textColor="#FFFF0000"
+          android:textStyle="bold" android:layout_height="wrap_content"
+          android:text="0" />
+      </LinearLayout>
+
+      <Button android:id="@+id/button_record" android:layout_width="fill_parent"
+        android:layout_height="wrap_content" android:text="Start recording"
+        android:textStyle="bold" android:layout_alignParentRight="true" />
+      <Button android:id="@+id/button_stopQuit" android:layout_width="fill_parent"
+        android:layout_height="wrap_content" android:text="\nStop recording and quit\n"
+        android:background="#FFFF0000" android:textStyle="bold"
+        android:layout_alignParentRight="true" android:visibility="gone" />
+    </LinearLayout>
+
+
+    <!-- Real time sensors display area -->
+    <LinearLayout android:layout_width="fill_parent"
+      android:layout_height="wrap_content" android:orientation="horizontal">
+
+      <!-- Accelerometer -->
+      <LinearLayout android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:orientation="vertical"
+        android:padding="2sp">
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="AccX:" />
+          <TextView android:id="@+id/accelerometerX_text"
+            android:layout_width="wrap_content" android:textColor="#FFFF0000"
+            android:textStyle="bold" android:layout_height="wrap_content"
+            android:text="NaN" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="AccY:" />
+          <TextView android:id="@+id/accelerometerY_text"
+            android:layout_width="wrap_content" android:textColor="#FFFF0000"
+            android:textStyle="bold" android:layout_height="wrap_content"
+            android:text="NaN" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="AccZ:" />
+          <TextView android:id="@+id/accelerometerZ_text"
+            android:layout_width="wrap_content" android:textColor="#FFFF0000"
+            android:textStyle="bold" android:layout_height="wrap_content"
+            android:text="NaN" />
+        </LinearLayout>
+      </LinearLayout>
+
+
+      <!-- Gyro -->
+      <LinearLayout android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:orientation="vertical"
+        android:padding="2sp">
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="GyrX:" />
+          <TextView android:id="@+id/gyroX_text" android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="NaN" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="GyrY:" />
+          <TextView android:id="@+id/gyroY_text" android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="NaN" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="GyrZ:" />
+          <TextView android:id="@+id/gyroZ_text" android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="NaN" />
+        </LinearLayout>
+      </LinearLayout>
+
+
+      <!-- Magnetic Field -->
+      <LinearLayout android:layout_width="fill_parent"
+        android:layout_height="wrap_content" android:orientation="vertical"
+        android:padding="2sp">
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="MagX:" />
+          <TextView android:id="@+id/magneticFieldX_text"
+            android:layout_width="wrap_content" android:textColor="#FFFF0000"
+            android:textStyle="bold" android:layout_height="wrap_content"
+            android:text="NaN" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="MagY:" />
+          <TextView android:id="@+id/magneticFieldY_text"
+            android:layout_width="wrap_content" android:textColor="#FFFF0000"
+            android:textStyle="bold" android:layout_height="wrap_content"
+            android:text="NaN" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:orientation="horizontal">
+          <TextView android:layout_width="wrap_content"
+            android:textColor="#FFFF0000" android:textStyle="bold"
+            android:layout_height="wrap_content" android:text="MagZ:" />
+          <TextView android:id="@+id/magneticFieldZ_text"
+            android:layout_width="wrap_content" android:textColor="#FFFF0000"
+            android:textStyle="bold" android:layout_height="wrap_content"
+            android:text="NaN" />
+        </LinearLayout>
+      </LinearLayout>
+
+    </LinearLayout>
+
+  </LinearLayout>
+</FrameLayout>
