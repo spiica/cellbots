@@ -134,7 +134,7 @@ public class FrontCamcorderPreview extends SurfaceView implements SurfaceHolder.
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
             String path = Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + "/cellbots_logger/video-" + timeString + ".mp4";
+                    + "/cellbots_logger/" + timeString + "/video-" + timeString + ".mp4";
 
             Log.i(TAG, "Video file to use: " + path);
 
