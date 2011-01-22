@@ -31,7 +31,7 @@ import java.io.IOException;
 
 /**
  * View that handles the video recording functionality. Parts of this code were
- * taken from memofy's tutorial at:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * taken from memofy's tutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
@@ -80,7 +80,7 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
             String path = Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + "/cellbots_logger/video-" + timeString + ".mp4";
+                    + "/cellbots_logger/" + timeString + "/video-" + timeString + ".mp4";
 
             Log.i(TAG, "Video file to use: " + path);
 

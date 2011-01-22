@@ -42,7 +42,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -71,16 +74,6 @@ public class LoggerActivity extends Activity {
 
     private TextView mAccelZTextView;
 
-    private int mAccelAccuracy;
-
-    private float mAccelX = Float.NaN;
-
-    private float mAccelY = Float.NaN;
-
-    private float mAccelZ = Float.NaN;
-
-    private BufferedWriter mAccelWriter;
-
     // Gyro
     private TextView mGyroXTextView;
 
@@ -88,30 +81,12 @@ public class LoggerActivity extends Activity {
 
     private TextView mGyroZTextView;
 
-    private float mGyroX = Float.NaN;
-
-    private float mGyroY = Float.NaN;
-
-    private float mGyroZ = Float.NaN;
-
-    private BufferedWriter mGyroWriter;
-
     // Magnetic Field
     private TextView mMagXTextView;
 
     private TextView mMagYTextView;
 
     private TextView mMagZTextView;
-
-    private int mMagAccuracy;
-
-    private float mMagX = Float.NaN;
-
-    private float mMagY = Float.NaN;
-
-    private float mMagZ = Float.NaN;
-
-    private BufferedWriter mMagWriter;
 
     // Battery temperature (in Kelvin)
     private int mBatteryTemp = 0;
@@ -182,182 +157,151 @@ public class LoggerActivity extends Activity {
         setupSensors();
     }
 
+    private List<Sensor> sensors;
+
+    private HashMap<String, BufferedWriter> sensorLogFileWriters;
+
+    private SensorEventListener mSensorEventListener = new SensorEventListener() {
+        public void onSensorChanged(SensorEvent event) {
+            Sensor sensor = event.sensor;
+            if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                // Gyroscope doesn't really have a notion of accuracy.
+                // Due to a bug in Android, the gyroscope incorrectly returns
+                // its status as unreliable. This can be safely ignored and does
+                // not impact the accuracy of the readings.
+                event.accuracy = SensorManager.SENSOR_STATUS_ACCURACY_HIGH;
+            }
+            updateSensorUi(sensor.getType(), event.accuracy, event.values);
+            if (mIsRecording) {
+                String valuesStr = "";
+                for (int i = 0; i < event.values.length; i++) {
+                    valuesStr = valuesStr + event.values[i] + ",";
+                }
+                BufferedWriter writer = sensorLogFileWriters.get(sensor.getName());
+                try {
+                    writer.write(event.timestamp + "," + event.accuracy + "," + valuesStr + "\n");
+                    writer.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
     private void setupSensors() {
-        // Prepare all the files for writing
-        openFiles();
+        initSensorUi();
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
 
-        initAccelerometer();
-        initGyro();
-        initMag();
+        // Setup the files
+        sensorLogFileWriters = new HashMap<String, BufferedWriter>();
+        String directoryName = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/cellbots_logger/" + timeString + "/data/";
+        File directory = new File(directoryName);
+        if (!directory.exists() && !directory.mkdirs()) {
+            try {
+                throw new IOException(
+                        "Path to file could not be created. " + directory.getAbsolutePath());
+            } catch (IOException e) {
+                Log.e(TAG, "Directory could not be created. " + e.toString());
+            }
+        }
+        File file;
+        for (int i = 0; i < sensors.size(); i++) {
+            Sensor s = sensors.get(i);
+            String sensorFilename = directoryName + s.getName().replaceAll(" ", "_") + "_"
+                    + timeString + ".txt";
+            file = new File(sensorFilename);
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                sensorLogFileWriters.put(s.getName(), writer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mSensorManager.registerListener(
+                    mSensorEventListener, s, SensorManager.SENSOR_DELAY_GAME);
+        }
+        
+        // The battery is a special case since it is not a real sensor
+        String batteryTempFilename = directoryName + "/BatteryTemp_" + timeString + ".txt";
+        file = new File(batteryTempFilename);
+        try {
+            mBatteryTempWriter = new BufferedWriter(new FileWriter(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         initBattery();
-        // TODO: Add more sensors here!
 
         debugListSensors();
     }
 
-    private void initAccelerometer() {
-        // Setup the on screen display text views
+    private void initSensorUi() {
         mAccelXTextView = (TextView) findViewById(R.id.accelerometerX_text);
         mAccelYTextView = (TextView) findViewById(R.id.accelerometerY_text);
         mAccelZTextView = (TextView) findViewById(R.id.accelerometerZ_text);
 
-        mAccelAccuracy = SensorManager.SENSOR_STATUS_ACCURACY_HIGH;
-        Sensor accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(new SensorEventListener() {
-            public void onSensorChanged(SensorEvent event) {
-                mAccelX = event.values[0];
-                mAccelY = event.values[1];
-                mAccelZ = event.values[2];
-
-                int textColor = Color.GREEN;
-                String prefix = "";
-                switch (mAccelAccuracy) {
-                    case SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
-                        textColor = Color.GREEN;
-                        prefix = "";
-                        break;
-                    case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
-                        textColor = Color.YELLOW;
-                        prefix = "*";
-                        break;
-                    case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
-                        textColor = Color.RED;
-                        prefix = "**";
-                        break;
-                    case SensorManager.SENSOR_STATUS_UNRELIABLE:
-                        textColor = Color.RED;
-                        prefix = "***";
-                        break;
-                }
-
-                mAccelXTextView.setTextColor(textColor);
-                mAccelYTextView.setTextColor(textColor);
-                mAccelZTextView.setTextColor(textColor);
-                mAccelXTextView.setText(prefix + numberDisplayFormatter(mAccelX));
-                mAccelYTextView.setText(prefix + numberDisplayFormatter(mAccelY));
-                mAccelZTextView.setText(prefix + numberDisplayFormatter(mAccelZ));
-
-                if (mIsRecording) {
-                    try {
-                        mAccelWriter.write(
-                                event.timestamp + "," + mAccelAccuracy + "," + mAccelX + ","
-                                        + mAccelY + "," + mAccelZ + "\n");
-                        mAccelWriter.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                mAccelAccuracy = accuracy;
-            }
-        }, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME);
-    }
-
-    private void initGyro() {
-        // Setup the on screen display text views
         mGyroXTextView = (TextView) findViewById(R.id.gyroX_text);
         mGyroYTextView = (TextView) findViewById(R.id.gyroY_text);
         mGyroZTextView = (TextView) findViewById(R.id.gyroZ_text);
 
-        Sensor gyroSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        mSensorManager.registerListener(new SensorEventListener() {
-            public void onSensorChanged(SensorEvent event) {
-                mGyroX = event.values[0];
-                mGyroY = event.values[1];
-                mGyroZ = event.values[2];
-
-                int textColor = Color.GREEN;
-                String prefix = "";
-
-                mGyroXTextView.setTextColor(textColor);
-                mGyroYTextView.setTextColor(textColor);
-                mGyroZTextView.setTextColor(textColor);
-                mGyroXTextView.setText(prefix + numberDisplayFormatter(mGyroX));
-                mGyroYTextView.setText(prefix + numberDisplayFormatter(mGyroY));
-                mGyroZTextView.setText(prefix + numberDisplayFormatter(mGyroZ));
-
-                if (mIsRecording) {
-                    try {
-                        mGyroWriter.write(
-                                event.timestamp + "," + SensorManager.SENSOR_STATUS_ACCURACY_HIGH
-                                        + "," + mGyroX + "," + mGyroY + "," + mGyroZ + "\n");
-                        mGyroWriter.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                // Gyro is a special case; it doesn't really have a notion of
-                // accuracy. For consistency (ie, to make sorting/filtering the
-                // columns easier), we'll treat it as always being HIGH.
-            }
-        }, gyroSensor, SensorManager.SENSOR_DELAY_GAME);
-    }
-
-    private void initMag() {
-        // Setup the on screen display text views
         mMagXTextView = (TextView) findViewById(R.id.magneticFieldX_text);
         mMagYTextView = (TextView) findViewById(R.id.magneticFieldY_text);
         mMagZTextView = (TextView) findViewById(R.id.magneticFieldZ_text);
+    }
 
-        mMagAccuracy = SensorManager.SENSOR_STATUS_ACCURACY_HIGH;
-        Sensor magSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        mSensorManager.registerListener(new SensorEventListener() {
-            public void onSensorChanged(SensorEvent event) {
-                mMagX = event.values[0];
-                mMagY = event.values[1];
-                mMagZ = event.values[2];
+    private void updateSensorUi(int sensorType, int accuracy, float[] values) {
+        TextView xTextView;
+        TextView yTextView;
+        TextView zTextView;
+        if (sensorType == Sensor.TYPE_ACCELEROMETER) {
+            xTextView = mAccelXTextView;
+            yTextView = mAccelYTextView;
+            zTextView = mAccelZTextView;
+        } else if (sensorType == Sensor.TYPE_GYROSCOPE) {
+            xTextView = mGyroXTextView;
+            yTextView = mGyroYTextView;
+            zTextView = mGyroZTextView;
+        } else if (sensorType == Sensor.TYPE_MAGNETIC_FIELD) {
+            xTextView = mMagXTextView;
+            yTextView = mMagYTextView;
+            zTextView = mMagZTextView;
+        } else {
+            return;
+        }
 
-                int textColor = Color.GREEN;
-                String prefix = "";
-                switch (mMagAccuracy) {
-                    case SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
-                        textColor = Color.GREEN;
-                        prefix = "";
-                        break;
-                    case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
-                        textColor = Color.YELLOW;
-                        prefix = "*";
-                        break;
-                    case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
-                        textColor = Color.RED;
-                        prefix = "**";
-                        break;
-                    case SensorManager.SENSOR_STATUS_UNRELIABLE:
-                        textColor = Color.RED;
-                        prefix = "***";
-                        break;
-                }
+        int textColor = Color.GREEN;
+        String prefix = "";
+        switch (accuracy) {
+            case SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
+                textColor = Color.GREEN;
+                prefix = "";
+                break;
+            case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
+                textColor = Color.YELLOW;
+                prefix = "*";
+                break;
+            case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
+                textColor = Color.RED;
+                prefix = "**";
+                break;
+            case SensorManager.SENSOR_STATUS_UNRELIABLE:
+                textColor = Color.RED;
+                prefix = "***";
+                break;
+        }
 
-                mMagXTextView.setTextColor(textColor);
-                mMagYTextView.setTextColor(textColor);
-                mMagZTextView.setTextColor(textColor);
-                mMagXTextView.setText(prefix + numberDisplayFormatter(mMagX));
-                mMagYTextView.setText(prefix + numberDisplayFormatter(mMagY));
-                mMagZTextView.setText(prefix + numberDisplayFormatter(mMagZ));
+        xTextView.setTextColor(textColor);
+        yTextView.setTextColor(textColor);
+        zTextView.setTextColor(textColor);
+        xTextView.setText(prefix + numberDisplayFormatter(values[0]));
+        yTextView.setText(prefix + numberDisplayFormatter(values[1]));
+        zTextView.setText(prefix + numberDisplayFormatter(values[2]));
 
-                if (mIsRecording) {
-                    try {
-                        mMagWriter.write(
-                                event.timestamp + "," + mAccelAccuracy + "," + mMagX + "," + mMagY
-                                        + "," + mMagZ + "\n");
-                        mMagWriter.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                mMagAccuracy = accuracy;
-            }
-        }, magSensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
     private void initBattery() {
@@ -395,64 +339,15 @@ public class LoggerActivity extends Activity {
         }
     }
 
-    private void openFiles() {
-        String directoryName = Environment.getExternalStorageDirectory().getAbsolutePath()
-                + "/cellbots_logger";
-        File file;
-        File directory = new File(directoryName);
-        if (!directory.exists() && !directory.mkdirs()) {
-            try {
-                throw new IOException(
-                        "Path to file could not be created. " + directory.getAbsolutePath());
-            } catch (IOException e) {
-                Log.e(TAG, "Directory could not be created. " + e.toString());
-            }
-        }
-
-        // Accelerometer
-        String accelerometerFilename = directoryName + "/data-accelerometer-" + timeString + ".txt";
-        file = new File(accelerometerFilename);
-        try {
-            mAccelWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Gyro
-        String gyroFilename = directoryName + "/data-gyro-" + timeString + ".txt";
-        file = new File(gyroFilename);
-        try {
-            mGyroWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Magnetic field
-        String magFilename = directoryName + "/data-magneticfield-" + timeString + ".txt";
-        file = new File(magFilename);
-        try {
-            mMagWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Magnetic field
-        String batteryTempFilename = directoryName + "/data-batterytemp-" + timeString + ".txt";
-        file = new File(batteryTempFilename);
-        try {
-            mBatteryTempWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Add other sensor file writers here!
-    }
 
     private void closeFiles() {
         try {
-            mAccelWriter.close();
-            mGyroWriter.close();
-            mMagWriter.close();
+            Collection<BufferedWriter> writers = sensorLogFileWriters.values();
+            BufferedWriter[] w = new BufferedWriter[0];
+            w = writers.toArray(w);
+            for (int i = 0; i<w.length; i++){
+                w.clone();
+            }
             mBatteryTempWriter.close();
         } catch (IOException e) {
             // TODO Auto-generated catch block
