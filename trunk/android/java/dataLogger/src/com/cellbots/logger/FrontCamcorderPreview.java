@@ -39,7 +39,7 @@ import java.io.IOException;
 public class FrontCamcorderPreview extends SurfaceView implements SurfaceHolder.Callback,
         MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener {
 
-    public final static String TAG = "CELLBOTS LOGGER";
+    public static final String TAG = "CELLBOTS LOGGER";
 
     private MediaRecorder recorder;
 
@@ -90,7 +90,6 @@ public class FrontCamcorderPreview extends SurfaceView implements SurfaceHolder.
         try {
             mCameraDevice.setPreviewDisplay(holder);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
