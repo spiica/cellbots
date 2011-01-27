@@ -29,12 +29,16 @@ import android.hardware.SensorManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StatFs;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,7 +46,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -57,7 +60,13 @@ import java.util.List;
  */
 
 public class LoggerActivity extends Activity {
-    public final static String TAG = "CELLBOTS LOGGER";
+    public static final String TAG = "CELLBOTS LOGGER";
+
+    private static final String ARROW = "←";
+
+    private static final int UI_BAR_MAX_TOP_PADDING = 135;
+
+    private static final float TEMPERATURE_MAX = 500;
 
     public String timeString;
 
@@ -66,6 +75,10 @@ public class LoggerActivity extends Activity {
     private SensorManager mSensorManager;
 
     private boolean mIsRecording;
+
+    private SlidingDrawer mDataDrawer;
+
+    private SlidingDrawer mDiagnosticsDrawer;
 
     // Accelerometer
     private TextView mAccelXTextView;
@@ -95,10 +108,21 @@ public class LoggerActivity extends Activity {
 
     private BufferedWriter mBatteryTempWriter;
 
+    private long startRecTime = 0;
+
+    private LinearLayout mFlashingRecGroup;
+
+    private TextView mRecTimeTextView;
+
+    private StatFs mStatFs;
+
+    private int mFreeSpacePct;
+
+    private TextView mStorageTextView;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         // Keep the screen on to make sure the phone stays awake.
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
@@ -113,43 +137,83 @@ public class LoggerActivity extends Activity {
         final SurfaceHolder previewHolder = mCamcorderView.getHolder();
         previewHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
-        final Button stopQuitButton = (Button) findViewById(R.id.button_stopQuit);
-        stopQuitButton.setOnClickListener(new View.OnClickListener() {
+        // Setup the initial available space
+        mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
+        float percentage = (float) mStatFs.getAvailableBlocks() / (float) mStatFs.getBlockCount();
+        mFreeSpacePct = (int) (percentage * 100);
+        mStorageTextView = (TextView) findViewById(R.id.storage_text);
+        mStorageTextView.setText(ARROW + mFreeSpacePct);
+        mStorageTextView.setPadding(mStorageTextView.getPaddingLeft(),
+                (int) (percentage * UI_BAR_MAX_TOP_PADDING), mStorageTextView.getPaddingRight(),
+                mStorageTextView.getPaddingBottom());
+
+        mFlashingRecGroup = (LinearLayout) findViewById(R.id.flashingRecGroup);
+        mRecTimeTextView = (TextView) findViewById(R.id.recTime);
+
+        mDataDrawer = (SlidingDrawer) findViewById(R.id.dataDrawer);
+        mDiagnosticsDrawer = (SlidingDrawer) findViewById(R.id.diagnosticsDrawer);
+
+        final ImageButton recordButton = (ImageButton) findViewById(R.id.button_record);
+        recordButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                try {
-                    mIsRecording = false;
-                    // stop
-                    mCamcorderView.stopRecording();
-                    // release resources
-                    mCamcorderView.releaseRecorder();
-                    finish();
-                } catch (IllegalStateException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (!mIsRecording) {
+                    try {
+                        mIsRecording = true;
+                        recordButton.setImageResource(R.drawable.rec_button_pressed);
+                        // initializes recording
+                        mCamcorderView.initializeRecording();
+                        // starts recording
+                        mCamcorderView.startRecording();
+                        startRecTime = System.currentTimeMillis();
+                        new Thread(updateRecTimeDisplay).start();
+                    } catch (Exception e) {
+                        Log.e("ls", "Recording has failed...", e);
+                        Toast.makeText(getApplicationContext(),
+                                "Recording is not possible at the moment: " + e.toString(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    try {
+                        mIsRecording = false;
+                        // stop
+                        mCamcorderView.stopRecording();
+                        // release resources
+                        mCamcorderView.releaseRecorder();
+                        startRecTime = 0;
+                        finish();
+                    } catch (IllegalStateException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
 
-        final Button recordButton = (Button) findViewById(R.id.button_record);
-        recordButton.setOnClickListener(new View.OnClickListener() {
+        final Button dataHandleButton = (Button) findViewById(R.id.dataHandleButton);
+        final ImageButton dataButton = (ImageButton) findViewById(R.id.button_data);
+        dataButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                try {
-                    mIsRecording = true;
+                if (mDataDrawer.isOpened()) {
+                    dataButton.setImageResource(R.drawable.data_button_up);
+                    mDataDrawer.animateClose();
+                } else {
+                    dataButton.setImageResource(R.drawable.data_button_pressed);
+                    mDataDrawer.animateOpen();
+                }
+            }
+        });
 
-                    // initializes recording
-                    mCamcorderView.initializeRecording();
-                    // starts recording
-                    mCamcorderView.startRecording();
-
-                    recordButton.setVisibility(View.GONE);
-                    stopQuitButton.setVisibility(View.VISIBLE);
-                } catch (Exception e) {
-                    Log.e("ls", "Recording has failed...", e);
-
-                    Toast.makeText(getApplicationContext(),
-                            "Recording is not possible at the moment: " + e.toString(),
-                            Toast.LENGTH_SHORT).show();
+        final Button diagnosticsHandleButton = (Button) findViewById(R.id.diagnosticsHandleButton);
+        final ImageButton diagnosticsButton = (ImageButton) findViewById(R.id.button_diagnostics);
+        diagnosticsButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (mDiagnosticsDrawer.isOpened()) {
+                    diagnosticsButton.setImageResource(R.drawable.diagnostics_button_up);
+                    mDiagnosticsDrawer.animateClose();
+                } else {
+                    diagnosticsButton.setImageResource(R.drawable.diagnostics_button_pressed);
+                    mDiagnosticsDrawer.animateOpen();
                 }
             }
         });
@@ -192,6 +256,49 @@ public class LoggerActivity extends Activity {
         }
     };
 
+    private Runnable updateRecTimeDisplay = new Runnable() {
+        @Override
+        public void run() {
+            while (mIsRecording) {
+                mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
+                float percentage = (float) mStatFs.getAvailableBlocks()
+                        / (float) mStatFs.getBlockCount();
+                final int paddingTop = (int) (percentage * UI_BAR_MAX_TOP_PADDING);
+                mFreeSpacePct = (int) (percentage * 100);
+                Log.e("DEBUG", mStatFs.getAvailableBlocks() + " / " + mStatFs.getBlockCount());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mFlashingRecGroup.getVisibility() == View.VISIBLE) {
+                            mFlashingRecGroup.setVisibility(View.INVISIBLE);
+                        } else {
+                            mFlashingRecGroup.setVisibility(View.VISIBLE);
+                        }
+                        mRecTimeTextView.setText(DateUtils.formatElapsedTime(
+                                (System.currentTimeMillis() - startRecTime) / 1000));
+                        mStorageTextView = (TextView) findViewById(R.id.storage_text);
+                        mStorageTextView.setText(ARROW + mFreeSpacePct);
+                        mStorageTextView.setPadding(mStorageTextView.getPaddingLeft(), paddingTop,
+                                mStorageTextView.getPaddingRight(),
+                                mStorageTextView.getPaddingBottom());
+                    }
+                });
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mFlashingRecGroup.setVisibility(View.INVISIBLE);
+                }
+            });
+        }
+    };
+
     private void setupSensors() {
         initSensorUi();
 
@@ -226,7 +333,7 @@ public class LoggerActivity extends Activity {
             mSensorManager.registerListener(
                     mSensorEventListener, s, SensorManager.SENSOR_DELAY_GAME);
         }
-        
+
         // The battery is a special case since it is not a real sensor
         String batteryTempFilename = directoryName + "/BatteryTemp_" + timeString + ".txt";
         file = new File(batteryTempFilename);
@@ -255,6 +362,15 @@ public class LoggerActivity extends Activity {
     }
 
     private void updateSensorUi(int sensorType, int accuracy, float[] values) {
+        // IMPORTANT: DO NOT UPDATE THE CONTENTS INSIDE A DRAWER IF IT IS BEING
+        // ANIMATED VIA A CALL TO animateOpen/animateClose!!!
+        // Updating anything inside will stop the animation from running.
+        // Note that this does not seem to affect the animation if it had been
+        // triggered by dragging the drawer instead of being called
+        // programatically.
+        if (mDataDrawer.isMoving()) {
+            return;
+        }
         TextView xTextView;
         TextView yTextView;
         TextView zTextView;
@@ -320,7 +436,12 @@ public class LoggerActivity extends Activity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
-                mBatteryTempTextView.setText(mBatteryTemp + "");
+                float percentage = (float) mBatteryTemp / (float) TEMPERATURE_MAX;
+                int paddingTop = (int) (percentage * UI_BAR_MAX_TOP_PADDING);
+                mBatteryTempTextView.setText(ARROW + (mBatteryTemp / 10));
+                mBatteryTempTextView.setPadding(mBatteryTempTextView.getPaddingLeft(), paddingTop,
+                        mBatteryTempTextView.getPaddingRight(),
+                        mBatteryTempTextView.getPaddingBottom());
                 try {
                     mBatteryTempWriter.write(
                             System.currentTimeMillis() + "," + mBatteryTemp + "\n");
@@ -339,18 +460,16 @@ public class LoggerActivity extends Activity {
         }
     }
 
-
     private void closeFiles() {
         try {
             Collection<BufferedWriter> writers = sensorLogFileWriters.values();
             BufferedWriter[] w = new BufferedWriter[0];
             w = writers.toArray(w);
-            for (int i = 0; i<w.length; i++){
+            for (int i = 0; i < w.length; i++) {
                 w.clone();
             }
             mBatteryTempWriter.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -382,6 +501,7 @@ public class LoggerActivity extends Activity {
                 mCamcorderView.setVisibility(View.GONE);
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
