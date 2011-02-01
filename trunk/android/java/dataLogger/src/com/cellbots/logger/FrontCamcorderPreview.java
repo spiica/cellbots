@@ -24,20 +24,18 @@ import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
  * View that handles the video recording functionality. Parts of this code were
- * taken from memofy's tutorial at:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * taken from memofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
-public class FrontCamcorderPreview extends SurfaceView implements SurfaceHolder.Callback,
-        MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener {
+public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
+        SurfaceHolder.Callback, MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener {
 
     public static final String TAG = "CELLBOTS LOGGER";
 
@@ -121,6 +119,7 @@ public class FrontCamcorderPreview extends SurfaceView implements SurfaceHolder.
         mPreviewing = false;
     }
 
+    @Override
     public void initializeRecording() {
         if (!initialized) {
             mCameraDevice.unlock();
@@ -187,6 +186,7 @@ public class FrontCamcorderPreview extends SurfaceView implements SurfaceHolder.
         Log.e(TAG, "Info received from media recorder: " + what + ", " + extra);
     }
 
+    @Override
     public void releaseRecorder() throws IOException {
 
         if (recorder != null) {
@@ -203,10 +203,12 @@ public class FrontCamcorderPreview extends SurfaceView implements SurfaceHolder.
         initialized = false;
     }
 
+    @Override
     public void startRecording() {
         recorder.start();
     }
 
+    @Override
     public void stopRecording() {
         recorder.stop();
     }

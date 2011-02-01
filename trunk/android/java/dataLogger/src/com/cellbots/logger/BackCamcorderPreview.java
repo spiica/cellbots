@@ -23,22 +23,19 @@ import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * View that handles the video recording functionality. Parts of this code were
- * taken from memofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * View that handles the video recording functionality. Parts of thiscodeweretakenfrommemofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
-public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callback,
-        MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener {
+public class BackCamcorderPreview extends AbstractCamcorderPreview implements
+        SurfaceHolder.Callback, MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener {
 
-    public final static String TAG = "CELLBOTS LOGGER";
+    public static final String TAG = "CELLBOTS LOGGER";
 
     private MediaRecorder recorder;
 
@@ -56,7 +53,7 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
 
     private String timeString;
 
-    public CamcorderPreview(Context context, AttributeSet attrs) {
+    public BackCamcorderPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         timeString = ((LoggerActivity) context).timeString;
@@ -70,6 +67,7 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
         initializeRecording();
     }
 
+    @Override
     public void initializeRecording() {
         if (!initialized) {
             recorder = new MediaRecorder();
@@ -78,6 +76,11 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+
+            // This next line should have fixed the orientation problem, but it
+            // didn't work on Nexus S. If you know how to fix this, please
+            // submit a patch.
+            // recorder.setOrientationHint(90);
 
             String path = Environment.getExternalStorageDirectory().getAbsolutePath()
                     + "/cellbots_logger/" + timeString + "/video-" + timeString + ".mp4";
@@ -134,6 +137,7 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
         Log.e(TAG, "Info received from media recorder: " + what + ", " + extra);
     }
 
+    @Override
     public void releaseRecorder() throws IOException {
 
         if (recorder != null) {
@@ -148,10 +152,12 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
         initialized = false;
     }
 
+    @Override
     public void startRecording() {
         recorder.start();
     }
 
+    @Override
     public void stopRecording() {
         recorder.stop();
     }
