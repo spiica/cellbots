@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -24,6 +24,7 @@ import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -55,7 +56,9 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
 
     private String timeString;
 
-    private Camera mCameraDevice;
+    private Camera camera;
+
+    private boolean previewing = false;
 
     public FrontCamcorderPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -71,33 +74,37 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
         startPreview();
     }
 
-    private boolean mPreviewing = false;
-
     private void startPreview() {
         Log.v(TAG, "startPreview");
-        if (mCameraDevice == null) {
+        if (camera == null) {
             // If the activity is paused and resumed, camera device has been
             // released and we need to open the camera.
-            mCameraDevice = Camera.open(1);
+            try {
+                camera = Camera.open(1);
+            } catch (NoSuchMethodError e) {
+                // Method call not available below API level 9. We can't access the front camera.
+                e.printStackTrace();
+                return;
+            }
         }
 
-        if (mPreviewing) {
-            mCameraDevice.stopPreview();
-            mPreviewing = false;
+        if (previewing) {
+            camera.stopPreview();
+            previewing = false;
         }
         try {
-            mCameraDevice.setPreviewDisplay(holder);
+            camera.setPreviewDisplay(holder);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        mCameraDevice.setDisplayOrientation(90);
+        camera.setDisplayOrientation(90);
         // Util.setCameraDisplayOrientation(this, mCameraId, mCameraDevice);
         // setCameraParameters();
 
         try {
-            mCameraDevice.startPreview();
-            mPreviewing = true;
+            camera.startPreview();
+            previewing = true;
         } catch (Throwable ex) {
             closeCamera();
             throw new RuntimeException("startPreview failed", ex);
@@ -108,25 +115,25 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
 
     private void closeCamera() {
         Log.v(TAG, "closeCamera");
-        if (mCameraDevice == null) {
+        if (camera == null) {
             Log.d(TAG, "already stopped.");
             return;
         }
         // If we don't lock the camera, release() will fail.
-        mCameraDevice.lock();
-        mCameraDevice.release();
-        mCameraDevice = null;
-        mPreviewing = false;
+        camera.lock();
+        camera.release();
+        camera = null;
+        previewing = false;
     }
 
     @Override
     public void initializeRecording() {
         if (!initialized) {
-            mCameraDevice.unlock();
+            camera.unlock();
             recorder = new MediaRecorder();
             recorder.setOnErrorListener(this);
             recorder.setOnInfoListener(this);
-            recorder.setCamera(mCameraDevice);
+            recorder.setCamera(camera);
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
@@ -137,7 +144,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
             Log.i(TAG, "Video file to use: " + path);
 
             final File file = new File(path);
-            File directory = file.getParentFile();
+            final File directory = file.getParentFile();
             if (!directory.exists() && !directory.mkdirs()) {
                 try {
                     throw new IOException(
@@ -170,13 +177,9 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
         }
     }
 
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
 
-    }
-
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
+    public void surfaceDestroyed(SurfaceHolder holder) { }
 
     public void onError(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
@@ -210,7 +213,9 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
 
     @Override
     public void stopRecording() {
-        recorder.stop();
+        if (recorder != null) {
+          recorder.stop();
+        }
     }
 
 }

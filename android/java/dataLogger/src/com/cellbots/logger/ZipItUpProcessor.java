@@ -34,7 +34,7 @@ import java.util.zip.ZipOutputStream;
  * @author birmiwal@google.com (Shishir Birmiwal)
  */
 public class ZipItUpProcessor {
-    private static final int BUFFER_SIZE = 2048;
+    private static final int BUFFER_SIZE = 8 * 1024;
 
     private final ZipItUpRequest request;
 
@@ -56,18 +56,26 @@ public class ZipItUpProcessor {
         int numFilesProcessed = 0;
         for (String inputFile : request.getInputFiles()) {
             Log.e("zipIt", "reading file " + inputFile);
+            File inFile = new File(inputFile);
+            if (!inFile.isFile()) {
+                numFilesProcessed++;
+                continue;
+            }
+            double fileLength = inFile.length() + 1;
             updateStatus(handler, numFilesProcessed, inputFile, false);
-            BufferedInputStream in = new BufferedInputStream(
-                    new FileInputStream(new File(inputFile)));
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(inFile));
             ZipEntry entry = new ZipEntry(inputFile.substring(inputFile.lastIndexOf('/') + 1));
             outStream.putNextEntry(entry);
+            long numBytesReadFromFile = 0;
             int numBytesRead = 0;
             while ((numBytesRead = in.read(buffer)) >= 0) {
+                numBytesReadFromFile += numBytesRead;
                 outStream.write(buffer, 0, numBytesRead);
+                updateStatus(handler, numFilesProcessed, 100. * numBytesReadFromFile / fileLength,
+                        inputFile, false);
             }
             in.close();
             outStream.closeEntry();
-            numFilesProcessed++;
             Log.e("zipIt", "done " + inputFile);
         }
         outStream.close();
@@ -75,11 +83,17 @@ public class ZipItUpProcessor {
 
         if (request.isDeleteInputfiles()) {
             numFilesProcessed = 0;
-            for (String inputFile : request.getInputFiles()) {
-                updateStatus(handler, numFilesProcessed, inputFile, true);
-                File file = new File(inputFile);
-                file.delete();
-                numFilesProcessed++;
+            boolean atleastOneFileWasDeleted = true;
+            while (atleastOneFileWasDeleted) {
+                atleastOneFileWasDeleted = false;
+                for (String inputFile : request.getInputFiles()) {
+                    updateStatus(handler, numFilesProcessed, inputFile, true);
+                    File file = new File(inputFile);
+                    if (file.exists() && file.delete()) {
+                        numFilesProcessed++;
+                        atleastOneFileWasDeleted = true;
+                    }
+                }
             }
         }
         sendUpdate(handler, 100, "all done");
@@ -88,6 +102,14 @@ public class ZipItUpProcessor {
     private void updateStatus(
             Handler handler, int numFilesProcessed, String inputFile, boolean deleteStage) {
         int percentageDone = (100 * numFilesProcessed) / request.getInputFiles().size();
+        String statusMsg = (deleteStage ? "deleting " : "zipping ") + inputFile;
+        sendUpdate(handler, percentageDone, statusMsg);
+    }
+
+    private void updateStatus(Handler handler, int numFilesProcessed, double currentFilePercentage,
+            String inputFile, boolean deleteStage) {
+        int percentageDone = (int) ((100 * numFilesProcessed + currentFilePercentage)
+            / request.getInputFiles().size());
         String statusMsg = (deleteStage ? "deleting " : "zipping ") + inputFile;
         sendUpdate(handler, percentageDone, statusMsg);
     }

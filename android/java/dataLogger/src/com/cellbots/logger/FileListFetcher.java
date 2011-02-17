@@ -27,22 +27,20 @@ import java.util.List;
  */
 public class FileListFetcher {
     /**
-     * Returns all the files in the directory upto {@code dirLevel} deep.
+     * Returns all the files and directories in the directory.
      *
      * @param dirname the directory to look into
      * @return an list of file names
      */
-    List<String> getFilesInDir(String dirname) {
+    List<String> getFilesAndDirectoriesInDir(String dirname) {
         List<String> files = new ArrayList<String>();
         File dir = new File(dirname);
         String[] entries = dir.list();
         for (String entry : entries) {
             File f = new File(dir, entry);
-            if (f.isFile()) {
-                files.add(f.getAbsolutePath());
-            }
+            files.add(f.getAbsolutePath());
             if (f.isDirectory()) {
-                files.addAll(getFilesInDir(f.getAbsolutePath()));
+                files.addAll(getFilesAndDirectoriesInDir(f.getAbsolutePath()));
             }
         }
         return files;
