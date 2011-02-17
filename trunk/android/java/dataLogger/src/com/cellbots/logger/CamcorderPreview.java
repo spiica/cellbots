@@ -67,10 +67,26 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
-        initializeRecording();
+        initializeRecorder();
     }
 
-    public void initializeRecording() {
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    public void onError(MediaRecorder mediaRecorder, int what, int extra) {
+        Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
+    }
+
+    public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
+        Log.e(TAG, "Info received from media recorder: " + what + ", " + extra);
+    }
+
+    public void initializeRecorder() {
         if (!initialized) {
             recorder = new MediaRecorder();
             recorder.setOnErrorListener(this);
@@ -78,12 +94,12 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-
+    
             String path = Environment.getExternalStorageDirectory().getAbsolutePath()
                     + "/cellbots_logger/" + timeString + "/video-" + timeString + ".mp4";
-
+    
             Log.i(TAG, "Video file to use: " + path);
-
+    
             final File file = new File(path);
             File directory = file.getParentFile();
             if (!directory.exists() && !directory.mkdirs()) {
@@ -94,11 +110,11 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
                     Log.e(TAG, "Directory could not be created. " + e.toString());
                 }
             }
-
+    
             if (file.exists()) {
                 file.delete();
             }
-
+    
             if (recorder != null) {
                 try {
                     file.createNewFile();
@@ -116,22 +132,6 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
             }
             initialized = true;
         }
-    }
-
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-    }
-
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
-
-    public void onError(MediaRecorder mediaRecorder, int what, int extra) {
-        Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
-    }
-
-    public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
-        Log.e(TAG, "Info received from media recorder: " + what + ", " + extra);
     }
 
     public void releaseRecorder() throws IOException {

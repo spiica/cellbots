@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,12 +17,14 @@
 package com.cellbots.logger;
 
 import android.content.Context;
+import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,6 +36,8 @@ import java.io.IOException;
  */
 public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         SurfaceHolder.Callback, MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener {
+
+    // TODO(braun): Show the camera preview even before recording.
 
     public static final String TAG = "CELLBOTS LOGGER";
 
@@ -49,11 +53,13 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
 
     private static final int CIF_HEIGHT = 480;
 
+    private static final int CAMERA_ORIENTATION_DEGREES = 90;
+
     private boolean initialized;
 
     private String timeString;
 
-    public BackCamcorderPreview(Context context, AttributeSet attrs) {
+    public BackCamcorderPreview(final Context context, final AttributeSet attrs) {
         super(context, attrs);
 
         timeString = ((LoggerActivity) context).timeString;
@@ -63,7 +69,7 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
-    public void surfaceCreated(SurfaceHolder holder) {
+    public void surfaceCreated(final SurfaceHolder holder) {
         initializeRecording();
     }
 
@@ -73,14 +79,19 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
             recorder = new MediaRecorder();
             recorder.setOnErrorListener(this);
             recorder.setOnInfoListener(this);
+            Camera camera = Camera.open();
+            camera.setDisplayOrientation(CAMERA_ORIENTATION_DEGREES);
+            camera.unlock();
+            recorder.setCamera(camera);
+            try {
+              recorder.setOrientationHint(CAMERA_ORIENTATION_DEGREES);
+            } catch (NoSuchMethodError e){
+              // Method call not available below API level 9. The recorded video will be rotated.
+              e.printStackTrace();
+            }
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-
-            // This next line should have fixed the orientation problem, but it
-            // didn't work on Nexus S. If you know how to fix this, please
-            // submit a patch.
-            // recorder.setOrientationHint(90);
 
             String path = Environment.getExternalStorageDirectory().getAbsolutePath()
                     + "/cellbots_logger/" + timeString + "/video-" + timeString + ".mp4";
@@ -88,7 +99,7 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
             Log.i(TAG, "Video file to use: " + path);
 
             final File file = new File(path);
-            File directory = file.getParentFile();
+            final File directory = file.getParentFile();
             if (!directory.exists() && !directory.mkdirs()) {
                 try {
                     throw new IOException(
@@ -121,13 +132,9 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         }
     }
 
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
 
-    }
-
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
+    public void surfaceDestroyed(SurfaceHolder holder) { }
 
     public void onError(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
@@ -139,7 +146,6 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
 
     @Override
     public void releaseRecorder() throws IOException {
-
         if (recorder != null) {
             recorder.reset();
             recorder.release();

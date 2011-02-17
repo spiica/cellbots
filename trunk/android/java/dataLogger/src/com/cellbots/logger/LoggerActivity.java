@@ -390,6 +390,12 @@ public class LoggerActivity extends Activity {
     }
 
     @Override
+    public void onPause() {
+      super.onPause();
+      shutdown();
+    }
+
+    @Override
     protected Dialog onCreateDialog(int id) {
         if (id != PROGRESS_ID) {
             return super.onCreateDialog(id);
@@ -413,7 +419,8 @@ public class LoggerActivity extends Activity {
             public void run() {
                 ZipItUpRequest request = new ZipItUpRequest();
                 String directoryName = getLoggerPathPrefix();
-                request.setInputFiles(new FileListFetcher().getFilesInDir(directoryName));
+                request.setInputFiles(new FileListFetcher()
+                    .getFilesAndDirectoriesInDir(directoryName));
                 request.setOutputFile(directoryName + "/logged-data.zip");
                 request.setMaxOutputFileSize(MAX_OUTPUT_ZIP_CHUNK_SIZE);
                 request.setDeleteInputfiles(true);
@@ -586,7 +593,6 @@ public class LoggerActivity extends Activity {
     }
 
     private void initGps() {
-        final Context self = this;
         mGpsManager = new GpsManager(this, new GpsManagerListener() {
 
             @Override
@@ -709,6 +715,7 @@ public class LoggerActivity extends Activity {
             }
             if (mCameraView != null) {
                 mCameraView.stop();
+                mCameraView.releaseCamera();
             }
             startRecTime = 0;
         } catch (IllegalStateException e) {
