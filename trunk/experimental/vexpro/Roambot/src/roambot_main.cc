@@ -44,6 +44,7 @@
 #include "qemotortraj.h"
 #include "qeservo.h"
 #include "motor.h"
+#include "sonar.h"
 
 #include <iostream>
 
@@ -60,6 +61,12 @@ bool stopped = false;
 
 // Default acceleration as percentage of maximum
 static unsigned int ACCL = 100;
+
+// Default sonar pins
+static int SONAR_INPUT_PIN = 0;
+static int SONAR_OUTPUT_PIN = 1;
+
+static bool AUTO_STOP = true;
 
 MotorControl *motor_control = MotorControl::GetInstance();
 
@@ -91,6 +98,29 @@ void parseAndSetWheelVelocities(char* cmd) {
       right_accl = atoi(tok);
   }
   motor_control->SetWheelVelocity(left_vel, right_vel, left_accl, right_accl);
+}
+
+void sendReply(int tty_fd, const char* msg) {
+  int size = strlen(msg);
+  int ret_val = write(tty_fd, msg, size);
+  if (ret_val != size) {
+    printf("Error writing %s \n", msg);
+  }
+}
+
+void stopOnObstacle(SonarControl* sonar_control) {
+  if (!AUTO_STOP) {
+    return;
+  }
+
+  sonar_control->SendPulse();
+  int distance = sonar_control->GetDistanceInCm();
+
+  // TODO: have a way to check if the motor is already stopped.
+  if (distance < 30) {
+    printf("(%d): Stopping to avoid bumping -- distance: %d cm \n", time(NULL), distance);
+    motor_control->SetWheelVelocity(0, 0, 0, 0);
+  }
 }
 
 // Starts listening over the UART serial input to which Bluetooth is connected.
@@ -129,6 +159,11 @@ void startListen() {
   tcsetattr(tty_fd, TCSANOW, &tio);
   char cmd[128];
   int pos = 0;
+
+  // Enable reading sonar data
+  SonarControl *sonar_control = new SonarControl(SONAR_INPUT_PIN, SONAR_OUTPUT_PIN);
+  sonar_control->StartReading();
+
   while (1)
   {
     if (read(tty_fd, &c, 1) > 0) {
@@ -172,6 +207,14 @@ void startListen() {
         } else if (strcmp(cmd, "hc") == 0) {  // move head up
           servo.SetCommand(2, head_horiz_angle);
           servo.SetCommand(3, head_vertical_angle);
+        } else if (strcmp(cmd, "fr") == 0 || strcmp(cmd, "fz") == 0 || strcmp(cmd, "x") == 0) {
+          printf("Reading sonar data: ");
+          sonar_control->SendPulse();
+          int distance = sonar_control->GetDistanceInCm();
+          char msg[128];
+          sprintf(msg, "x:%d\n", distance);
+          printf("%s", msg);
+          sendReply(tty_fd, msg);
         } else if (cmd[0] == 'w' || cmd[0] == 'W') {
           parseAndSetWheelVelocities(cmd);
         } else if (cmd[0] == 'f' || cmd[0] == 'F') {
@@ -193,6 +236,8 @@ void startListen() {
         cmd[pos++] = c;
       }
     }
+
+    stopOnObstacle(sonar_control);
   }
   servo.SetCommand(2, 132.5);
   servo.SetCommand(3, 132.5);
