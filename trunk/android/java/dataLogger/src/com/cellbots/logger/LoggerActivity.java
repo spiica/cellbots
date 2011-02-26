@@ -71,8 +71,6 @@ public class LoggerActivity extends Activity {
      */
     public static final String TAG = "CELLBOTS LOGGER";
 
-    private static final String ARROW = "←";
-
     public static final String EXTRA_MODE = "MODE";
 
     public static final String EXTRA_PICTURE_DELAY = "PICTURE_DELAY";
@@ -83,7 +81,7 @@ public class LoggerActivity extends Activity {
 
     public static final int MODE_PICTURES = 2;
 
-    private static final int UI_BAR_MAX_TOP_PADDING = 135;
+    private static final int UI_BAR_MAX_TOP_PADDING = 190;
 
     private static final float TEMPERATURE_MAX = 500;
 
@@ -132,11 +130,15 @@ public class LoggerActivity extends Activity {
 
     private TextView mBatteryTempTextView;
 
+    private TextView mBatteryTempSpacerTextView;
+
     private LinearLayout mFlashingRecGroup;
 
     private TextView mRecTimeTextView;
 
     private TextView mStorageTextView;
+
+    private TextView mStorageSpacerTextView;
 
     private SlidingDrawer mDiagnosticsDrawer;
 
@@ -238,10 +240,10 @@ public class LoggerActivity extends Activity {
                                     "Pictures taken: " + mCameraView.getPictureCount());
                         }
                         mStorageTextView = (TextView) findViewById(R.id.storage_text);
-                        mStorageTextView.setText(ARROW + mFreeSpacePct);
-                        mStorageTextView.setPadding(mStorageTextView.getPaddingLeft(), paddingTop,
-                                mStorageTextView.getPaddingRight(),
-                                mStorageTextView.getPaddingBottom());
+                        mStorageTextView.setText(mFreeSpacePct + "%");
+                        mStorageSpacerTextView.setPadding(mStorageSpacerTextView.getPaddingLeft(),
+                                paddingTop, mStorageSpacerTextView.getPaddingRight(),
+                                mStorageSpacerTextView.getPaddingBottom());
                     }
                 });
                 try {
@@ -299,11 +301,12 @@ public class LoggerActivity extends Activity {
         float percentage = (float) mStatFs.getAvailableBlocks() / (float) mStatFs.getBlockCount();
         mFreeSpacePct = (int) (percentage * 100);
         mStorageTextView = (TextView) findViewById(R.id.storage_text);
-        mStorageTextView.setText(ARROW + mFreeSpacePct);
-        mStorageTextView.setPadding(mStorageTextView.getPaddingLeft(),
-                (int) (percentage * UI_BAR_MAX_TOP_PADDING), mStorageTextView.getPaddingRight(),
-                mStorageTextView.getPaddingBottom());
-
+        mStorageSpacerTextView = (TextView) findViewById(R.id.storage_text_spacer);
+        mStorageTextView.setText(mFreeSpacePct + "%");
+        mStorageSpacerTextView.setPadding(mStorageSpacerTextView.getPaddingLeft(),
+                (int) (percentage * UI_BAR_MAX_TOP_PADDING),
+                mStorageSpacerTextView.getPaddingRight(),
+                mStorageSpacerTextView.getPaddingBottom());
         mFlashingRecGroup = (LinearLayout) findViewById(R.id.flashingRecGroup);
         mRecTimeTextView = (TextView) findViewById(R.id.recTime);
         mGpsLocationView = (TextView) findViewById(R.id.gpsLocation);
@@ -391,8 +394,8 @@ public class LoggerActivity extends Activity {
 
     @Override
     public void onPause() {
-      super.onPause();
-      shutdown();
+        super.onPause();
+        shutdown();
     }
 
     @Override
@@ -419,8 +422,8 @@ public class LoggerActivity extends Activity {
             public void run() {
                 ZipItUpRequest request = new ZipItUpRequest();
                 String directoryName = getLoggerPathPrefix();
-                request.setInputFiles(new FileListFetcher()
-                    .getFilesAndDirectoriesInDir(directoryName));
+                request.setInputFiles(
+                        new FileListFetcher().getFilesAndDirectoriesInDir(directoryName));
                 request.setOutputFile(directoryName + "/logged-data.zip");
                 request.setMaxOutputFileSize(MAX_OUTPUT_ZIP_CHUNK_SIZE);
                 request.setDeleteInputfiles(true);
@@ -566,20 +569,20 @@ public class LoggerActivity extends Activity {
         String prefix = "";
         switch (accuracy) {
             case SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
-                textColor = Color.GREEN;
-                prefix = "";
+                textColor = Color.WHITE;
+                prefix = "  ";
                 break;
             case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
                 textColor = Color.YELLOW;
-                prefix = "*";
+                prefix = "  *";
                 break;
             case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
                 textColor = Color.RED;
-                prefix = "**";
+                prefix = "  **";
                 break;
             case SensorManager.SENSOR_STATUS_UNRELIABLE:
                 textColor = Color.RED;
-                prefix = "***";
+                prefix = "  ***";
                 break;
         }
 
@@ -644,6 +647,7 @@ public class LoggerActivity extends Activity {
         // Note that we are reading the current time in MILLISECONDS for this,
         // as opposed to NANOSECONDS for regular sensors.
         mBatteryTempTextView = (TextView) findViewById(R.id.batteryTemp_text);
+        mBatteryTempSpacerTextView = (TextView) findViewById(R.id.batteryTemp_text_spacer);
         IntentFilter batteryTemperatureFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(new BroadcastReceiver() {
             @Override
@@ -651,10 +655,10 @@ public class LoggerActivity extends Activity {
                 mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
                 float percentage = mBatteryTemp / TEMPERATURE_MAX;
                 int paddingTop = (int) (percentage * UI_BAR_MAX_TOP_PADDING);
-                mBatteryTempTextView.setText(ARROW + (mBatteryTemp / 10));
-                mBatteryTempTextView.setPadding(mBatteryTempTextView.getPaddingLeft(), paddingTop,
-                        mBatteryTempTextView.getPaddingRight(),
-                        mBatteryTempTextView.getPaddingBottom());
+                mBatteryTempTextView.setText((mBatteryTemp / 10) + "°C");
+                mBatteryTempSpacerTextView.setPadding(mBatteryTempSpacerTextView.getPaddingLeft(),
+                        paddingTop, mBatteryTempSpacerTextView.getPaddingRight(),
+                        mBatteryTempSpacerTextView.getPaddingBottom());
                 try {
                     mBatteryTempWriter.write(
                             System.currentTimeMillis() + "," + mBatteryTemp + "\n");
