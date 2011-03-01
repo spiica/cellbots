@@ -81,7 +81,7 @@ public class LoggerActivity extends Activity {
 
     public static final int MODE_PICTURES = 2;
 
-    private static final int UI_BAR_MAX_TOP_PADDING = 190;
+    private static final int UI_BAR_MAX_TOP_PADDING = 206;
 
     private static final float TEMPERATURE_MAX = 500;
 
@@ -127,6 +127,8 @@ public class LoggerActivity extends Activity {
     private TextView mMagYTextView;
 
     private TextView mMagZTextView;
+    
+    private BarImageView mBatteryTempBarImageView;
 
     private TextView mBatteryTempTextView;
 
@@ -135,6 +137,8 @@ public class LoggerActivity extends Activity {
     private LinearLayout mFlashingRecGroup;
 
     private TextView mRecTimeTextView;
+    
+    private BarImageView mStorageBarImageView;
 
     private TextView mStorageTextView;
 
@@ -217,7 +221,7 @@ public class LoggerActivity extends Activity {
         public void run() {
             while (mIsRecording) {
                 mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
-                float percentage = (float) mStatFs.getAvailableBlocks()
+                final float percentage = (float) (mStatFs.getBlockCount() - mStatFs.getAvailableBlocks())
                         / (float) mStatFs.getBlockCount();
                 final int paddingTop = (int) (percentage * UI_BAR_MAX_TOP_PADDING);
                 mFreeSpacePct = (int) (percentage * 100);
@@ -239,6 +243,7 @@ public class LoggerActivity extends Activity {
                             mPictureCountView.setText(
                                     "Pictures taken: " + mCameraView.getPictureCount());
                         }
+                        mStorageBarImageView.setPercentage(percentage);
                         mStorageTextView = (TextView) findViewById(R.id.storage_text);
                         mStorageTextView.setText(mFreeSpacePct + "%");
                         mStorageSpacerTextView.setPadding(mStorageSpacerTextView.getPaddingLeft(),
@@ -298,13 +303,15 @@ public class LoggerActivity extends Activity {
 
         // Setup the initial available space
         mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
-        float percentage = (float) mStatFs.getAvailableBlocks() / (float) mStatFs.getBlockCount();
+        float percentage = (float) (mStatFs.getBlockCount() - mStatFs.getAvailableBlocks()) / (float) mStatFs.getBlockCount();
         mFreeSpacePct = (int) (percentage * 100);
+        mStorageBarImageView = (BarImageView) findViewById(R.id.storage_barImageView);
+        mStorageBarImageView.setPercentage(percentage);
         mStorageTextView = (TextView) findViewById(R.id.storage_text);
         mStorageSpacerTextView = (TextView) findViewById(R.id.storage_text_spacer);
         mStorageTextView.setText(mFreeSpacePct + "%");
         mStorageSpacerTextView.setPadding(mStorageSpacerTextView.getPaddingLeft(),
-                (int) (percentage * UI_BAR_MAX_TOP_PADDING),
+                (int) (((float)1 - percentage) * UI_BAR_MAX_TOP_PADDING),
                 mStorageSpacerTextView.getPaddingRight(),
                 mStorageSpacerTextView.getPaddingBottom());
         mFlashingRecGroup = (LinearLayout) findViewById(R.id.flashingRecGroup);
@@ -646,6 +653,7 @@ public class LoggerActivity extends Activity {
         //
         // Note that we are reading the current time in MILLISECONDS for this,
         // as opposed to NANOSECONDS for regular sensors.
+        mBatteryTempBarImageView = (BarImageView) findViewById(R.id.temperature_barImageView);
         mBatteryTempTextView = (TextView) findViewById(R.id.batteryTemp_text);
         mBatteryTempSpacerTextView = (TextView) findViewById(R.id.batteryTemp_text_spacer);
         IntentFilter batteryTemperatureFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -654,7 +662,8 @@ public class LoggerActivity extends Activity {
             public void onReceive(Context context, Intent intent) {
                 mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
                 float percentage = mBatteryTemp / TEMPERATURE_MAX;
-                int paddingTop = (int) (percentage * UI_BAR_MAX_TOP_PADDING);
+                mBatteryTempBarImageView.setPercentage(percentage);
+                int paddingTop = (int) ((1.0 - percentage) * UI_BAR_MAX_TOP_PADDING);
                 mBatteryTempTextView.setText((mBatteryTemp / 10) + "°C");
                 mBatteryTempSpacerTextView.setPadding(mBatteryTempSpacerTextView.getPaddingLeft(),
                         paddingTop, mBatteryTempSpacerTextView.getPaddingRight(),
