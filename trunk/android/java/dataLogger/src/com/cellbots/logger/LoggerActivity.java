@@ -16,8 +16,6 @@
 
 package com.cellbots.logger;
 
-import com.cellbots.logger.GpsManager.GpsManagerListener;
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -47,6 +45,8 @@ import android.widget.LinearLayout;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.cellbots.logger.GpsManager.GpsManagerListener;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -95,13 +95,13 @@ public class LoggerActivity extends Activity {
      */
     private boolean mIsRecording;
 
-    public String timeString;
-
     private long startRecTime = 0;
 
     private Thread zipperThread;
 
     private long mDelay = 0;
+
+    private LoggerApplication application;
 
     /*
      * UI Elements
@@ -127,7 +127,7 @@ public class LoggerActivity extends Activity {
     private TextView mMagYTextView;
 
     private TextView mMagZTextView;
-    
+
     private BarImageView mBatteryTempBarImageView;
 
     private TextView mBatteryTempTextView;
@@ -137,7 +137,7 @@ public class LoggerActivity extends Activity {
     private LinearLayout mFlashingRecGroup;
 
     private TextView mRecTimeTextView;
-    
+
     private BarImageView mStorageBarImageView;
 
     private TextView mStorageTextView;
@@ -219,6 +219,8 @@ public class LoggerActivity extends Activity {
     private Runnable updateRecTimeDisplay = new Runnable() {
         @Override
         public void run() {
+            // TODO: Need to synchronize on mIsRecording otherwise mRecTimeTextView will be set to
+            // the wrong value after cleanup().
             while (mIsRecording) {
                 mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
                 final float percentage = (float) (mStatFs.getBlockCount() - mStatFs.getAvailableBlocks())
@@ -273,13 +275,14 @@ public class LoggerActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        application = (LoggerApplication) getApplication();
+
         // Keep the screen on to make sure the phone stays awake.
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         mIsRecording = false;
         Date date = new Date();
-        timeString = date.toGMTString().replaceAll(" ", "_").replaceAll(":", "-");
 
         final int mode = getIntent().getIntExtra(EXTRA_MODE, MODE_VIDEO_FRONT);
 
@@ -311,7 +314,7 @@ public class LoggerActivity extends Activity {
         mStorageSpacerTextView = (TextView) findViewById(R.id.storage_text_spacer);
         mStorageTextView.setText(mFreeSpacePct + "%");
         mStorageSpacerTextView.setPadding(mStorageSpacerTextView.getPaddingLeft(),
-                (int) (((float)1 - percentage) * UI_BAR_MAX_TOP_PADDING),
+                (int) ((1 - percentage) * UI_BAR_MAX_TOP_PADDING),
                 mStorageSpacerTextView.getPaddingRight(),
                 mStorageSpacerTextView.getPaddingBottom());
         mFlashingRecGroup = (LinearLayout) findViewById(R.id.flashingRecGroup);
@@ -344,7 +347,7 @@ public class LoggerActivity extends Activity {
                                     Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        shutdown();
+                        cleanup();
                     }
                 } else {
                     if (!mIsRecording) {
@@ -360,7 +363,7 @@ public class LoggerActivity extends Activity {
                                             + e.toString(), Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        shutdown();
+                        cleanup();
                     }
                 }
             }
@@ -402,7 +405,7 @@ public class LoggerActivity extends Activity {
     @Override
     public void onPause() {
         super.onPause();
-        shutdown();
+        cleanup();
     }
 
     @Override
@@ -410,17 +413,34 @@ public class LoggerActivity extends Activity {
         if (id != PROGRESS_ID) {
             return super.onCreateDialog(id);
         }
-        final ProgressDialog mProgressDialog = new ProgressDialog(LoggerActivity.this);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setMessage("processing...");
-        mProgressDialog.setCancelable(false);
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setCancelable(false);
+
+        // The setMessage call must be in both onCreateDialog and onPrepareDialog otherwise it will
+        // fail to update the dialog in onPrepareDialog.
+        progressDialog.setMessage("processing...");
+
+        return progressDialog;
+    }
+
+    @Override
+    public void onPrepareDialog(int id, Dialog dialog, Bundle bundle) {
+        super.onPrepareDialog(id, dialog, bundle);
+
+        if (id != PROGRESS_ID) {
+          return;
+        }
+
+        final ProgressDialog progressDialog = (ProgressDialog) dialog;
+        progressDialog.setMessage("processing...");
         final Handler handler = new Handler() {
             @Override
             public void handleMessage(android.os.Message msg) {
                 int done = msg.getData().getInt("percentageDone");
                 String status = msg.getData().getString("status");
-                mProgressDialog.setProgress(done);
-                mProgressDialog.setMessage(status);
+                progressDialog.setProgress(done);
+                progressDialog.setMessage(status);
             }
         };
 
@@ -428,7 +448,7 @@ public class LoggerActivity extends Activity {
             @Override
             public void run() {
                 ZipItUpRequest request = new ZipItUpRequest();
-                String directoryName = getLoggerPathPrefix();
+                String directoryName = application.getLoggerPathPrefix();
                 request.setInputFiles(
                         new FileListFetcher().getFilesAndDirectoriesInDir(directoryName));
                 request.setOutputFile(directoryName + "/logged-data.zip");
@@ -441,92 +461,26 @@ public class LoggerActivity extends Activity {
                     Log.e("Oh Crap!", "IoEx", e);
                 }
                 // closing dialog
-                mProgressDialog.dismiss();
-                finish();
+                progressDialog.dismiss();
+                application.generateNewFilePathUniqueIdentifier();
+
+                // TODO: Need to deal with empty directories that are created if another recording
+                // session is never started.
+                initSensorLogFiles();
             }
         };
         zipperThread.start();
-        return mProgressDialog;
     }
 
     private void setupSensors() {
         initSensorUi();
-
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
-
-        // Setup the files
-        sensorLogFileWriters = new HashMap<String, BufferedWriter>();
-        String directoryName = getDataLoggerPath();
-        File directory = new File(directoryName);
-        if (!directory.exists() && !directory.mkdirs()) {
-            try {
-                throw new IOException(
-                        "Path to file could not be created. " + directory.getAbsolutePath());
-            } catch (IOException e) {
-                Log.e(TAG, "Directory could not be created. " + e.toString());
-            }
-        }
-        File file;
-        for (int i = 0; i < sensors.size(); i++) {
-            Sensor s = sensors.get(i);
-            String sensorFilename = directoryName + s.getName().replaceAll(" ", "_") + "_"
-                    + timeString + ".txt";
-            file = new File(sensorFilename);
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-                sensorLogFileWriters.put(s.getName(), writer);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mSensorManager.registerListener(
-                    mSensorEventListener, s, SensorManager.SENSOR_DELAY_GAME);
-        }
-
-        // The battery is a special case since it is not a real sensor
-        String batteryTempFilename = directoryName + "/BatteryTemp_" + timeString + ".txt";
-        file = new File(batteryTempFilename);
-        try {
-            mBatteryTempWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        initSensorLogFiles();
         initBattery();
-
-        // GPS is another special case since it is not a real sensor
-        String gpsLocationFilename = directoryName + "/GpsLocation_" + timeString + ".txt";
-        file = new File(gpsLocationFilename);
-        try {
-            mGpsLocationWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String gpsStatusFilename = directoryName + "/GpsStatus_" + timeString + ".txt";
-        file = new File(gpsStatusFilename);
-        try {
-            mGpsStatusWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String gpsNmeaFilename = directoryName + "/GpsNmea_" + timeString + ".txt";
-        file = new File(gpsNmeaFilename);
-        try {
-            mGpsNmeaWriter = new BufferedWriter(new FileWriter(file));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         initGps();
 
-        debugListSensors();
-    }
-
-    private String getDataLoggerPath() {
-        return getLoggerPathPrefix() + "data/";
-    }
-
-    private String getLoggerPathPrefix() {
-        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/cellbots_logger/"
-                + timeString + "/";
+        printSensors();
     }
 
     private void initSensorUi() {
@@ -541,6 +495,62 @@ public class LoggerActivity extends Activity {
         mMagXTextView = (TextView) findViewById(R.id.magneticFieldX_text);
         mMagYTextView = (TextView) findViewById(R.id.magneticFieldY_text);
         mMagZTextView = (TextView) findViewById(R.id.magneticFieldZ_text);
+    }
+
+    private void initSensorLogFiles() {
+        sensorLogFileWriters = new HashMap<String, BufferedWriter>();
+
+        String directoryName = application.getDataLoggerPath();
+        File directory = new File(directoryName);
+        if (!directory.exists() && !directory.mkdirs()) {
+            try {
+                throw new IOException(
+                        "Path to file could not be created. " + directory.getAbsolutePath());
+            } catch (IOException e) {
+                Log.e(TAG, "Directory could not be created. " + e.toString());
+            }
+        }
+
+        for (int i = 0; i < sensors.size(); i++) {
+            Sensor s = sensors.get(i);
+            String sensorFilename = directoryName + s.getName().replaceAll(" ", "_") + "_"
+                    + application.getFilePathUniqueIdentifier() + ".txt";
+            File file = new File(sensorFilename);
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                sensorLogFileWriters.put(s.getName(), writer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mSensorManager.registerListener(
+                    mSensorEventListener, s, SensorManager.SENSOR_DELAY_GAME);
+        }
+
+        // The battery is a special case since it is not a real sensor
+        mBatteryTempWriter = createBufferedWriter("/BatteryTemp_", directoryName);
+
+        // GPS is another special case since it is not a real sensor
+        mGpsLocationWriter = createBufferedWriter("/GpsLocation_", directoryName);
+        mGpsStatusWriter = createBufferedWriter("/GpsStatus_", directoryName);
+        mGpsNmeaWriter = createBufferedWriter("/GpsNmea_", directoryName);
+    }
+
+    /**
+     * Creates a new BufferedWriter.
+     * @param prefix The prefix for the file that we're writing to.
+     * @return A BufferedWriter for a file in the specified directory. Null if creation failed.
+     */
+    private BufferedWriter createBufferedWriter(String prefix, String directoryName) {
+        String filename =
+              directoryName + prefix + application.getFilePathUniqueIdentifier() + ".txt";
+        File file = new File(filename);
+        BufferedWriter bufferedWriter = null;
+        try {
+            bufferedWriter = new BufferedWriter(new FileWriter(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bufferedWriter;
     }
 
     private void updateSensorUi(int sensorType, int accuracy, float[] values) {
@@ -657,6 +667,9 @@ public class LoggerActivity extends Activity {
         mBatteryTempTextView = (TextView) findViewById(R.id.batteryTemp_text);
         mBatteryTempSpacerTextView = (TextView) findViewById(R.id.batteryTemp_text_spacer);
         IntentFilter batteryTemperatureFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+
+        // TODO: Need to unregisterReceive before the app exits to prevent IntentReceiverLeaked
+        // exception.
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -678,11 +691,14 @@ public class LoggerActivity extends Activity {
         }, batteryTemperatureFilter);
     }
 
-    private void debugListSensors() {
+    /**
+     * Prints all the sensors to LogCat.
+     */
+    private void printSensors() {
         List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         for (int i = 0; i < sensors.size(); i++) {
             Sensor s = sensors.get(i);
-            Log.e("DEBUG", s.getName());
+            Log.d("DEBUG", s.getName());
         }
     }
 
@@ -717,20 +733,28 @@ public class LoggerActivity extends Activity {
         return displayedText;
     }
 
-    private void shutdown() {
+    private void cleanup() {
         try {
-            mIsRecording = false;
             mGpsManager.shutdown();
             if (mCamcorderView != null) {
-                mCamcorderView.stopRecording();
+                if (mIsRecording) {
+                  mCamcorderView.stopRecording();
+                }
                 mCamcorderView.releaseRecorder();
-                mCamcorderView.setVisibility(View.GONE);
             }
             if (mCameraView != null) {
-                mCameraView.stop();
+                if (mIsRecording) {
+                  mCameraView.stop();
+                }
                 mCameraView.releaseCamera();
             }
+            mIsRecording = false;
             startRecTime = 0;
+            ((ImageButton) findViewById(R.id.button_record)).setImageResource(
+                  R.drawable.rec_button_up);
+            if (mRecTimeTextView != null) {
+                mRecTimeTextView.setText(R.string.start_rec_time);
+            }
         } catch (IllegalStateException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -744,7 +768,11 @@ public class LoggerActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            shutdown();
+            boolean shouldExitApp = !mIsRecording;
+            cleanup();
+            if (shouldExitApp) {
+              finish();
+            }
             return true;
         }
         return super.onKeyDown(keyCode, event);

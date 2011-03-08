@@ -14,17 +14,18 @@
 
 
 
+
   <!-- Sensor Data Drawer -->
   <LinearLayout android:layout_width="fill_parent"
     android:layout_height="fill_parent" android:orientation="vertical">
 
     <View android:layout_width="wrap_content" android:layout_height="10dip"
-      android:layout_weight="315" android:background="#00FF0000" />
+      android:layout_weight="320" android:background="#00FF0000" />
 
     <SlidingDrawer android:layout_width="wrap_content" android:id="@+id/dataDrawer"
       android:handle="@+id/dataHandleButton" android:content="@+id/dataContentLayout"
       android:padding="10sp" android:layout_height="10dip"
-      android:layout_weight="630" android:background="#0000FF00">
+      android:layout_weight="685" android:background="#0000FF00">
 
       <Button android:layout_width="fill_parent" android:layout_height="wrap_content"
         android:id="@+id/dataHandleButton" android:background="@android:color/transparent"
@@ -33,7 +34,7 @@
         android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:gravity="center_horizontal">
         <LinearLayout android:orientation="vertical"
-          android:layout_width="158dip" android:layout_height="283dip"
+          android:layout_width="158dip" android:layout_height="287dip"
           android:background="@drawable/data_hud_bg_empty" android:paddingTop="6dip"
           android:paddingLeft="12dip">
 
@@ -42,43 +43,43 @@
             android:layout_height="wrap_content" android:textSize="11sp"
             android:text="Data" android:visibility="gone" />
           <TextView android:layout_width="wrap_content"
-            android:textSize="35sp" android:textStyle="bold"
+            android:textSize="37sp" android:textStyle="bold"
             android:layout_height="wrap_content" android:text="" />
 
           <!-- Accelerometer -->
           <TextView android:id="@+id/accelerometerX_text"
             android:layout_width="wrap_content" android:textColor="#FFFF0000"
-            android:textSize="12sp" android:textStyle="bold"
+            android:textSize="11sp" android:textStyle="bold"
             android:layout_height="wrap_content" android:text="  NaN" />
           <TextView android:id="@+id/accelerometerY_text"
             android:layout_width="wrap_content" android:textColor="#FFFF0000"
-            android:textSize="12sp" android:textStyle="bold"
+            android:textSize="11sp" android:textStyle="bold" android:paddingTop="1dip"
             android:layout_height="wrap_content" android:text="  NaN" />
           <TextView android:id="@+id/accelerometerZ_text"
             android:layout_width="wrap_content" android:textColor="#FFFF0000"
-            android:textSize="12sp" android:textStyle="bold"
+            android:textSize="11sp" android:textStyle="bold"
             android:layout_height="wrap_content" android:text="  NaN" />
 
           <TextView android:layout_width="wrap_content"
-            android:textSize="22sp" android:textStyle="bold"
+            android:textSize="25sp" android:textStyle="bold"
             android:layout_height="wrap_content" android:text="" />
 
           <!-- Gyro -->
           <TextView android:id="@+id/gyroX_text" android:layout_width="wrap_content"
             android:textColor="#FFFF0000" android:textStyle="bold"
-            android:textSize="12sp" android:layout_height="wrap_content"
+            android:textSize="11sp" android:layout_height="wrap_content"
             android:text="  NaN" />
           <TextView android:id="@+id/gyroY_text" android:layout_width="wrap_content"
             android:textColor="#FFFF0000" android:textStyle="bold"
-            android:textSize="12sp" android:layout_height="wrap_content"
+            android:textSize="11sp" android:layout_height="wrap_content"
             android:text="  NaN" />
           <TextView android:id="@+id/gyroZ_text" android:layout_width="wrap_content"
             android:textColor="#FFFF0000" android:textStyle="bold"
-            android:textSize="12sp" android:layout_height="wrap_content"
+            android:textSize="11sp" android:layout_height="wrap_content"
             android:text="  NaN" />
 
           <TextView android:layout_width="wrap_content"
-            android:textSize="22sp" android:textStyle="bold"
+            android:textSize="25sp" android:textStyle="bold"
             android:layout_height="wrap_content" android:text="" />
 
 
@@ -87,15 +88,15 @@
           <TextView android:id="@+id/magneticFieldX_text"
             android:layout_width="wrap_content" android:textColor="#FFFF0000"
             android:textStyle="bold" android:layout_height="wrap_content"
-            android:textSize="12sp" android:text="  NaN" />
+            android:textSize="11sp" android:text="  NaN" />
           <TextView android:id="@+id/magneticFieldY_text"
             android:layout_width="wrap_content" android:textColor="#FFFF0000"
             android:textStyle="bold" android:layout_height="wrap_content"
-            android:textSize="12sp" android:text="  NaN" />
+            android:textSize="11sp" android:text="  NaN" />
           <TextView android:id="@+id/magneticFieldZ_text"
             android:layout_width="wrap_content" android:textColor="#FFFF0000"
             android:textStyle="bold" android:layout_height="wrap_content"
-            android:textSize="12sp" android:text="  NaN" />
+            android:textSize="11sp" android:text="  NaN" />
         </LinearLayout>
         <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:layout_weight="1" />
@@ -108,12 +109,12 @@
   <LinearLayout android:layout_width="fill_parent"
     android:layout_height="fill_parent" android:orientation="vertical">
     <View android:layout_width="wrap_content" android:layout_height="10dip"
-      android:layout_weight="315" android:background="#00FF0000" />
+      android:layout_weight="320" android:background="#00FF0000" />
 
     <SlidingDrawer android:layout_width="wrap_content" android:id="@+id/diagnosticsDrawer"
       android:handle="@+id/diagnosticsHandleButton" android:content="@+id/diagnosticsContentLayout"
       android:padding="10sp" android:layout_height="10dip"
-      android:layout_weight="630" android:background="#0000FF00">
+      android:layout_weight="685" android:background="#0000FF00">
 
       <Button android:layout_width="fill_parent" android:layout_height="wrap_content"
         android:id="@+id/diagnosticsHandleButton" android:background="@android:color/transparent"
@@ -124,7 +125,7 @@
         <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:layout_weight="1" />
         <LinearLayout android:orientation="vertical"
-          android:layout_width="158dip" android:layout_height="283dip"
+          android:layout_width="158dip" android:layout_height="287dip"
           android:background="@drawable/diagnostics_hud_bg" android:paddingTop="6dip"
           android:paddingLeft="5dip">
           <FrameLayout android:layout_width="wrap_content"
@@ -137,7 +138,7 @@
                 android:layout_width="wrap_content" android:layout_height="wrap_content">
                 <LinearLayout android:orientation="vertical"
                   android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  android:paddingLeft="16dip">
+                  android:paddingLeft="18dip">
                   <TextView android:id="@+id/batteryTemp_text_spacer"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:paddingTop="70dip" />
@@ -149,7 +150,7 @@
                 </LinearLayout>
                 <LinearLayout android:orientation="vertical"
                   android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  android:paddingLeft="40dip">
+                  android:paddingLeft="41dip">
                   <TextView android:id="@+id/storage_text_spacer"
                     android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:paddingTop="70dip" />
@@ -164,7 +165,7 @@
 
             <LinearLayout android:orientation="vertical"
               android:layout_width="wrap_content" android:layout_height="wrap_content">
-              <View android:layout_width="4dip" android:layout_height="30dip" />
+              <View android:layout_width="4dip" android:layout_height="32dip" />
               <LinearLayout android:orientation="horizontal"
                 android:layout_width="wrap_content" android:layout_height="wrap_content">
                 <View android:layout_width="4dip" android:layout_height="10dip" />
@@ -185,6 +186,7 @@
       </LinearLayout>
     </SlidingDrawer>
   </LinearLayout>
+
 
 
   <!-- Recording Text -->

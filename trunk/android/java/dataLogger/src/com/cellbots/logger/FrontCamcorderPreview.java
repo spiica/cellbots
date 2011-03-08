@@ -40,6 +40,8 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
 
     public static final String TAG = "CELLBOTS LOGGER";
 
+    private LoggerApplication application;
+
     private MediaRecorder recorder;
 
     private SurfaceHolder holder;
@@ -54,8 +56,6 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
 
     private boolean initialized;
 
-    private String timeString;
-
     private Camera camera;
 
     private boolean previewing = false;
@@ -63,7 +63,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
     public FrontCamcorderPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        timeString = ((LoggerActivity) context).timeString;
+        application = (LoggerApplication) context.getApplicationContext();
 
         holder = getHolder();
         holder.addCallback(this);
@@ -138,8 +138,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
             recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
-            String path = Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + "/cellbots_logger/" + timeString + "/video-" + timeString + ".mp4";
+            String path = application.getVideoFilepath();
 
             Log.i(TAG, "Video file to use: " + path);
 

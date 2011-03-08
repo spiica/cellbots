@@ -39,8 +39,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     public static final String TAG = "CELLBOTS LOGGER";
 
-    private String timeString;
-
     private SurfaceHolder holder;
 
     private Camera mCamera;
@@ -56,10 +54,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     public CameraPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
         mPictureCount = 0;
-        timeString = ((LoggerActivity) context).timeString;
         directory = new File(
-                Environment.getExternalStorageDirectory() + "/cellbots_logger/" + timeString
-                        + "/pictures/");
+              ((LoggerApplication) context.getApplicationContext()).getPicturesDirectoryPath());
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -148,9 +144,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
 
     public void releaseCamera() {
-      mCamera.stopPreview();
-      mCamera.release();
-      mCamera = null;
+      if (mCamera != null) {
+        mCamera.stopPreview();
+        mCamera.release();
+        mCamera = null;
+      }
     }
 
 }

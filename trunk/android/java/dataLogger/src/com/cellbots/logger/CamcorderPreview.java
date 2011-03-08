@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2011 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -40,6 +40,8 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
 
     public final static String TAG = "CELLBOTS LOGGER";
 
+    private LoggerApplication application;
+
     private MediaRecorder recorder;
 
     private SurfaceHolder holder;
@@ -54,12 +56,10 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
 
     private boolean initialized;
 
-    private String timeString;
-
     public CamcorderPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        timeString = ((LoggerActivity) context).timeString;
+        application = (LoggerApplication) context.getApplicationContext();
 
         holder = getHolder();
         holder.addCallback(this);
@@ -94,12 +94,11 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             recorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-    
-            String path = Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + "/cellbots_logger/" + timeString + "/video-" + timeString + ".mp4";
-    
+
+            String path = application.getVideoFilepath();
+
             Log.i(TAG, "Video file to use: " + path);
-    
+
             final File file = new File(path);
             File directory = file.getParentFile();
             if (!directory.exists() && !directory.mkdirs()) {
@@ -110,11 +109,11 @@ public class CamcorderPreview extends SurfaceView implements SurfaceHolder.Callb
                     Log.e(TAG, "Directory could not be created. " + e.toString());
                 }
             }
-    
+
             if (file.exists()) {
                 file.delete();
             }
-    
+
             if (recorder != null) {
                 try {
                     file.createNewFile();
