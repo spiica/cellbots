@@ -55,7 +55,7 @@ public class LoggerApplication extends Application {
     }
 
     public String getLoggerPathPrefix() {
-        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/cellbots_logger/"
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/SmartphoneLoggerData/"
             + getFilePathUniqueIdentifier() + "/";
     }
 
@@ -65,12 +65,12 @@ public class LoggerApplication extends Application {
 
     public String getVideoFilepath() {
         return Environment.getExternalStorageDirectory().getAbsolutePath()
-              + "/cellbots_logger/" + filePathUniqueIdentifier
+              + "/SmartphoneLoggerData/" + filePathUniqueIdentifier
               + "/video-" + filePathUniqueIdentifier + ".mp4";
     }
 
     public String getPicturesDirectoryPath() {
-        return Environment.getExternalStorageDirectory() + "/cellbots_logger/"
+        return Environment.getExternalStorageDirectory() + "/SmartphoneLoggerData/"
               + filePathUniqueIdentifier + "/pictures/";
     }
 }
