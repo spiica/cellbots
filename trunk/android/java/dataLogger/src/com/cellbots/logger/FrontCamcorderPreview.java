@@ -129,6 +129,10 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
     @Override
     public void initializeRecording() {
         if (!initialized) {
+            if (camera == null){
+                camera = Camera.open(1);
+                camera.setDisplayOrientation(90);
+            }
             camera.unlock();
             recorder = new MediaRecorder();
             recorder.setOnErrorListener(this);

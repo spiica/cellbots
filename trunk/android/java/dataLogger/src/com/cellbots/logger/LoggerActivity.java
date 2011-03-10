@@ -60,7 +60,7 @@ import java.util.List;
 /**
  * Main activity for a data gathering tool. This tool enables recording video
  * and collecting data from sensors. Data is stored in:
- * /sdcard/cellbots_logger/.
+ * /sdcard/SmartphoneLoggerData/.
  *
  * @author clchen@google.com (Charles L. Chen)
  */
@@ -582,23 +582,19 @@ public class LoggerActivity extends Activity {
             return;
         }
 
-        int textColor = Color.GREEN;
+        int textColor = Color.WHITE;
         String prefix = "";
         switch (accuracy) {
             case SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
-                textColor = Color.WHITE;
                 prefix = "  ";
                 break;
             case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
-                textColor = Color.YELLOW;
                 prefix = "  *";
                 break;
             case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
-                textColor = Color.RED;
                 prefix = "  **";
                 break;
             case SensorManager.SENSOR_STATUS_UNRELIABLE:
-                textColor = Color.RED;
                 prefix = "  ***";
                 break;
         }
