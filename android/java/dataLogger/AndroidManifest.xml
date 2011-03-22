@@ -8,9 +8,9 @@
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
   <application android:icon="@drawable/rec_button_pressed"
-    android:name="com.cellbots.logger.LoggerApplication"
-    android:label="@string/app_name" android:debuggable="true">
-    
+    android:name="com.cellbots.logger.LoggerApplication" android:label="@string/app_name"
+    android:debuggable="true">
+
     <activity android:name=".LauncherActivity" android:label="@string/app_name"
       android:launchMode="singleTop" android:screenOrientation="portrait"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
@@ -32,17 +32,14 @@
       to revert back to the simpler mode where it is always recording video out
       of the front camera
     -->
-    <!-- 
-    <activity android:name=".LoggerActivity" android:label="@string/app_name"
+    <!--
+      <activity android:name=".LoggerActivity" android:label="@string/app_name"
       android:launchMode="singleTop" android:screenOrientation="portrait"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
-     -->
-
+      <intent-filter> <action android:name="android.intent.action.MAIN" />
+      <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter> </activity>
+    -->
 
   </application>
 </manifest>

@@ -93,7 +93,7 @@ public class LoggerActivity extends Activity {
     /*
      * App state
      */
-    private boolean mIsRecording;
+    private volatile Boolean mIsRecording;
 
     private long startRecTime = 0;
 
@@ -192,23 +192,46 @@ public class LoggerActivity extends Activity {
                 event.accuracy = SensorManager.SENSOR_STATUS_ACCURACY_HIGH;
             }
             updateSensorUi(sensor.getType(), event.accuracy, event.values);
-            if (mIsRecording) {
-                String valuesStr = "";
-                for (int i = 0; i < event.values.length; i++) {
-                    valuesStr = valuesStr + event.values[i] + ",";
-                }
-                BufferedWriter writer = sensorLogFileWriters.get(sensor.getName());
-                try {
-                    writer.write(event.timestamp + "," + event.accuracy + "," + valuesStr + "\n");
-                    writer.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
+            synchronized (mIsRecording) {
+                if (mIsRecording) {
+                    String valuesStr = "";
+                    for (int i = 0; i < event.values.length; i++) {
+                        valuesStr = valuesStr + event.values[i] + ",";
+                    }
+                    BufferedWriter writer = sensorLogFileWriters.get(sensor.getName());
+                    try {
+                        writer.write(
+                              event.timestamp + "," + event.accuracy + "," + valuesStr + "\n");
+                        writer.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
 
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
+            float percentage = mBatteryTemp / TEMPERATURE_MAX;
+            mBatteryTempBarImageView.setPercentage(percentage);
+            int paddingTop = (int) ((1.0 - percentage) * UI_BAR_MAX_TOP_PADDING);
+            mBatteryTempTextView.setText((mBatteryTemp / 10) + "°C");
+            mBatteryTempSpacerTextView.setPadding(mBatteryTempSpacerTextView.getPaddingLeft(),
+                    paddingTop, mBatteryTempSpacerTextView.getPaddingRight(),
+                    mBatteryTempSpacerTextView.getPaddingBottom());
+            try {
+                mBatteryTempWriter.write(
+                        System.currentTimeMillis() + "," + mBatteryTemp + "\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     };
 
@@ -219,13 +242,16 @@ public class LoggerActivity extends Activity {
     private Runnable updateRecTimeDisplay = new Runnable() {
         @Override
         public void run() {
-            // TODO: Need to synchronize on mIsRecording otherwise mRecTimeTextView will be set to
-            // the wrong value after cleanup().
-            while (mIsRecording) {
+            boolean isRecording;
+            synchronized (mIsRecording) {
+              isRecording = mIsRecording;
+            }
+            while (isRecording) {
                 mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
-                final float percentage = (float) (mStatFs.getBlockCount() - mStatFs.getAvailableBlocks())
+                final float percentage =
+                        (float) (mStatFs.getBlockCount() - mStatFs.getAvailableBlocks())
                         / (float) mStatFs.getBlockCount();
-                final int paddingTop = (int) (percentage * UI_BAR_MAX_TOP_PADDING);
+                final int paddingTop = (int) ((1.0 - percentage) * UI_BAR_MAX_TOP_PADDING);
                 mFreeSpacePct = (int) (percentage * 100);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -257,6 +283,10 @@ public class LoggerActivity extends Activity {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                }
+
+                synchronized (mIsRecording) {
+                  isRecording = mIsRecording;
                 }
             }
 
@@ -329,41 +359,43 @@ public class LoggerActivity extends Activity {
         recordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if ((mode == MODE_VIDEO_FRONT) || (mode == MODE_VIDEO_BACK)) {
-                    if (!mIsRecording) {
-                        try {
-                            mIsRecording = true;
-                            recordButton.setImageResource(R.drawable.rec_button_pressed);
-                            // initializes recording
-                            mCamcorderView.initializeRecording();
-                            // starts recording
-                            mCamcorderView.startRecording();
-                            startRecTime = System.currentTimeMillis();
-                            new Thread(updateRecTimeDisplay).start();
-                        } catch (Exception e) {
-                            Log.e("ls", "Recording has failed...", e);
-                            Toast.makeText(getApplicationContext(),
-                                    "Recording is not possible at the moment: " + e.toString(),
-                                    Toast.LENGTH_SHORT).show();
+                synchronized (mIsRecording) {
+                    if ((mode == MODE_VIDEO_FRONT) || (mode == MODE_VIDEO_BACK)) {
+                        if (!mIsRecording) {
+                            try {
+                                mIsRecording = true;
+                                recordButton.setImageResource(R.drawable.rec_button_pressed);
+                                // initializes recording
+                                mCamcorderView.initializeRecording();
+                                // starts recording
+                                mCamcorderView.startRecording();
+                                startRecTime = System.currentTimeMillis();
+                                new Thread(updateRecTimeDisplay).start();
+                            } catch (Exception e) {
+                                Log.e("ls", "Recording has failed...", e);
+                                Toast.makeText(getApplicationContext(),
+                                        "Recording is not possible at the moment: " + e.toString(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            cleanup();
                         }
                     } else {
-                        cleanup();
-                    }
-                } else {
-                    if (!mIsRecording) {
-                        try {
-                            mIsRecording = true;
-                            recordButton.setImageResource(R.drawable.rec_button_pressed);
-                            mCameraView.takePictures(mDelay);
-                            new Thread(updateRecTimeDisplay).start();
-                        } catch (Exception e) {
-                            Log.e("ls", "Taking pictures has failed...", e);
-                            Toast.makeText(getApplicationContext(),
-                                    "Taking pictures is not possible at the moment: "
-                                            + e.toString(), Toast.LENGTH_SHORT).show();
+                        if (!mIsRecording) {
+                            try {
+                                mIsRecording = true;
+                                recordButton.setImageResource(R.drawable.rec_button_pressed);
+                                mCameraView.takePictures(mDelay);
+                                new Thread(updateRecTimeDisplay).start();
+                            } catch (Exception e) {
+                                Log.e("ls", "Taking pictures has failed...", e);
+                                Toast.makeText(getApplicationContext(),
+                                        "Taking pictures is not possible at the moment: "
+                                                + e.toString(), Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            cleanup();
                         }
-                    } else {
-                        cleanup();
                     }
                 }
             }
@@ -406,6 +438,12 @@ public class LoggerActivity extends Activity {
     public void onPause() {
         super.onPause();
         cleanup();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unregisterReceiver(broadcastReceiver);
     }
 
     @Override
@@ -663,28 +701,7 @@ public class LoggerActivity extends Activity {
         mBatteryTempTextView = (TextView) findViewById(R.id.batteryTemp_text);
         mBatteryTempSpacerTextView = (TextView) findViewById(R.id.batteryTemp_text_spacer);
         IntentFilter batteryTemperatureFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-
-        // TODO: Need to unregisterReceive before the app exits to prevent IntentReceiverLeaked
-        // exception.
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
-                float percentage = mBatteryTemp / TEMPERATURE_MAX;
-                mBatteryTempBarImageView.setPercentage(percentage);
-                int paddingTop = (int) ((1.0 - percentage) * UI_BAR_MAX_TOP_PADDING);
-                mBatteryTempTextView.setText((mBatteryTemp / 10) + "°C");
-                mBatteryTempSpacerTextView.setPadding(mBatteryTempSpacerTextView.getPaddingLeft(),
-                        paddingTop, mBatteryTempSpacerTextView.getPaddingRight(),
-                        mBatteryTempSpacerTextView.getPaddingBottom());
-                try {
-                    mBatteryTempWriter.write(
-                            System.currentTimeMillis() + "," + mBatteryTemp + "\n");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, batteryTemperatureFilter);
+        registerReceiver(broadcastReceiver, batteryTemperatureFilter);
     }
 
     /**
@@ -732,19 +749,21 @@ public class LoggerActivity extends Activity {
     private void cleanup() {
         try {
             mGpsManager.shutdown();
-            if (mCamcorderView != null) {
-                if (mIsRecording) {
-                  mCamcorderView.stopRecording();
+            synchronized (mIsRecording) {
+                if (mCamcorderView != null) {
+                    if (mIsRecording) {
+                      mCamcorderView.stopRecording();
+                    }
+                    mCamcorderView.releaseRecorder();
                 }
-                mCamcorderView.releaseRecorder();
-            }
-            if (mCameraView != null) {
-                if (mIsRecording) {
-                  mCameraView.stop();
+                if (mCameraView != null) {
+                    if (mIsRecording) {
+                      mCameraView.stop();
+                    }
+                    mCameraView.releaseCamera();
                 }
-                mCameraView.releaseCamera();
+                mIsRecording = false;
             }
-            mIsRecording = false;
             startRecTime = 0;
             ((ImageButton) findViewById(R.id.button_record)).setImageResource(
                   R.drawable.rec_button_up);
@@ -764,7 +783,10 @@ public class LoggerActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            boolean shouldExitApp = !mIsRecording;
+            boolean shouldExitApp;
+            synchronized (mIsRecording) {
+                shouldExitApp = !mIsRecording;
+            }
             cleanup();
             if (shouldExitApp) {
               finish();

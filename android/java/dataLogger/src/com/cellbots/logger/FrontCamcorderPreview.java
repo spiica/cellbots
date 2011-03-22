@@ -99,8 +99,6 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
         }
 
         camera.setDisplayOrientation(90);
-        // Util.setCameraDisplayOrientation(this, mCameraId, mCameraDevice);
-        // setCameraParameters();
 
         try {
             camera.startPreview();
