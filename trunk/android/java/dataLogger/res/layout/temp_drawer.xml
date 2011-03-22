@@ -1,0 +1,82 @@
+<!-- Temp/Memory Drawer -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent" android:orientation="vertical">
+  <View android:layout_width="wrap_content" android:layout_height="10dip"
+    android:layout_weight="320" android:background="#00FF0000" />
+
+  <SlidingDrawer android:layout_width="wrap_content" android:id="@+id/diagnosticsDrawer"
+    android:handle="@+id/diagnosticsHandleButton" android:content="@+id/diagnosticsContentLayout"
+    android:padding="10sp" android:layout_height="10dip"
+    android:layout_weight="685" android:background="#0000FF00">
+
+    <Button android:layout_width="fill_parent" android:layout_height="wrap_content"
+      android:id="@+id/diagnosticsHandleButton" android:background="@android:color/transparent"
+      android:visibility="gone" />
+    <LinearLayout android:orientation="horizontal"
+      android:id="@+id/diagnosticsContentLayout" android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:gravity="center_horizontal">
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:layout_weight="1" />
+      <LinearLayout android:orientation="vertical"
+        android:layout_width="158dip" android:layout_height="287dip"
+        android:background="@drawable/diagnostics_hud_bg" android:paddingTop="6dip"
+        android:paddingLeft="5dip">
+        <FrameLayout android:layout_width="wrap_content"
+          android:layout_height="wrap_content">
+
+          <LinearLayout android:orientation="vertical"
+            android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <View android:layout_width="4dip" android:layout_height="10dip" />
+            <LinearLayout android:orientation="horizontal"
+              android:layout_width="wrap_content" android:layout_height="wrap_content">
+              <LinearLayout android:orientation="vertical"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:paddingLeft="18dip">
+                <TextView android:id="@+id/batteryTemp_text_spacer"
+                  android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:paddingTop="70dip" />
+                <TextView android:background="@drawable/diagnostics_text_bg_plate"
+                  android:layout_width="wrap_content" android:id="@+id/batteryTemp_text"
+                  android:textColor="#FFFFFFFF" android:textStyle="bold"
+                  android:layout_height="wrap_content" android:textSize="14sp"
+                  android:padding="5dip" android:text="33°C" />
+              </LinearLayout>
+              <LinearLayout android:orientation="vertical"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:paddingLeft="41dip">
+                <TextView android:id="@+id/storage_text_spacer"
+                  android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:paddingTop="70dip" />
+                <TextView android:background="@drawable/diagnostics_text_bg_plate"
+                  android:layout_width="wrap_content" android:id="@+id/storage_text"
+                  android:textColor="#FFFFFFFF" android:textStyle="bold"
+                  android:layout_height="wrap_content" android:textSize="14sp"
+                  android:padding="5dip" android:text="50%" />
+              </LinearLayout>
+            </LinearLayout>
+          </LinearLayout>
+
+          <LinearLayout android:orientation="vertical"
+            android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <View android:layout_width="4dip" android:layout_height="32dip" />
+            <LinearLayout android:orientation="horizontal"
+              android:layout_width="wrap_content" android:layout_height="wrap_content">
+              <View android:layout_width="4dip" android:layout_height="10dip" />
+              <com.cellbots.logger.BarImageView
+                android:id="@+id/temperature_barImageView"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:src="@drawable/temp_bar" />
+              <View android:layout_width="71dip" android:layout_height="10dip" />
+              <com.cellbots.logger.BarImageView
+                android:id="@+id/storage_barImageView" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:src="@drawable/storage_bar" />
+            </LinearLayout>
+          </LinearLayout>
+
+        </FrameLayout>
+
+      </LinearLayout>
+    </LinearLayout>
+  </SlidingDrawer>
+</LinearLayout>

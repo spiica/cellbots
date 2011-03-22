@@ -78,6 +78,8 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
             recorder = new MediaRecorder();
             recorder.setOnErrorListener(this);
             recorder.setOnInfoListener(this);
+
+            // TODO: The camera needs to be released when we're done with it.
             Camera camera = Camera.open();
             camera.setDisplayOrientation(CAMERA_ORIENTATION_DEGREES);
             camera.unlock();

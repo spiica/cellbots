@@ -18,6 +18,7 @@ package com.cellbots.logger;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -41,20 +42,14 @@ public class LauncherActivity extends Activity {
         launchVideoFrontButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(self, LoggerActivity.class);
-                i.putExtra(LoggerActivity.EXTRA_MODE, LoggerActivity.MODE_VIDEO_FRONT);
-                startActivity(i);
-                finish();
+                launchLoggingActivity(LoggerActivity.MODE_VIDEO_FRONT);
             }
         });
         Button launchVideoBackButton = (Button) findViewById(R.id.launchVideoBack);
         launchVideoBackButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(self, LoggerActivity.class);
-                i.putExtra(LoggerActivity.EXTRA_MODE, LoggerActivity.MODE_VIDEO_BACK);
-                startActivity(i);
-                finish();
+                launchLoggingActivity(LoggerActivity.MODE_VIDEO_BACK);
             }
         });
         final EditText pictureDelayEditText = (EditText) findViewById(R.id.pictureDelay);
@@ -79,10 +74,18 @@ public class LauncherActivity extends Activity {
         });
         // The code we are using for taking video through the front camera
         // relies on APIs added in SDK 9. Don't offer the front video option to
-        // users on devices older than that.
-        if (Build.VERSION.SDK_INT < 9) {
+        // users on devices older than that OR to devices who have only one
+        // camera. Currently assume that if only one camera is present, it is
+        // the back camera.
+        if (Build.VERSION.SDK_INT < 9 || Camera.getNumberOfCameras() == 1) {
             launchVideoFrontButton.setVisibility(View.GONE);
-        }
+        } 
     }
-
+    
+    private void launchLoggingActivity(int mode) {
+        Intent i = new Intent(LauncherActivity.this, LoggerActivity.class);
+        i.putExtra(LoggerActivity.EXTRA_MODE, mode);
+        startActivity(i);
+        finish();
+    }
 }
