@@ -44,4 +44,6 @@ public abstract class AbstractCamcorderPreview extends SurfaceView implements
     public abstract void startRecording();
 
     public abstract void stopRecording();
+    
+    public abstract void startPreview();
 }

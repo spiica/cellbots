@@ -74,7 +74,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
         startPreview();
     }
 
-    private void startPreview() {
+    public void startPreview() {
         Log.v(TAG, "startPreview");
         if (camera == null) {
             // If the activity is paused and resumed, camera device has been

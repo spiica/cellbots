@@ -9,7 +9,7 @@
       android:text="Cellbots Data Logger" android:textSize="30dip"
       android:gravity="center_horizontal" />
     <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
-      android:text="v 0.9.6" android:gravity="center_horizontal" />
+      android:text="v 0.9.7" android:gravity="center_horizontal" />
     <TextView android:layout_width="wrap_content"
       android:layout_height="wrap_content" android:text=" " />
     <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
