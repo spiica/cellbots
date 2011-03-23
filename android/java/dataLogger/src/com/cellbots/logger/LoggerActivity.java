@@ -201,7 +201,7 @@ public class LoggerActivity extends Activity {
                     BufferedWriter writer = sensorLogFileWriters.get(sensor.getName());
                     try {
                         writer.write(
-                              event.timestamp + "," + event.accuracy + "," + valuesStr + "\n");
+                                event.timestamp + "," + event.accuracy + "," + valuesStr + "\n");
                         writer.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -227,8 +227,7 @@ public class LoggerActivity extends Activity {
                     paddingTop, mBatteryTempSpacerTextView.getPaddingRight(),
                     mBatteryTempSpacerTextView.getPaddingBottom());
             try {
-                mBatteryTempWriter.write(
-                        System.currentTimeMillis() + "," + mBatteryTemp + "\n");
+                mBatteryTempWriter.write(System.currentTimeMillis() + "," + mBatteryTemp + "\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -244,7 +243,7 @@ public class LoggerActivity extends Activity {
         public void run() {
             boolean isRecording;
             synchronized (mIsRecording) {
-              isRecording = mIsRecording;
+                isRecording = mIsRecording;
             }
             while (isRecording) {
                 mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
@@ -286,7 +285,7 @@ public class LoggerActivity extends Activity {
                 }
 
                 synchronized (mIsRecording) {
-                  isRecording = mIsRecording;
+                    isRecording = mIsRecording;
                 }
             }
 
@@ -336,7 +335,8 @@ public class LoggerActivity extends Activity {
 
         // Setup the initial available space
         mStatFs = new StatFs(Environment.getExternalStorageDirectory().toString());
-        float percentage = (float) (mStatFs.getBlockCount() - mStatFs.getAvailableBlocks()) / (float) mStatFs.getBlockCount();
+        float percentage = (float) (mStatFs.getBlockCount() - mStatFs.getAvailableBlocks())
+                / (float) mStatFs.getBlockCount();
         mFreeSpacePct = (int) (percentage * 100);
         mStorageBarImageView = (BarImageView) findViewById(R.id.storage_barImageView);
         mStorageBarImageView.setPercentage(percentage);
@@ -455,7 +455,8 @@ public class LoggerActivity extends Activity {
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
 
-        // The setMessage call must be in both onCreateDialog and onPrepareDialog otherwise it will
+        // The setMessage call must be in both onCreateDialog and
+        // onPrepareDialog otherwise it will
         // fail to update the dialog in onPrepareDialog.
         progressDialog.setMessage("processing...");
 
@@ -467,7 +468,7 @@ public class LoggerActivity extends Activity {
         super.onPrepareDialog(id, dialog, bundle);
 
         if (id != PROGRESS_ID) {
-          return;
+            return;
         }
 
         final ProgressDialog progressDialog = (ProgressDialog) dialog;
@@ -502,9 +503,14 @@ public class LoggerActivity extends Activity {
                 progressDialog.dismiss();
                 application.generateNewFilePathUniqueIdentifier();
 
-                // TODO: Need to deal with empty directories that are created if another recording
+                // TODO: Need to deal with empty directories that are created if
+                // another recording
                 // session is never started.
                 initSensorLogFiles();
+
+                if (mCamcorderView != null) {
+                    mCamcorderView.startPreview();
+                }
             }
         };
         zipperThread.start();
@@ -575,12 +581,14 @@ public class LoggerActivity extends Activity {
 
     /**
      * Creates a new BufferedWriter.
+     *
      * @param prefix The prefix for the file that we're writing to.
-     * @return A BufferedWriter for a file in the specified directory. Null if creation failed.
+     * @return A BufferedWriter for a file in the specified directory. Null if
+     *         creation failed.
      */
     private BufferedWriter createBufferedWriter(String prefix, String directoryName) {
-        String filename =
-              directoryName + prefix + application.getFilePathUniqueIdentifier() + ".txt";
+        String filename = directoryName + prefix + application.getFilePathUniqueIdentifier()
+                + ".txt";
         File file = new File(filename);
         BufferedWriter bufferedWriter = null;
         try {
@@ -752,13 +760,13 @@ public class LoggerActivity extends Activity {
             synchronized (mIsRecording) {
                 if (mCamcorderView != null) {
                     if (mIsRecording) {
-                      mCamcorderView.stopRecording();
+                        mCamcorderView.stopRecording();
                     }
                     mCamcorderView.releaseRecorder();
                 }
                 if (mCameraView != null) {
                     if (mIsRecording) {
-                      mCameraView.stop();
+                        mCameraView.stop();
                     }
                     mCameraView.releaseCamera();
                 }
@@ -766,7 +774,7 @@ public class LoggerActivity extends Activity {
             }
             startRecTime = 0;
             ((ImageButton) findViewById(R.id.button_record)).setImageResource(
-                  R.drawable.rec_button_up);
+                    R.drawable.rec_button_up);
             if (mRecTimeTextView != null) {
                 mRecTimeTextView.setText(R.string.start_rec_time);
             }
@@ -789,7 +797,7 @@ public class LoggerActivity extends Activity {
             }
             cleanup();
             if (shouldExitApp) {
-              finish();
+                finish();
             }
             return true;
         }

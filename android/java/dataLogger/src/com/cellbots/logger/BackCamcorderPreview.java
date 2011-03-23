@@ -29,7 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * View that handles the video recording functionality. Parts of thiscodeweretakenfrommemofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * View that handles the video recording functionality. Parts ofthiscodeweretakenfrommemofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
@@ -85,10 +85,11 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
             camera.unlock();
             recorder.setCamera(camera);
             try {
-              recorder.setOrientationHint(CAMERA_ORIENTATION_DEGREES);
-            } catch (NoSuchMethodError e){
-              // Method call not available below API level 9. The recorded video will be rotated.
-              e.printStackTrace();
+                recorder.setOrientationHint(CAMERA_ORIENTATION_DEGREES);
+            } catch (NoSuchMethodError e) {
+                // Method call not available below API level 9. The recorded
+                // video will be rotated.
+                e.printStackTrace();
             }
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
@@ -132,9 +133,11 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         }
     }
 
-  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    }
 
-    public void surfaceDestroyed(SurfaceHolder holder) { }
+    public void surfaceDestroyed(SurfaceHolder holder) {
+    }
 
     public void onError(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
@@ -168,4 +171,9 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         recorder.stop();
     }
 
+    @Override
+    public void startPreview() {
+        // TODO: Implement this. 
+        // Just calling initializeRecording doesn't work here.
+    }
 }
