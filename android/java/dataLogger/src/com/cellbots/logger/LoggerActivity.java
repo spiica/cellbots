@@ -52,6 +52,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -755,9 +756,14 @@ public class LoggerActivity extends Activity {
     }
 
     private void cleanup() {
+        boolean wasRecording = false;
         try {
             mGpsManager.shutdown();
             synchronized (mIsRecording) {
+                wasRecording = mIsRecording;
+                if (!mIsRecording) {
+                    cleanupEmptyFiles();
+                }
                 if (mCamcorderView != null) {
                     if (mIsRecording) {
                         mCamcorderView.stopRecording();
@@ -784,7 +790,41 @@ public class LoggerActivity extends Activity {
             e.printStackTrace();
         } finally {
             closeFiles();
-            showDialog(PROGRESS_ID);
+            if (wasRecording) {
+                showDialog(PROGRESS_ID);
+            }
+        }
+    }
+
+    private void cleanupEmptyFiles() {
+        Log.i(TAG, "cleaning up empty dirs and zero byte files");
+        String logPath = application.getLoggerPathPrefix();
+        List<String> filesAndDirs = new FileListFetcher().getFilesAndDirectoriesInDir(logPath);
+        List<String> allFilesAndDir = new ArrayList<String>(filesAndDirs.size() + 1);
+        allFilesAndDir.addAll(filesAndDirs);
+        allFilesAndDir.add(logPath);
+
+        // make sure that all files in this list are zero byte files
+        for (String name : allFilesAndDir) {
+            File f = new File(name);
+            if (f.isFile() && f.length() != 0) {
+                // encountered a non-zero length file, abort deletes
+                Log.i(TAG, "File: " + name + " has length: " + f.length() + "; aborting cleanup");
+                return;
+            }
+        }
+
+        // delete all files and dirs
+        boolean atLeastOneFileWasDeleted = true;
+        while (atLeastOneFileWasDeleted) {
+            atLeastOneFileWasDeleted = false;
+            for (String name : allFilesAndDir) {
+                File f = new File(name);
+                if (f.exists() && f.delete()) {
+                    Log.d(TAG, "deleted " + name);
+                    atLeastOneFileWasDeleted = true;
+                }
+            }
         }
     }
 
