@@ -8,6 +8,7 @@
  * [TheoryPages Theory and Math]
  * Developer Guide
   * [CellbotsJavaGuide Cellbots Java Application]
+  * [HowToSubmitCodeWithACodeReview How to get code reviewed]
  * [http://code.google.com/p/cellbots/wiki/ more wiki pages...]
 
 == External Links ==
