@@ -36,6 +36,9 @@ public class FileListFetcher {
         List<String> files = new ArrayList<String>();
         File dir = new File(dirname);
         String[] entries = dir.list();
+        if (entries == null) {
+            return files;
+        }
         for (String entry : entries) {
             File f = new File(dir, entry);
             files.add(f.getAbsolutePath());
