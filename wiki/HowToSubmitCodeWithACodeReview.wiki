@@ -1,4 +1,4 @@
-How to submit code
+#summary How to get code reviewed and submitted
 
 = checkout clean code =
 
