@@ -1,4 +1,4 @@
-#How to submit code
+How to submit code
 
 = checkout clean code =
 
