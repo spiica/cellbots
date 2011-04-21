@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent" android:layout_height="fill_parent">
+
+  <!-- Video -->
+  <LinearLayout android:layout_width="fill_parent"
+    android:layout_height="fill_parent" android:orientation="vertical">
+    <com.cellbots.logger.BackCamcorderPreview
+      android:id="@+id/surface" android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:enabled="false"
+      android:focusable="true" android:clickable="true" />
+
+  </LinearLayout>
+
+  <include layout="@layout/data_drawer" />
+  <include layout="@layout/temp_drawer" />
+  <include layout="@layout/rec_text" />
+  <include layout="@layout/rec_time" />
+  <include layout="@layout/backdrop" />
+  <include layout="@layout/control_panel_data" />
+  <include layout="@layout/control_panel_rec" />
+</FrameLayout>
