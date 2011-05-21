@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:id="@+id/sensor_view" android:title="Sensors Only"/>
+  <item android:id="@+id/percept_view" android:title="Percept View"/>
+  <item android:id="@+id/custom_view" android:title="Customize View">
+    <menu>
+      <item android:id="@+id/toggle_sensors" android:title="Toggle Sensors"/>
+      <item android:id="@+id/toggle_percepts" android:title="Toggle Percepts"/>
+      <item android:id="@+id/toggle_responses" android:title="Toggle Responses"/>
+      <item android:id="@+id/toggle_controls" android:title="Toggle Controls"/>
+      <item android:id="@+id/toggle_speech" android:title="Toggle Speech"/>
+    </menu>
+  </item>
+  <item android:id="@+id/custom_view" android:title="Customize Sensors">
+    <menu>
+      <item android:id="@+id/toggle_gyroscope" android:title="Toggle Gyroscope"/>
+      <item android:id="@+id/set_sample_rate" android:title="Set Sample Rate"/>
+    </menu>
+  </item>
+</menu>

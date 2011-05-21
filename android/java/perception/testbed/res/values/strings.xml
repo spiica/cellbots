@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Perception Testbed App</string>
+    <string name="vocalize_response">Vocalize Response</string>
+    <string name="test_response">Test Response</string>
+    <string name="initial_message">PerceptionManager Activated</string>
+    <string name="initial_response">(response output)</string>
+    <string-array name="shaking_exclamations">
+        <item>Don\'t shake me bro.</item>
+        <item>Please stop that!</item>
+        <item>I\'m getting dizzy.</item>
+        <item>Aaaahaaaah!</item>
+        <item>I don\'t hate you.</item>
+    </string-array>
+    <string name="seismo_blue">#133CAC</string>
+    <string name="seismo_ltblue">#599CFF</string>
+    <string name="seismo_dtblue">#80062270</string>
+    <string name="seismo_ltgray">#808080</string>
+    <string name="seismo_red">#FD0006</string>
+    <string name="seismo_yellow">#FFFA40</string>
+</resources>

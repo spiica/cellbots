@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/master_layout"
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:layout_gravity="center"
+  >
+
+
+<!-- High level perception ================================================ -->
+<LinearLayout android:id="@+id/perception_layout"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:scrollbars="vertical"
+  >
+</LinearLayout>
+
+<!-- Signaled Responses =================================================== -->
+<LinearLayout android:id="@+id/response_layout"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:scrollbars="vertical"
+  >
+<TextView android:text="@string/initial_response"
+  android:id="@+id/response_message"
+  android:layout_width="fill_parent" 
+  android:layout_height="wrap_content" 
+  android:gravity="center"
+  android:textSize="20sp"/>
+</LinearLayout>
+
+
+
+<!-- Sensory System ======================================================= -->
+<ScrollView 
+  android:id="@+id/ScrollView"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:fillViewport="false">
+<LinearLayout android:id="@+id/scrolling_container"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:scrollbars="vertical"
+  >
+<LinearLayout android:id="@+id/sensor_layout"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:scrollbars="vertical"
+  >
+</LinearLayout>
+
+<!-- Control System ======================================================= -->
+<LinearLayout android:id="@+id/control_layout"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:scrollbars="vertical"
+  >
+<TextView android:text="@string/initial_message"
+  android:id="@+id/log_message"
+  android:layout_width="fill_parent" 
+  android:layout_height="wrap_content" 
+  android:gravity="bottom"
+  android:textSize="12sp"
+  android:background="#333"/>
+<LinearLayout android:id="@+id/voiceControls"
+  android:layout_height="wrap_content"
+  android:layout_width="match_parent"
+  android:gravity="center"
+  >
+<CheckBox android:text="@string/vocalize_response"
+  android:id="@+id/vocalize_response"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content">
+  </CheckBox>
+<Button android:text="@string/test_response"
+  android:id="@+id/test_response"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:layout_gravity="center_horizontal">
+  </Button>
+</LinearLayout>
+</LinearLayout>
+</LinearLayout>
+</ScrollView>
+
+
+
+</LinearLayout>
