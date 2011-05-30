@@ -57,6 +57,6 @@ Pressing "Scan QR code" opens the Barcode Scanner app, which can be used to scan
 To use the remote Web interface, the communication method of the shared Cellbot should be "Custom HTTP" with "Use local server" checked.
 
   * Connect the shared Cellbot.
-  * Make sure the on-board phone is connected on WiFi.
-  * Make sure the remote computer is on the same WiFi network as the on-board phone.
+  * Make sure the on-board phone is connected on Wi Fi.
+  * Make sure the remote computer is on the same Wi Fi network as the on-board phone.
   * Visit the page http://cellbot-ip:8080/index.html form a browser on our computer, where cellbot-ip is the IP address of the shared Cellbot displayed on the Cellbot screen on the phone.
