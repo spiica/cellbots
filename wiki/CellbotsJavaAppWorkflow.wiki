@@ -1,5 +1,3 @@
-#summary One-sentence summary of this page.
-
 = How to use the Cellbots Java app =
 
 This page explains the various workflows in the Cellbots Java app. We will see how a Cellbot can be controlled directly and from a remote via both HTTP and GTalk.
@@ -61,4 +59,4 @@ To use the remote Web interface, the communication method of the shared Cellbot 
   * Connect the shared Cellbot.
   * Make sure the on-board phone is connected on WiFi.
   * Make sure the remote computer is on the same WiFi network as the on-board phone.
-  * Visit the page http://<cellbot-ip>:8080/index.html form a browser on our computer, where cellbot-ip is the IP address of the shared Cellbot displayed on the Cellbot screen on the phone.
+  * Visit the page http://cellbot-ip:8080/index.html form a browser on our computer, where cellbot-ip is the IP address of the shared Cellbot displayed on the Cellbot screen on the phone.
