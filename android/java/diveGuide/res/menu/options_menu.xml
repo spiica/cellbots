@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:title="Select Dive Site"
+		android:id="@+id/set_dive_site"
+		android:icon="@android:drawable/ic_menu_myplaces">
+	</item>
+
+	<item android:title="Edit Dive Sites"
+		android:id="@+id/edit_dive_sites"
+		android:icon="@android:drawable/ic_menu_edit">
+	</item>
+
+	<item android:title="Next Location"
+		android:id="@+id/next_target"
+		android:icon="@android:drawable/ic_menu_directions">
+	</item>
+
+	<item android:title="Safety Notices"
+		android:id="@+id/warnings"
+		android:icon="@android:drawable/ic_menu_info_details">
+	</item>
+</menu>
