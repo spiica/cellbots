@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="distance">Distance:</string>
+    <string name="heading">Heading:</string>
+    <string name="last_fix">Last Fix:</string>
+    <string name="app_name">Dive Guide</string>
+</resources>
