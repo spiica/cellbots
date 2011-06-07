@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent" android:layout_height="match_parent">
+<TableLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:stretchColumns="1" android:id="@+id/main_table">
+
+	<TableRow>
+		<TextView
+			android:layout_span="3"
+			android:text="Waiting for your location ..." 
+			android:id="@+id/status"
+            android:paddingLeft="3dip"
+            android:paddingRight="3dip"
+			android:textSize="13sp"
+		    android:textColor="@android:color/white"
+			/>
+	</TableRow>
+    
+</TableLayout>
+</ScrollView>
