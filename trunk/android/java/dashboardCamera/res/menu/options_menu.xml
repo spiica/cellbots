@@ -1,0 +1,48 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:title="Video Buffer Length"
+		android:id="@+id/video_length"
+		android:icon="@android:drawable/ic_menu_preferences">
+	<menu>
+	<group android:id="@+id/video_length_group" 
+		android:checkableBehavior="single">
+		<item android:id="@+id/fifteen_seconds" android:title="15 Seconds"/>
+		<item android:id="@+id/thirty_seconds" android:title="30 Seconds"/>
+		<item android:id="@+id/one_minute" android:title="1 Minute"/>
+		<item android:id="@+id/two_minutes" android:title="2 Minutes"/>
+	</group>
+	</menu>
+	</item>
+	
+	<item android:title="Accident Capture Delay"
+		android:id="@+id/accident_delay"
+		android:icon="@android:drawable/ic_menu_recent_history">
+	<menu>
+	<group android:id="@+id/accident_delay_group" 
+		android:checkableBehavior="single">
+		<item android:id="@+id/accident_delay_zero_seconds" android:title="Disabled"/>
+		<item android:id="@+id/accident_delay_five_seconds" android:title="5 Seconds"/>
+		<item android:id="@+id/accident_delay_ten_seconds" android:title="10 Seconds"/>
+		<item android:id="@+id/accident_delay_fifteen_seconds" android:title="15 Seconds"/>
+	</group>
+	</menu>
+	</item>
+	
+	<item android:title="Accident Threshold"
+		android:id="@+id/accident_threshold"
+		android:icon="@android:drawable/ic_menu_report_image">
+	<menu>
+	<group android:id="@+id/accident_threshold_group" 
+		android:checkableBehavior="single">
+		<item android:id="@+id/accident_threshold_one_point_five" android:title="1.5x Earth Gravity"/>
+		<item android:id="@+id/accident_threshold_two" android:title="2x Earth Gravity"/>
+		<item android:id="@+id/accident_threshold_three" android:title="3x Earth Gravity"/>
+		<item android:id="@+id/accident_threshold_disabled" android:title="Disabled"/>
+	</group>
+	</menu>
+	</item>
+	
+	<item android:title="Help"
+		android:id="@+id/help"
+		android:icon="@android:drawable/ic_menu_help">
+	</item>
+</menu>
