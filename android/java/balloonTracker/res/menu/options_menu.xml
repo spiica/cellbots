@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:title="Edit Callsigns"
+		android:id="@+id/edit_callsigns"
+		android:icon="@android:drawable/ic_menu_edit">
+	</item>
+	
+	<item android:title="Refresh Locations"
+		android:id="@+id/refresh_locations"
+		android:icon="@android:drawable/ic_menu_rotate">
+	</item>
+	
+	<item android:title="Set Locations"
+		android:id="@+id/edit_locations"
+		android:icon="@android:drawable/ic_menu_myplaces">
+	</item>
+</menu>
