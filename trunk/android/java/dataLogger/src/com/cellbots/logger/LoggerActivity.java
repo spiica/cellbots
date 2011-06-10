@@ -82,7 +82,7 @@ public class LoggerActivity extends Activity {
 
     public static final int MODE_PICTURES = 2;
 
-    private static final int UI_BAR_MAX_TOP_PADDING = 206;
+    private static final int UI_BAR_MAX_TOP_PADDING = 275;
 
     private static final float TEMPERATURE_MAX = 500;
 
@@ -221,6 +221,7 @@ public class LoggerActivity extends Activity {
         public void onReceive(Context context, Intent intent) {
             mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
             float percentage = mBatteryTemp / TEMPERATURE_MAX;
+                        
             mBatteryTempBarImageView.setPercentage(percentage);
             int paddingTop = (int) ((1.0 - percentage) * UI_BAR_MAX_TOP_PADDING);
             mBatteryTempTextView.setText((mBatteryTemp / 10) + "°C");
