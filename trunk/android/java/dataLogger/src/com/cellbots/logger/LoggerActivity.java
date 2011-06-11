@@ -164,6 +164,8 @@ public class LoggerActivity extends Activity {
 
     private BufferedWriter mBatteryTempWriter;
 
+    private BufferedWriter mBatteryLevelWriter;
+
     private HashMap<String, BufferedWriter> sensorLogFileWriters;
 
     private StatFs mStatFs;
@@ -216,9 +218,10 @@ public class LoggerActivity extends Activity {
         }
     };
 
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver batteryBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            // Display and log the temperature
             mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
             float percentage = mBatteryTemp / TEMPERATURE_MAX;
                         
@@ -230,6 +233,14 @@ public class LoggerActivity extends Activity {
                     mBatteryTempSpacerTextView.getPaddingBottom());
             try {
                 mBatteryTempWriter.write(System.currentTimeMillis() + "," + mBatteryTemp + "\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Log the battery level
+            int batteryLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+            try {
+                mBatteryLevelWriter.write(System.currentTimeMillis() + "," + batteryLevel + "\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -445,7 +456,7 @@ public class LoggerActivity extends Activity {
     @Override
     public void onStop() {
         super.onStop();
-        unregisterReceiver(broadcastReceiver);
+        unregisterReceiver(batteryBroadcastReceiver);
     }
 
     @Override
@@ -574,6 +585,7 @@ public class LoggerActivity extends Activity {
 
         // The battery is a special case since it is not a real sensor
         mBatteryTempWriter = createBufferedWriter("/BatteryTemp_", directoryName);
+        mBatteryLevelWriter = createBufferedWriter("/BatteryLevel_", directoryName);
 
         // GPS is another special case since it is not a real sensor
         mGpsLocationWriter = createBufferedWriter("/GpsLocation_", directoryName);
@@ -710,8 +722,8 @@ public class LoggerActivity extends Activity {
         mBatteryTempBarImageView = (BarImageView) findViewById(R.id.temperature_barImageView);
         mBatteryTempTextView = (TextView) findViewById(R.id.batteryTemp_text);
         mBatteryTempSpacerTextView = (TextView) findViewById(R.id.batteryTemp_text_spacer);
-        IntentFilter batteryTemperatureFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        registerReceiver(broadcastReceiver, batteryTemperatureFilter);
+        IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryBroadcastReceiver, batteryFilter);
     }
 
     /**
@@ -734,6 +746,7 @@ public class LoggerActivity extends Activity {
                 w.clone();
             }
             mBatteryTempWriter.close();
+            mBatteryLevelWriter.close();
             mGpsLocationWriter.close();
             mGpsStatusWriter.close();
             mGpsNmeaWriter.close();
