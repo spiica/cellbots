@@ -55,7 +55,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         super(context, attrs);
         mPictureCount = 0;
         directory = new File(
-              ((LoggerApplication) context.getApplicationContext()).getPicturesDirectoryPath());
+                ((LoggerApplication) context.getApplicationContext()).getPicturesDirectoryPath());
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -134,21 +134,21 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
 
     public void acquireCamera(SurfaceHolder holder) {
-      mCamera = Camera.open();
-      try {
-          mCamera.setPreviewDisplay(holder);
-          mCamera.setDisplayOrientation(90);
-      } catch (IOException e) {
-          e.printStackTrace();
-      }
+        mCamera = Camera.open();
+        try {
+            mCamera.setPreviewDisplay(holder);
+            mCamera.setDisplayOrientation(90);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void releaseCamera() {
-      if (mCamera != null) {
-        mCamera.stopPreview();
-        mCamera.release();
-        mCamera = null;
-      }
+        if (mCamera != null) {
+            mCamera.stopPreview();
+            mCamera.release();
+            mCamera = null;
+        }
     }
 
 }

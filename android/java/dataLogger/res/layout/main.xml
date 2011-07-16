@@ -8,8 +8,6 @@
     <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
       android:text="Cellbots Data Logger" android:textSize="30dip"
       android:gravity="center_horizontal" />
-    <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
-      android:text="v 1.0.0" android:gravity="center_horizontal" />
     <TextView android:layout_width="wrap_content"
       android:layout_height="wrap_content" android:text=" " />
     <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
@@ -29,8 +27,6 @@
       android:layout_height="wrap_content" android:text=" " />
     <Button android:id="@+id/launchVideoBack" android:layout_width="fill_parent"
       android:layout_height="wrap_content" android:text="Use back camera" />
-    <TextView android:layout_width="wrap_content"
-      android:layout_height="wrap_content" android:text=" " />
     <TextView android:layout_width="wrap_content"
       android:layout_height="wrap_content" android:text=" " />
     <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
@@ -53,6 +49,16 @@
       android:layout_height="wrap_content" android:text=" " />
     <Button android:id="@+id/launchPicture" android:layout_width="fill_parent"
       android:layout_height="wrap_content" android:text="Use back camera" />
+
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text=" " />
+    <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"
+      android:text=" " android:textSize="1dip" android:background="#FFFFFFFF" />
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text=" " />
+    <CheckBox android:layout_width="fill_parent" android:layout_height="wrap_content"
+      android:checked="false" android:id="@+id/useZip" android:text="Zip and split data into 50MB chunks."></CheckBox>
+
   </LinearLayout>
 </ScrollView>
 

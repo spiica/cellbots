@@ -76,6 +76,8 @@ public class LoggerActivity extends Activity {
 
     public static final String EXTRA_PICTURE_DELAY = "PICTURE_DELAY";
 
+    public static final String EXTRA_USE_ZIP = "USE_ZIP";
+
     public static final int MODE_VIDEO_FRONT = 0;
 
     public static final int MODE_VIDEO_BACK = 1;
@@ -95,6 +97,8 @@ public class LoggerActivity extends Activity {
      * App state
      */
     private volatile Boolean mIsRecording;
+
+    private boolean useZip;
 
     private long startRecTime = 0;
 
@@ -208,6 +212,8 @@ public class LoggerActivity extends Activity {
                         writer.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -224,7 +230,7 @@ public class LoggerActivity extends Activity {
             // Display and log the temperature
             mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
             float percentage = mBatteryTemp / TEMPERATURE_MAX;
-                        
+
             mBatteryTempBarImageView.setPercentage(percentage);
             int paddingTop = (int) ((1.0 - percentage) * UI_BAR_MAX_TOP_PADDING);
             mBatteryTempTextView.setText((mBatteryTemp / 10) + "°C");
@@ -326,6 +332,8 @@ public class LoggerActivity extends Activity {
         mIsRecording = false;
         Date date = new Date();
 
+        useZip = getIntent().getBooleanExtra(EXTRA_USE_ZIP, false);
+
         final int mode = getIntent().getIntExtra(EXTRA_MODE, MODE_VIDEO_FRONT);
 
         if ((mode == MODE_VIDEO_FRONT) || (mode == MODE_VIDEO_BACK)) {
@@ -387,8 +395,10 @@ public class LoggerActivity extends Activity {
                             } catch (Exception e) {
                                 Log.e("ls", "Recording has failed...", e);
                                 Toast.makeText(getApplicationContext(),
-                                        "Recording is not possible at the moment: " + e.toString(),
-                                        Toast.LENGTH_SHORT).show();
+                                        "Camera hardware error. Please restart the application.",
+                                        Toast.LENGTH_LONG).show();
+                                finish();
+                                return;
                             }
                         } else {
                             cleanup();
@@ -499,18 +509,20 @@ public class LoggerActivity extends Activity {
         zipperThread = new Thread() {
             @Override
             public void run() {
-                ZipItUpRequest request = new ZipItUpRequest();
-                String directoryName = application.getLoggerPathPrefix();
-                request.setInputFiles(
-                        new FileListFetcher().getFilesAndDirectoriesInDir(directoryName));
-                request.setOutputFile(directoryName + "/logged-data.zip");
-                request.setMaxOutputFileSize(MAX_OUTPUT_ZIP_CHUNK_SIZE);
-                request.setDeleteInputfiles(true);
+                if (useZip) {
+                    ZipItUpRequest request = new ZipItUpRequest();
+                    String directoryName = application.getLoggerPathPrefix();
+                    request.setInputFiles(
+                            new FileListFetcher().getFilesAndDirectoriesInDir(directoryName));
+                    request.setOutputFile(directoryName + "/logged-data.zip");
+                    request.setMaxOutputFileSize(MAX_OUTPUT_ZIP_CHUNK_SIZE);
+                    request.setDeleteInputfiles(true);
 
-                try {
-                    new ZipItUpProcessor(request).zipIt(handler);
-                } catch (IOException e) {
-                    Log.e("Oh Crap!", "IoEx", e);
+                    try {
+                        new ZipItUpProcessor(request).zipIt(handler);
+                    } catch (IOException e) {
+                        Log.e("Oh Crap!", "IoEx", e);
+                    }
                 }
                 // closing dialog
                 progressDialog.dismiss();
@@ -522,7 +534,21 @@ public class LoggerActivity extends Activity {
                 initSensorLogFiles();
 
                 if (mCamcorderView != null) {
-                    mCamcorderView.startPreview();
+                    try {
+                        mCamcorderView.startPreview();
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+                        runOnUiThread(new Runnable(){
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(),
+                                        "Camera hardware error. Please restart the application.",
+                                        Toast.LENGTH_LONG).show();
+                            }                            
+                        });
+                        finish();
+                        return;
+                    }
                 }
             }
         };
@@ -798,7 +824,7 @@ public class LoggerActivity extends Activity {
             if (mRecTimeTextView != null) {
                 mRecTimeTextView.setText(R.string.start_rec_time);
             }
-        } catch (IllegalStateException e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
