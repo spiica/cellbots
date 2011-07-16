@@ -29,7 +29,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * View that handles the video recording functionality. Parts ofthiscodeweretakenfrommemofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * View that handles the video recording functionality. Parts ofthis code were
+ * taken from memofy's tutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
@@ -173,7 +174,7 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
 
     @Override
     public void startPreview() {
-        // TODO: Implement this. 
+        // TODO: Implement this.
         // Just calling initializeRecording doesn't work here.
     }
 }

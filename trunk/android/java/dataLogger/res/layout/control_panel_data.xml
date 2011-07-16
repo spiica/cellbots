@@ -9,11 +9,13 @@
     <ImageButton android:layout_width="wrap_content"
       android:layout_height="wrap_content" android:id="@+id/button_data"
       android:background="@android:color/transparent" android:src="@drawable/data_button_up"
+      android:contentDescription="Data drawer"
       android:paddingBottom="4dip" android:paddingLeft="25dip" />
     <TextView android:layout_width="wrap_content"
       android:layout_height="wrap_content" android:layout_weight="1" />
     <ImageButton android:layout_width="wrap_content" android:id="@+id/button_diagnostics"
       android:layout_height="wrap_content" android:background="@android:color/transparent"
+      android:contentDescription="Diagnostics drawer"
       android:src="@drawable/diagnostics_button_up" android:paddingBottom="4dip"
       android:paddingRight="25dip" />
   </LinearLayout>

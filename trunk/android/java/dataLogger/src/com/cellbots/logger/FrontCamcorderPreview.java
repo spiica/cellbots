@@ -30,8 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * View that handles the video recording functionality. Parts of this code were
- * taken from memofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * View that handles the video recording functionality. Parts of this code weretakenfrommemofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
@@ -82,7 +81,8 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
             try {
                 camera = Camera.open(1);
             } catch (NoSuchMethodError e) {
-                // Method call not available below API level 9. We can't access the front camera.
+                // Method call not available below API level 9. We can't access
+                // the front camera.
                 e.printStackTrace();
                 return;
             }
@@ -98,9 +98,8 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
             e.printStackTrace();
         }
 
-        camera.setDisplayOrientation(90);
-
         try {
+            camera.setDisplayOrientation(90);
             camera.startPreview();
             previewing = true;
         } catch (Throwable ex) {
@@ -127,7 +126,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
     @Override
     public void initializeRecording() {
         if (!initialized) {
-            if (camera == null){
+            if (camera == null) {
                 camera = Camera.open(1);
                 camera.setDisplayOrientation(90);
             }
@@ -178,9 +177,11 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
         }
     }
 
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) { }
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    }
 
-    public void surfaceDestroyed(SurfaceHolder holder) { }
+    public void surfaceDestroyed(SurfaceHolder holder) {
+    }
 
     public void onError(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
@@ -215,7 +216,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
     @Override
     public void stopRecording() {
         if (recorder != null) {
-          recorder.stop();
+            recorder.stop();
         }
     }
 

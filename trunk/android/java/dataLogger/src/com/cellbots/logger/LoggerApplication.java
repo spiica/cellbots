@@ -44,19 +44,21 @@ public class LoggerApplication extends Application {
 
     /**
      * Returns the filePathUniqueIdentifier that can be used for saving files.
-     * @throw IllegalStateException if the filePathUniqueIdentifier hasn't been initialized.
+     *
+     * @throw IllegalStateException if the filePathUniqueIdentifier hasn't been
+     *        initialized.
      */
     public String getFilePathUniqueIdentifier() {
         if (filePathUniqueIdentifier == null) {
             throw new IllegalStateException(
-                  "filePathUniqueIdentifier has not been initialized for the app.");
+                    "filePathUniqueIdentifier has not been initialized for the app.");
         }
         return filePathUniqueIdentifier;
     }
 
     public String getLoggerPathPrefix() {
-        return Environment.getExternalStorageDirectory().getAbsolutePath() + "/SmartphoneLoggerData/"
-            + getFilePathUniqueIdentifier() + "/";
+        return Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/SmartphoneLoggerData/" + getFilePathUniqueIdentifier() + "/";
     }
 
     public String getDataLoggerPath() {
@@ -65,12 +67,12 @@ public class LoggerApplication extends Application {
 
     public String getVideoFilepath() {
         return Environment.getExternalStorageDirectory().getAbsolutePath()
-              + "/SmartphoneLoggerData/" + filePathUniqueIdentifier
-              + "/video-" + filePathUniqueIdentifier + ".mp4";
+                + "/SmartphoneLoggerData/" + filePathUniqueIdentifier + "/video-"
+                + filePathUniqueIdentifier + ".mp4";
     }
 
     public String getPicturesDirectoryPath() {
         return Environment.getExternalStorageDirectory() + "/SmartphoneLoggerData/"
-              + filePathUniqueIdentifier + "/pictures/";
+                + filePathUniqueIdentifier + "/pictures/";
     }
 }

@@ -25,8 +25,7 @@ import android.view.SurfaceView;
 import java.io.IOException;
 
 /**
- * View that handles the video recording functionality. Parts of this code were
- * takenfrommemofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * View that handles the video recording functionality. Parts of this code weretakenfrommemofy'stutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
@@ -44,6 +43,6 @@ public abstract class AbstractCamcorderPreview extends SurfaceView implements
     public abstract void startRecording();
 
     public abstract void stopRecording();
-    
+
     public abstract void startPreview();
 }

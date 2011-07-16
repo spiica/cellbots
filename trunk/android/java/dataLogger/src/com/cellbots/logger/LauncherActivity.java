@@ -24,6 +24,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -33,23 +34,28 @@ import android.widget.Toast;
  * @author clchen@google.com (Charles L. Chen)
  */
 public class LauncherActivity extends Activity {
+    private CheckBox useZipCheckbox;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        useZipCheckbox = (CheckBox) findViewById(R.id.useZip);
+
         final Activity self = this;
         Button launchVideoFrontButton = (Button) findViewById(R.id.launchVideoFront);
         launchVideoFrontButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                launchLoggingActivity(LoggerActivity.MODE_VIDEO_FRONT);
+                launchLoggingActivity(LoggerActivity.MODE_VIDEO_FRONT, useZipCheckbox.isChecked());
             }
         });
         Button launchVideoBackButton = (Button) findViewById(R.id.launchVideoBack);
         launchVideoBackButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                launchLoggingActivity(LoggerActivity.MODE_VIDEO_BACK);
+                launchLoggingActivity(LoggerActivity.MODE_VIDEO_BACK, useZipCheckbox.isChecked());
             }
         });
         final EditText pictureDelayEditText = (EditText) findViewById(R.id.pictureDelay);
@@ -59,6 +65,7 @@ public class LauncherActivity extends Activity {
             public void onClick(View v) {
                 Intent i = new Intent(self, LoggerActivity.class);
                 i.putExtra(LoggerActivity.EXTRA_MODE, LoggerActivity.MODE_PICTURES);
+                i.putExtra(LoggerActivity.EXTRA_USE_ZIP, useZipCheckbox.isChecked());
                 int delay = 30;
                 try {
                     delay = Integer.parseInt(pictureDelayEditText.getText().toString());
@@ -79,12 +86,13 @@ public class LauncherActivity extends Activity {
         // the back camera.
         if (Build.VERSION.SDK_INT < 9 || Camera.getNumberOfCameras() == 1) {
             launchVideoFrontButton.setVisibility(View.GONE);
-        } 
+        }
     }
-    
-    private void launchLoggingActivity(int mode) {
+
+    private void launchLoggingActivity(int mode, boolean useZip) {
         Intent i = new Intent(LauncherActivity.this, LoggerActivity.class);
         i.putExtra(LoggerActivity.EXTRA_MODE, mode);
+        i.putExtra(LoggerActivity.EXTRA_USE_ZIP, useZip);
         startActivity(i);
         finish();
     }

@@ -109,7 +109,7 @@ public class ZipItUpProcessor {
     private void updateStatus(Handler handler, int numFilesProcessed, double currentFilePercentage,
             String inputFile, boolean deleteStage) {
         int percentageDone = (int) ((100 * numFilesProcessed + currentFilePercentage)
-            / request.getInputFiles().size());
+                / request.getInputFiles().size());
         String statusMsg = (deleteStage ? "deleting " : "zipping ") + inputFile;
         sendUpdate(handler, percentageDone, statusMsg);
     }
