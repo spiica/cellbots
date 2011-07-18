@@ -29,8 +29,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * View that handles the video recording functionality. Parts ofthis code were
- * taken from memofy's tutorialat:http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
+ * View that handles the video recording functionality. Parts of this code were
+ * taken from memofy's tutorialat:
+ * http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
  *
  * @author clchen@google.com (Charles L. Chen)
  */
@@ -44,6 +45,8 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
     private LoggerApplication application;
 
     private MediaRecorder recorder;
+    
+    private Camera camera;
 
     private SurfaceHolder holder;
 
@@ -80,8 +83,7 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
             recorder.setOnErrorListener(this);
             recorder.setOnInfoListener(this);
 
-            // TODO: The camera needs to be released when we're done with it.
-            Camera camera = Camera.open();
+            camera = Camera.open();
             camera.setDisplayOrientation(CAMERA_ORIENTATION_DEGREES);
             camera.unlock();
             recorder.setCamera(camera);
@@ -153,6 +155,10 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         if (recorder != null) {
             recorder.reset();
             recorder.release();
+        }
+        
+        if (camera != null){
+            camera.release();
         }
 
         if (fos != null) {
