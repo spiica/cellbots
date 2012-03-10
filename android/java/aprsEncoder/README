@@ -1,0 +1,1 @@
+To edit this project in eclipse first check out the repository (see the instructions on the website). Then open Eclipse and select File > New > Android Project. Make sure to select "Create project from existing source". Go through the rest of the steps of the wizard and then you should be able to build and run the app on your phone.
