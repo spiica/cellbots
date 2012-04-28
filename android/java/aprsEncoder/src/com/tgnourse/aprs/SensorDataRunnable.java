@@ -113,11 +113,11 @@ public class SensorDataRunnable implements Runnable {
 			track.write(sound, 0, sound.length);
 			handler.post(new Runnable() {
 				public void run() {
-					frameTextView.setText(frame);
+					if (frameTextView != null) frameTextView.setText(frame);
 					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					Date date = new Date();
-					timeStampTextView.setText(dateFormat.format(date));
-					aprsTextView.setText(info);
+					if (timeStampTextView != null) timeStampTextView.setText(dateFormat.format(date));
+					if (aprsTextView != null) aprsTextView.setText(info);
 				}
 			});
 		}

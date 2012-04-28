@@ -7,7 +7,7 @@ import android.util.Log;
  */
 public class Util {
 
-	private static final String LOG_IDENTIFIER = "DiveGuide";
+	private static final String LOG_IDENTIFIER = "APRSEncoder";
 	
 	/**
 	 * Print a info message to the logs.
