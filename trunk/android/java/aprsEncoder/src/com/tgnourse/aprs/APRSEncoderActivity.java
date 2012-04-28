@@ -5,19 +5,20 @@ import java.util.concurrent.Executors;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.util.Log;
+import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 public class APRSEncoderActivity extends Activity {
 	
-	/**
-	 * Our thread that transmits the data over APRS.
-	 */
-	private SensorDataRunnable transmitRunnable;
+	private static final String TAG = "APRSEncoderActivity";
 	
 	/**
 	 * Screen lock.
@@ -25,10 +26,22 @@ public class APRSEncoderActivity extends Activity {
 	private PowerManager.WakeLock screenLock;
 	
 	/**
-	 * Tracks the most recent readings from all of the sensors.
+	 * The intent we use to start and stop our service.
 	 */
-	private SensorDataCollector data;
+	private Intent serviceIntent;
 	
+	private void startTransmitting() {
+		Util.log("startTransmitting()");
+		serviceIntent = new Intent(this, APRSEncoderService.class);
+		if (startService(serviceIntent) == null) {
+			Util.log("Service cannot be found!");
+		}
+	}
+	
+	private void stopTransmitting() {
+		Util.log("stopTransmitting()");
+		stopService(serviceIntent);
+	}
 	
     /** Called when the activity is first created. */
     @Override
@@ -37,45 +50,32 @@ public class APRSEncoderActivity extends Activity {
         Util.log("onCreate()");
         setContentView(R.layout.main);
         
-        // Create the data collector.
-        data = new SensorDataCollector(
-        		(LocationManager) getSystemService(LOCATION_SERVICE), 
-        		(SensorManager) getSystemService(Context.SENSOR_SERVICE));
-        
-        // Create the transmit thread.
-        TextView frame = (TextView) findViewById(R.id.frame);
-        TextView time = (TextView) findViewById(R.id.time);
-        TextView aprs = (TextView) findViewById(R.id.aprs);
-        transmitRunnable = new SensorDataRunnable(new Handler(), frame, time, aprs, data);
+        // Set up the toggle button.
+        final ToggleButton button = (ToggleButton) findViewById(R.id.toggleButton);
+        button.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener () {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					startTransmitting();
+				} else {
+					stopTransmitting();
+				}
+				// TODO(tgnourse): Need to store this state to disk or look up the state of the service on start up.
+			}
+        });
     }
     
     public void onResume() {
     	super.onResume();
     	Util.log("onResume()");
-    	
-    	// Start listening for sensor updates.
-    	data.registerListeners();
         
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        screenLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "DiveTracker");
+        screenLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "APRSEncoder");
         screenLock.acquire();
-    	
-    	// Start the transmitter.
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.execute(transmitRunnable);
     }
     
     public void onPause() {
     	super.onPause();
     	Util.log("onPause()");
-    	
-    	// Stop transmitting data.
-    	if (transmitRunnable.playing()) {
-    		transmitRunnable.stop();
-        }
-    	
-    	// Stop listening for sensor updates.
-    	data.removeListeners();
     	
     	// Release the screen lock.
     	screenLock.release();

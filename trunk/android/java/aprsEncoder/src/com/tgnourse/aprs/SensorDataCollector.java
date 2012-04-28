@@ -199,7 +199,7 @@ public class SensorDataCollector {
 			String line = "SNS," + System.currentTimeMillis() + "," +
 				event.sensor.getType() + "," + "\"" + event.sensor.getName() + "\"," +
 				event.timestamp + "," + event.accuracy + "," + values; 
-			Util.log(line);
+			// Util.log(line);
 			
 			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER && event.values.length == 3) {
 				double force = getMagnitude(event.values[0], event.values[1], event.values[2]);
