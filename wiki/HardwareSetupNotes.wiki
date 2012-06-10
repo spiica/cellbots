@@ -1,0 +1,7 @@
+Hardware Setup Notes
+
+= Hardware/OS =
+
+[teensy2_0__macosx__iphone3 Teensy 2.0 Arduino, Macbook Pro, MacOSX 10.5.8, Iphone 3 run IOS 5.0]
+
+
