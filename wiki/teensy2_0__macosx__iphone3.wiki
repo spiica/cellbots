@@ -27,12 +27,9 @@ Servo pins:
  * server 2 B6
 
 9 Volt battery voltage regulator:
-
  * + to pin 1
  * - to pin 2
  * capacitor pin 2 to 3
  * pin 3 to teensy 2.0 power
  * pin 2 to teensy 2.0 GND
 
-
-= Details =
