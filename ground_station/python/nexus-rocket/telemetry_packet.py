@@ -1,6 +1,11 @@
 import datetime
+import json
 
 
+# Timestamp (h,m,s),
+# GPS (lat (100th degree), lng (100th degree), alt (6 digits)),
+# Acceleration, Gyroscope, Magnetic Field, Temperature,
+# Pressure, Light
 class TelemetryPacket:
   def __init__(
       self, timestamp=None, position=None, velocity=None, acceleration=None):
@@ -24,6 +29,23 @@ class TelemetryPacket:
     else:
       self.acceleration = acceleration
 
+  def encode_json(self):
+    return json.dumps([self.timestamp,
+                       self.position.encode(),
+                       self.velocity.encode(),
+                       self.acceleration.encode()])
+
+  # payload is a JSON string
+  @staticmethod
+  def decode_json(self, payload):
+    data = json.loads(payload)
+
+    # Basic sanity checking
+    if (type(data) is not list) or len(data) != 4:
+      raise ValueError
+
+    timestamp, position, velocity, acceleration = data
+    return TelemetryPacket(timestamp, position, velocity, acceleration)
 
 class Position:
   # degree, degrees, meters
@@ -31,6 +53,9 @@ class Position:
     self.latitude = latitude
     self.longitude = longtidue
     self.altitude = altidude
+
+  def encode(self):
+    return [self.latitude, self.longitude, self.altitude]
 
 
 class Velocity:
@@ -40,6 +65,9 @@ class Velocity:
     self.y = y
     self.z = z
 
+  def encode(self):
+    return [self.x, self.y, self.z]
+
 
 class Acceleration:
   # meters/second^2
@@ -47,3 +75,6 @@ class Acceleration:
     self.x = x
     self.y = y
     self.z = z
+
+  def encode(self):
+    return [self.x, self.y, self.z]
