@@ -1,0 +1,9 @@
+KamelServer - AppEngine app for serving dynamic KML files
+Author: octav@google.com
+
+Run with KML Python 2.7 on AppEngine dev server.
+
+*** HACK HACK HACK ***
+Need to patch line 259 of file
+/Applications/GoogleAppEngineLauncher.app/Contents/Resources/GoogleAppEngine-default.bundle/Contents/Resources/google_appengine/google/appengine/tools/dev_appserver_import_hook.py
+so 'a' and 'w' are included in the list of allowed file open modes.
