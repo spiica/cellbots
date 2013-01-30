@@ -1,0 +1,11 @@
+A simple script to monitor a serial stream for NMEA or APRS messages, 
+in particular the stream output from the Kenwood DH-72a.
+
+It acts as a relay for the APRS Messages posting them to the kamel-server, 
+and announces itself to the kamel-server on valid NMEA messages.
+
+There are several handles that are identified at the top of the script, 
+notable the device handle for the serial port, and the address of the 
+kamel-server.
+
+Depends on a few modules available in CPAN, please see top of script.
