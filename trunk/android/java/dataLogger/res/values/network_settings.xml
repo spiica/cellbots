@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="network_use_dhcp">true</bool>
+	<string name="network_static_ip"></string>
+  	<string name="network_static_netmask"></string>
+  	<string name="network_static_gateway"></string>
+  	<string name="network_static_dns_1"></string>
+  	<string name="network_wifi_essid">\"essid\"</string>
+  	<string name="network_wifi_wpa_Key">\"secureKey\"</string>
+  	<string name="network_wifi_bssid">auto</string>
+	
+	<integer name="network_remote_port">2345</integer>
+</resources>

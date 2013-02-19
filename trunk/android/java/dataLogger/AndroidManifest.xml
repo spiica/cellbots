@@ -2,18 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.cellbots.logger" android:versionCode="2" android:versionName="1.1">
 
-  <uses-sdk android:minSdkVersion="8" />
+  <uses-sdk android:minSdkVersion="10" />
   
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+  <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
-  <application android:icon="@drawable/rec_button_pressed"
-    android:name="com.cellbots.logger.LoggerApplication" android:label="@string/app_name"
-    android:debuggable="true">
+  <application android:icon="@drawable/ic_launcher"
+    android:name=".LoggerApplication" android:label="@string/app_name">
 
-    <activity android:name=".LauncherActivity" android:label="@string/app_name"
+<!--     <activity android:name=".LauncherActivity" android:label="@string/app_name"
       android:launchMode="singleTop" android:screenOrientation="portrait"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
       android:windowSoftInputMode="stateUnspecified|adjustPan">
@@ -27,21 +31,21 @@
       android:launchMode="singleTop" android:screenOrientation="portrait"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
     </activity>
-
+-->
 
     <!--
       Comment out the above two activities and uncomment the activity below this
       to revert back to the simpler mode where it is always recording video out
       of the front camera
     -->
-    <!--
+    
       <activity android:name=".LoggerActivity" android:label="@string/app_name"
       android:launchMode="singleTop" android:screenOrientation="portrait"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
       <intent-filter> <action android:name="android.intent.action.MAIN" />
       <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter> </activity>
-    -->
+    
 
   </application>
 </manifest>

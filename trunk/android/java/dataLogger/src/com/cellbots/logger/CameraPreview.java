@@ -90,7 +90,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     private void runPictureTakingLoop() {
         new Thread(new Runnable() {
-            @Override
+           // @Override
             public void run() {
                 try {
                     if (!mTakingPictures) {
@@ -101,7 +101,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
                         return;
                     }
                     mCamera.takePicture(null, null, new PictureCallback() {
-                        @Override
+                      //  @Override
                         public void onPictureTaken(byte[] data, Camera camera) {
                             try {
                                 FileOutputStream outStream = new FileOutputStream(

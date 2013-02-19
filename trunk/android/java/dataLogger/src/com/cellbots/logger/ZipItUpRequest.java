@@ -37,6 +37,8 @@ public class ZipItUpRequest implements Serializable {
     private String outputFile;
 
     private boolean deleteInputfiles;
+    
+    private int compressionLevel;
 
     public List<String> getInputFiles() {
         return inputFiles;
@@ -68,5 +70,13 @@ public class ZipItUpRequest implements Serializable {
 
     public boolean isDeleteInputfiles() {
         return deleteInputfiles;
+    }
+    
+    public void setCompressionLevel(int compressionLevel) {
+    	this.compressionLevel = compressionLevel;
+    }
+    
+    public int getCompressionLevel() {
+    	return compressionLevel;
     }
 }
