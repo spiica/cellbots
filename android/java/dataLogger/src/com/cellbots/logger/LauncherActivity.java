@@ -46,14 +46,14 @@ public class LauncherActivity extends Activity {
         final Activity self = this;
         Button launchVideoFrontButton = (Button) findViewById(R.id.launchVideoFront);
         launchVideoFrontButton.setOnClickListener(new OnClickListener() {
-            @Override
+           // @Override
             public void onClick(View v) {
                 launchLoggingActivity(LoggerActivity.MODE_VIDEO_FRONT, useZipCheckbox.isChecked());
             }
         });
         Button launchVideoBackButton = (Button) findViewById(R.id.launchVideoBack);
         launchVideoBackButton.setOnClickListener(new OnClickListener() {
-            @Override
+           // @Override
             public void onClick(View v) {
                 launchLoggingActivity(LoggerActivity.MODE_VIDEO_BACK, useZipCheckbox.isChecked());
             }
@@ -61,7 +61,7 @@ public class LauncherActivity extends Activity {
         final EditText pictureDelayEditText = (EditText) findViewById(R.id.pictureDelay);
         Button launchPictureButton = (Button) findViewById(R.id.launchPicture);
         launchPictureButton.setOnClickListener(new OnClickListener() {
-            @Override
+            //@Override
             public void onClick(View v) {
                 Intent i = new Intent(self, LoggerActivity.class);
                 i.putExtra(LoggerActivity.EXTRA_MODE, LoggerActivity.MODE_PICTURES);

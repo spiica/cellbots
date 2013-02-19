@@ -25,6 +25,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -34,7 +35,7 @@ import java.util.zip.ZipOutputStream;
  * @author birmiwal@google.com (Shishir Birmiwal)
  */
 public class ZipItUpProcessor {
-    private static final int BUFFER_SIZE = 8 * 1024;
+    private static final int BUFFER_SIZE = 32 * 1024;
 
     private final ZipItUpRequest request;
 
@@ -48,10 +49,52 @@ public class ZipItUpProcessor {
         this.request = request;
     }
 
+    public void chunkIt(Handler handler) throws IOException {
+    	Log.e("chunkIt", "processing files");
+    	
+    	int numFilesProcessed = 0;
+    	for (String inputFile : request.getInputFiles()) {
+    		File f = new File(inputFile);
+    		long size = f.length() + 1;
+    		
+    		if (!f.isFile()) {
+    			numFilesProcessed++;
+    			continue;
+    		}
+    		
+    		if (size <= request.getMaxOutputFileSize()) {
+    			numFilesProcessed++;
+    			updateStatus(handler, numFilesProcessed, inputFile, false);
+    			continue;
+    		}
+    		
+    		Log.e("chunkIt", "Chunking " + inputFile);
+    		OutputStream outStream = SplittingOutputStream.getOutputStream(inputFile, request.getMaxOutputFileSize());
+    		BufferedInputStream in = new BufferedInputStream(new FileInputStream(f));
+    		
+            long numBytesReadFromFile = 0;
+            int numBytesRead = 0;
+            while ((numBytesRead = in.read(buffer)) >= 0) {
+                numBytesReadFromFile += numBytesRead;
+                outStream.write(buffer, 0, numBytesRead);
+                updateStatus(handler, numFilesProcessed, 100. * numBytesReadFromFile / size,
+                        inputFile, false);
+            }    		
+    		
+    		if (request.isDeleteInputfiles()) {
+    			Log.e("chunkIt", "deleting " + inputFile);
+    			f.delete();
+    		}
+    		
+    		numFilesProcessed++;
+    	}
+    }
+    
     public void zipIt(Handler handler) throws IOException {
         Log.e("zipIt", "processing file zip request - writing to " + request.getOutputFile());
         ZipOutputStream outStream = new ZipOutputStream(SplittingOutputStream.getOutputStream(
                 request.getOutputFile(), request.getMaxOutputFileSize()));
+        outStream.setLevel(request.getCompressionLevel());
 
         int numFilesProcessed = 0;
         for (String inputFile : request.getInputFiles()) {
@@ -102,7 +145,7 @@ public class ZipItUpProcessor {
     private void updateStatus(
             Handler handler, int numFilesProcessed, String inputFile, boolean deleteStage) {
         int percentageDone = (100 * numFilesProcessed) / request.getInputFiles().size();
-        String statusMsg = (deleteStage ? "deleting " : "zipping ") + inputFile;
+        String statusMsg = (deleteStage ? "deleting " : "saving ") + inputFile;
         sendUpdate(handler, percentageDone, statusMsg);
     }
 
@@ -110,7 +153,7 @@ public class ZipItUpProcessor {
             String inputFile, boolean deleteStage) {
         int percentageDone = (int) ((100 * numFilesProcessed + currentFilePercentage)
                 / request.getInputFiles().size());
-        String statusMsg = (deleteStage ? "deleting " : "zipping ") + inputFile;
+        String statusMsg = (deleteStage ? "deleting " : "saving ") + inputFile;
         sendUpdate(handler, percentageDone, statusMsg);
     }
 
