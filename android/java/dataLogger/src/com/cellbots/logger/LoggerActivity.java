@@ -66,7 +66,7 @@ import org.json.JSONException;
  * Main activity for a data gathering tool. This tool enables recording video
  * and collecting data from sensors. Data is stored in:
  * /sdcard/SmartphoneLoggerData/.
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 
@@ -173,9 +173,9 @@ public class LoggerActivity extends Activity {
     private BufferedWriter mBatteryTempWriter;
 
     private BufferedWriter mBatteryLevelWriter;
-    
+
     private BufferedWriter mBatteryVoltageWriter;
-    
+
     private BufferedWriter mWifiWriter;
 
     private HashMap<String, BufferedWriter> sensorLogFileWriters;
@@ -191,16 +191,17 @@ public class LoggerActivity extends Activity {
     private BufferedWriter mGpsNmeaWriter;
 
     private GpsManager mGpsManager;
-    
+
     private WapManager mWapManager;
-    
+
     private RemoteControl mRemoteControl;
 
     /*
      * Event handlers
      */
     private SensorEventListener mSensorEventListener = new SensorEventListener() {
-        //@Override
+        // @Override
+            @Override
         public void onSensorChanged(SensorEvent event) {
             Sensor sensor = event.sensor;
             if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
@@ -231,13 +232,14 @@ public class LoggerActivity extends Activity {
             }
         }
 
-        //@Override
+        // @Override
+            @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
     };
 
     private BroadcastReceiver batteryBroadcastReceiver = new BroadcastReceiver() {
-        @Override
+            @Override
         public void onReceive(Context context, Intent intent) {
             // Display and log the temperature
             mBatteryTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
@@ -250,101 +252,107 @@ public class LoggerActivity extends Activity {
                     paddingTop, mBatteryTempSpacerTextView.getPaddingRight(),
                     mBatteryTempSpacerTextView.getPaddingBottom());
 
-            synchronized(mIsRecording) {
-            	if (!mIsRecording)
-            		return;
-            		
-            	try {
-            		mBatteryTempWriter.write(System.currentTimeMillis() + "," + mBatteryTemp + "\n");
-            	} catch (IOException e) {
-            		e.printStackTrace();
-            	}
+            synchronized (mIsRecording) {
+                if (!mIsRecording)
+                    return;
 
-            	// Log the battery level
-            	int batteryLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            	try {
-            		mBatteryLevelWriter.write(System.currentTimeMillis() + "," + batteryLevel + "\n");
-            	} catch (IOException e) {
-            		e.printStackTrace();
-            	}
-            	
-            	// Log the battery voltage level
-            	int batteryVoltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
-            	try {
-            		mBatteryVoltageWriter.write(System.currentTimeMillis() + "," + batteryVoltage + "\n");
-            	} catch (IOException e) {
-            		e.printStackTrace();
-            	}
+                try {
+                    mBatteryTempWriter.write(
+                            System.currentTimeMillis() + "," + mBatteryTemp + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Log the battery level
+                int batteryLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+                try {
+                    mBatteryLevelWriter.write(
+                            System.currentTimeMillis() + "," + batteryLevel + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Log the battery voltage level
+                int batteryVoltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
+                try {
+                    mBatteryVoltageWriter.write(
+                            System.currentTimeMillis() + "," + batteryVoltage + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     };
 
     private WapManager.WapManagerListener mWifiListener = new WapManager.WapManagerListener() {
-		public void onScanResults(long timestamp, ScanResults results) {
-			synchronized (mIsRecording) {
-				if (!mIsRecording)
-					return;
-			}
-			
-			try {
-				// Convert results to a json object
-				JSONObject obj = new JSONObject();
-				obj.put("timestamp", timestamp);
-				obj.put("results", new JSONObject(results));
-				
-				// Write that object to a file
-				mWifiWriter.write(obj.toString());
-				mWifiWriter.write("\n");
-			} catch (JSONException e) {
-				Log.e("LoggerActivity", "Error logging wifi results. JSON Error");
-				e.printStackTrace();
-			} catch (IOException e) {
-				Log.e("LoggerActivity", "Error logging wifi results. IO error");
-				e.printStackTrace();
-			}
-		}
-	};
-	
-	private RemoteControl.CommandListener mCommandListener = new RemoteControl.CommandListener() {
-		
-		public boolean onCommandReceived(Command c) throws Exception {
-			if (c.command.equals("start")) {
-				return onStartStopCommandReceived(c, true);
-			} else if (c.command.equals("stop")) {
-				return onStartStopCommandReceived(c, false);
-			} else if (c.command.equals("status")) {
-				if (mIsRecording)
-					c.sendResponse("Status: RECORDING\n");
-				else
-					c.sendResponse("Status: STOPPED\n");
-			}
-			return false;
-		}
-		
-		private boolean onStartStopCommandReceived(Command c, boolean start) {
-			if (mIsRecording == start) {
-				c.sendResponse("Recording already ");
-				if (start)
-					c.sendResponse("started.\n");
-				else
-					c.sendResponse("stopped.\n");
-				return true;
-			}
-			
-			final ImageButton recordButton = (ImageButton) findViewById(R.id.button_record);
-			recordButton.performClick();
+            @Override
+        public void onScanResults(long timestamp, ScanResults results) {
+            synchronized (mIsRecording) {
+                if (!mIsRecording)
+                    return;
+            }
 
-			return false;
-		}
-		
-	};
-    
+            try {
+                // Convert results to a json object
+                JSONObject obj = new JSONObject();
+                obj.put("timestamp", timestamp);
+                obj.put("results", new JSONObject(results));
+
+                // Write that object to a file
+                mWifiWriter.write(obj.toString());
+                mWifiWriter.write("\n");
+            } catch (JSONException e) {
+                Log.e("LoggerActivity", "Error logging wifi results. JSON Error");
+                e.printStackTrace();
+            } catch (IOException e) {
+                Log.e("LoggerActivity", "Error logging wifi results. IO error");
+                e.printStackTrace();
+            }
+        }
+    };
+
+    private RemoteControl.CommandListener mCommandListener = new RemoteControl.CommandListener() {
+
+            @Override
+        public boolean onCommandReceived(Command c) throws Exception {
+            if (c.command.equals("start")) {
+                return onStartStopCommandReceived(c, true);
+            } else if (c.command.equals("stop")) {
+                return onStartStopCommandReceived(c, false);
+            } else if (c.command.equals("status")) {
+                if (mIsRecording)
+                    c.sendResponse("Status: RECORDING\n");
+                else
+                    c.sendResponse("Status: STOPPED\n");
+            }
+            return false;
+        }
+
+        private boolean onStartStopCommandReceived(Command c, boolean start) {
+            if (mIsRecording == start) {
+                c.sendResponse("Recording already ");
+                if (start)
+                    c.sendResponse("started.\n");
+                else
+                    c.sendResponse("stopped.\n");
+                return true;
+            }
+
+            final ImageButton recordButton = (ImageButton) findViewById(R.id.button_record);
+            recordButton.performClick();
+
+            return false;
+        }
+
+    };
+
     /*
      * Runnables
      */
 
     private Runnable updateRecTimeDisplay = new Runnable() {
-        //@Override
+        // @Override
+            @Override
         public void run() {
             boolean isRecording;
             synchronized (mIsRecording) {
@@ -358,7 +366,8 @@ public class LoggerActivity extends Activity {
                 final int paddingTop = (int) ((1.0 - percentage) * UI_BAR_MAX_TOP_PADDING);
                 mFreeSpacePct = (int) (percentage * 100);
                 runOnUiThread(new Runnable() {
-                   // @Override
+                    // @Override
+                        @Override
                     public void run() {
                         if (mFlashingRecGroup != null) {
                             if (mFlashingRecGroup.getVisibility() == View.VISIBLE) {
@@ -395,7 +404,8 @@ public class LoggerActivity extends Activity {
             }
 
             runOnUiThread(new Runnable() {
-              //  @Override
+                // @Override
+                    @Override
                 public void run() {
                     if (mFlashingRecGroup != null) {
                         mFlashingRecGroup.setVisibility(View.INVISIBLE);
@@ -463,7 +473,8 @@ public class LoggerActivity extends Activity {
 
         final ImageButton recordButton = (ImageButton) findViewById(R.id.button_record);
         recordButton.setOnClickListener(new View.OnClickListener() {
-           // @Override
+            // @Override
+                @Override
             public void onClick(View v) {
                 synchronized (mIsRecording) {
                     if ((mode == MODE_VIDEO_FRONT) || (mode == MODE_VIDEO_BACK)) {
@@ -478,7 +489,7 @@ public class LoggerActivity extends Activity {
                                 startRecTime = System.currentTimeMillis();
                                 new Thread(updateRecTimeDisplay).start();
                                 if (mRemoteControl != null)
-                                	mRemoteControl.broadcastMessage("*** Recording Started ***\n");
+                                    mRemoteControl.broadcastMessage("*** Recording Started ***\n");
                             } catch (Exception e) {
                                 Log.e("ls", "Recording has failed...", e);
                                 Toast.makeText(getApplicationContext(),
@@ -501,7 +512,7 @@ public class LoggerActivity extends Activity {
                                 Log.e("ls", "Taking pictures has failed...", e);
                                 Toast.makeText(getApplicationContext(),
                                         "Taking pictures is not possible at the moment: "
-                                                + e.toString(), Toast.LENGTH_SHORT).show();
+                                        + e.toString(), Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             cleanup();
@@ -513,7 +524,8 @@ public class LoggerActivity extends Activity {
 
         final ImageButton dataButton = (ImageButton) findViewById(R.id.button_data);
         dataButton.setOnClickListener(new View.OnClickListener() {
-           // @Override
+            // @Override
+                @Override
             public void onClick(View v) {
                 if (mDataDrawer.isOpened()) {
                     dataButton.setImageResource(R.drawable.data_button_up);
@@ -527,7 +539,8 @@ public class LoggerActivity extends Activity {
 
         final ImageButton diagnosticsButton = (ImageButton) findViewById(R.id.button_diagnostics);
         diagnosticsButton.setOnClickListener(new View.OnClickListener() {
-          //  @Override
+            // @Override
+                @Override
             public void onClick(View v) {
                 if (mDiagnosticsDrawer.isOpened()) {
                     diagnosticsButton.setImageResource(R.drawable.diagnostics_button_up);
@@ -539,48 +552,48 @@ public class LoggerActivity extends Activity {
             }
         });
 
-        //setupSensors();
+        // setupSensors();
         initSensorUi();
     }
-    
+
     @Override
     protected void onResume() {
-    	super.onResume();
-    	setupSensors();
-    	NetworkHelper.startConfiguration(getApplicationContext());
-    	mRemoteControl = new RemoteControl(getApplicationContext());
-    	
-    	mRemoteControl.registerCommandListener("start", mCommandListener);
-    	mRemoteControl.registerCommandListener("stop", mCommandListener);
-    	mRemoteControl.registerCommandListener("status", mCommandListener);
-    	
-    	mRemoteControl.start();
+        super.onResume();
+        setupSensors();
+        NetworkHelper.startConfiguration(getApplicationContext());
+        mRemoteControl = new RemoteControl(getApplicationContext());
+
+        mRemoteControl.registerCommandListener("start", mCommandListener);
+        mRemoteControl.registerCommandListener("stop", mCommandListener);
+        mRemoteControl.registerCommandListener("status", mCommandListener);
+
+        mRemoteControl.start();
     }
 
     @Override
     protected void onPause() {
-    	super.onPause();
-    	
-    	Log.i("LoggerActivity", "onPause called");
+        super.onPause();
 
-    	// Unregister sensor listeners
-    	for (Sensor s : sensors) {
-    		mSensorManager.unregisterListener(mSensorEventListener, s);
-    	}
-    	
-    	// Does the gps cleanup/file closing
-    	cleanup();
-    	
-    	// Unregister battery
+        Log.i("LoggerActivity", "onPause called");
+
+        // Unregister sensor listeners
+        for (Sensor s : sensors) {
+            mSensorManager.unregisterListener(mSensorEventListener, s);
+        }
+
+        // Does the gps cleanup/file closing
+        cleanup();
+
+        // Unregister battery
         unregisterReceiver(batteryBroadcastReceiver);
-        
+
         // Unregister WiFi
         mWapManager.unregisterReceiver();
-        
+
         // Stop the remote commanding
         mRemoteControl.shutdown();
         mRemoteControl = null;
-        
+
         Log.i("LoggerActivity", "onPause finished.");
     }
 
@@ -612,21 +625,21 @@ public class LoggerActivity extends Activity {
         final ProgressDialog progressDialog = (ProgressDialog) dialog;
         progressDialog.setMessage("Processing...");
         final Handler handler = new Handler() {
-            @Override
+                @Override
             public void handleMessage(android.os.Message msg) {
                 int done = msg.getData().getInt("percentageDone");
                 String status = msg.getData().getString("status");
                 progressDialog.setProgress(done);
                 progressDialog.setMessage(status);
-                
+
                 if (mRemoteControl != null) {
-                	mRemoteControl.broadcastMessage("Zipping Progress: " + done + "%\n");
+                    mRemoteControl.broadcastMessage("Zipping Progress: " + done + "%\n");
                 }
             }
         };
 
         zipperThread = new Thread() {
-            @Override
+                @Override
             public void run() {
                 if (useZip) {
                     ZipItUpRequest request = new ZipItUpRequest();
@@ -657,16 +670,18 @@ public class LoggerActivity extends Activity {
                     try {
                         mCamcorderView.startPreview();
                         if (mRemoteControl != null)
-                        	mRemoteControl.broadcastMessage("*** Packaging Finished: OK to start ***\n");
+                            mRemoteControl.broadcastMessage(
+                                    "*** Packaging Finished: OK to start ***\n");
                     } catch (RuntimeException e) {
                         e.printStackTrace();
-                        runOnUiThread(new Runnable(){
-                           // @Override
+                        runOnUiThread(new Runnable() {
+                            // @Override
+                                @Override
                             public void run() {
                                 Toast.makeText(getApplicationContext(),
                                         "Camera hardware error. Please restart the application.",
                                         Toast.LENGTH_LONG).show();
-                            }                            
+                            }
                         });
                         finish();
                         return;
@@ -678,12 +693,14 @@ public class LoggerActivity extends Activity {
     }
 
     private void setupSensors() {
-        //initSensorUi();
+        // initSensorUi();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         initSensorLogFiles();
-        //initBattery(); // *Note* This function deals with UI, not actual readings.
-        registerBattery(); // This is the actual function that deals with receivers.
+        // initBattery(); // *Note* This function deals with UI, not actual
+        // readings.
+        registerBattery(); // This is the actual function that deals with
+                           // receivers.
         initGps();
         initWifi();
 
@@ -702,7 +719,7 @@ public class LoggerActivity extends Activity {
         mMagXTextView = (TextView) findViewById(R.id.magneticFieldX_text);
         mMagYTextView = (TextView) findViewById(R.id.magneticFieldY_text);
         mMagZTextView = (TextView) findViewById(R.id.magneticFieldZ_text);
-        
+
         initBattery();
     }
 
@@ -744,14 +761,14 @@ public class LoggerActivity extends Activity {
         mGpsLocationWriter = createBufferedWriter("/GpsLocation_", directoryName);
         mGpsStatusWriter = createBufferedWriter("/GpsStatus_", directoryName);
         mGpsNmeaWriter = createBufferedWriter("/GpsNmea_", directoryName);
-        
+
         // Wifi is another special case
         mWifiWriter = createBufferedWriter("/Wifi_", directoryName);
     }
 
     /**
      * Creates a new BufferedWriter.
-     *
+     * 
      * @param prefix The prefix for the file that we're writing to.
      * @return A BufferedWriter for a file in the specified directory. Null if
      *         creation failed.
@@ -827,49 +844,52 @@ public class LoggerActivity extends Activity {
     private void initGps() {
         mGpsManager = new GpsManager(this, new GpsManagerListener() {
 
-          //  @Override
+            // @Override
+                @Override
             public void onGpsLocationUpdate(long time, float accuracy, double latitude,
                     double longitude, double altitude, float bearing, float speed) {
-            	synchronized (mIsRecording) {
-            		if (!mIsRecording)
-            			return;
-            	}
-            	
+                synchronized (mIsRecording) {
+                    if (!mIsRecording)
+                        return;
+                }
+
                 try {
                     if (mGpsLocationView != null) {
                         mGpsLocationView.setText("Lat: " + latitude + "\nLon: " + longitude);
                     }
                     mGpsLocationWriter.write(
                             time + "," + accuracy + "," + latitude + "," + longitude + ","
-                                    + altitude + "," + bearing + "," + speed + "\n");
+                            + altitude + "," + bearing + "," + speed + "\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
-           // @Override
+            // @Override
+                @Override
             public void onGpsNmeaUpdate(long time, String nmeaString) {
-            	synchronized (mIsRecording) {
-            		if (!mIsRecording)
-            			return;
-            	}
+                synchronized (mIsRecording) {
+                    if (!mIsRecording)
+                        return;
+                }
 
-            	try {
+                try {
                     mGpsNmeaWriter.write(time + "," + nmeaString + "\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
-          //  @Override
+            // @Override
+                @Override
             public void onGpsStatusUpdate(
                     long time, int maxSatellites, int actualSatellites, int timeToFirstFix) {
-            	synchronized (mIsRecording) {
-            		if (!mIsRecording)
-            			return;
-            	}
+                synchronized (mIsRecording) {
+                    if (!mIsRecording)
+                        return;
+                }
 
-            	try {
+                try {
                     mGpsStatusWriter.write(time + "," + maxSatellites + "," + actualSatellites + ","
                             + timeToFirstFix + "\n");
                 } catch (IOException e) {
@@ -894,16 +914,16 @@ public class LoggerActivity extends Activity {
         mBatteryTempTextView = (TextView) findViewById(R.id.batteryTemp_text);
         mBatteryTempSpacerTextView = (TextView) findViewById(R.id.batteryTemp_text_spacer);
     }
-    
+
     private void initWifi() {
-    	if (mWapManager == null)
-    		mWapManager = new WapManager(getApplicationContext(), mWifiListener);
-    	mWapManager.registerReceiver();
+        if (mWapManager == null)
+            mWapManager = new WapManager(getApplicationContext(), mWifiListener);
+        mWapManager.registerReceiver();
     }
-    
+
     private void registerBattery() {
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        registerReceiver(batteryBroadcastReceiver, batteryFilter);    	
+        registerReceiver(batteryBroadcastReceiver, batteryFilter);
     }
 
     /**
@@ -988,8 +1008,8 @@ public class LoggerActivity extends Activity {
         } finally {
             closeFiles();
             if (wasRecording) {
-            	if (mRemoteControl != null)
-            		mRemoteControl.broadcastMessage("*** Recording Stopped ***\n");
+                if (mRemoteControl != null)
+                    mRemoteControl.broadcastMessage("*** Recording Stopped ***\n");
                 showDialog(PROGRESS_ID);
             }
         }
@@ -1034,7 +1054,7 @@ public class LoggerActivity extends Activity {
             synchronized (mIsRecording) {
                 shouldExitApp = !mIsRecording;
             }
-            //cleanup();
+            // cleanup();
             if (shouldExitApp) {
                 finish();
             }

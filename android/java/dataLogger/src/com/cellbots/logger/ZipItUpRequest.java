@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * A request to zip up some files. Use this with {@link ZipItUpProcessor}.
- *
+ * 
  * @author birmiwal@google.com (Shishir Birmiwal)
  */
 @SuppressWarnings("serial")
@@ -37,7 +37,7 @@ public class ZipItUpRequest implements Serializable {
     private String outputFile;
 
     private boolean deleteInputfiles;
-    
+
     private int compressionLevel;
 
     public List<String> getInputFiles() {
@@ -71,12 +71,12 @@ public class ZipItUpRequest implements Serializable {
     public boolean isDeleteInputfiles() {
         return deleteInputfiles;
     }
-    
+
     public void setCompressionLevel(int compressionLevel) {
-    	this.compressionLevel = compressionLevel;
+        this.compressionLevel = compressionLevel;
     }
-    
+
     public int getCompressionLevel() {
-    	return compressionLevel;
+        return compressionLevel;
     }
 }

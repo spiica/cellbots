@@ -20,7 +20,6 @@ import android.content.Context;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -33,7 +32,7 @@ import java.io.IOException;
  * View that handles the video recording functionality. Parts of this code were
  * taken from memofy's tutorial at:
  * http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
@@ -71,6 +70,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
+    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         startPreview();
     }
@@ -180,16 +180,20 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
         }
     }
 
+    @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     }
 
+    @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
     }
 
+    @Override
     public void onError(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
     }
 
+    @Override
     public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Info received from media recorder: " + what + ", " + extra);
     }

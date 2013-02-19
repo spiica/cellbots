@@ -28,7 +28,7 @@ import java.io.IOException;
  * View that handles the video recording functionality. Parts of this code were
  * taken from memofy's tutorial at:
  * http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 public abstract class AbstractCamcorderPreview extends SurfaceView implements

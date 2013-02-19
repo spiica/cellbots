@@ -32,7 +32,7 @@ import java.io.IOException;
  * View that handles the video recording functionality. Parts of this code were
  * taken from memofy's tutorialat:
  * http://memofy.com/memofy/show/2008c618f15fc61801ca038cbfe138/how-to-use-mediarecorder-in-android
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 public class BackCamcorderPreview extends AbstractCamcorderPreview implements
@@ -45,7 +45,7 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
     private LoggerApplication application;
 
     private MediaRecorder recorder;
-    
+
     private Camera camera;
 
     private SurfaceHolder holder;
@@ -72,6 +72,7 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
+    @Override
     public void surfaceCreated(final SurfaceHolder holder) {
         initializeRecording();
     }
@@ -136,16 +137,20 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
         }
     }
 
+    @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     }
 
+    @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
     }
 
+    @Override
     public void onError(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Error received in media recorder: " + what + ", " + extra);
     }
 
+    @Override
     public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
         Log.e(TAG, "Info received from media recorder: " + what + ", " + extra);
     }
@@ -156,8 +161,8 @@ public class BackCamcorderPreview extends AbstractCamcorderPreview implements
             recorder.reset();
             recorder.release();
         }
-        
-        if (camera != null){
+
+        if (camera != null) {
             camera.release();
         }
 

@@ -24,7 +24,7 @@ import java.io.OutputStream;
 
 /**
  * An {@link OutputStream} that splits the files while writing.
- *
+ * 
  * @author birmiwal@google.com (Shishir Birmiwal)
  */
 public class SplittingOutputStream extends OutputStream {

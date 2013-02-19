@@ -27,7 +27,7 @@ import android.widget.ImageView;
  * Image View for drawing the temperature and storage bars. This is the same as
  * a regular image view except it is designed to let you programatically erase
  * part of it from the top (to show less of a meter).
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 public class BarImageView extends ImageView {

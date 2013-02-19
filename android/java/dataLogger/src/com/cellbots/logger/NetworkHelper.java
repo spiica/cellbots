@@ -1,3 +1,4 @@
+
 package com.cellbots.logger;
 
 import java.util.List;
@@ -13,55 +14,55 @@ import android.content.res.Resources;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.provider.Settings;
-import android.util.Log;
 
 public class NetworkHelper {
-	private static final Logger logger = Logger.getLogger(NetworkHelper.class.getCanonicalName()); 
-	
-	public static BroadcastReceiver sReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
-				int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
-				logger.info("Wifi State changed: " + state);
+    private static final Logger logger = Logger.getLogger(NetworkHelper.class.getCanonicalName());
 
-				if (state == WifiManager.WIFI_STATE_ENABLED) {
-					configureNetwork(context);
-					context.unregisterReceiver(this);
-				}
-			}
-		}
-	};
-	
-	public static void startConfiguration(Context context) {
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
-		context.registerReceiver(sReceiver, filter);
-	}
-	
-	public static boolean configureNetwork(Context context) {
-		logger.finest("Attempting to auto-configure network");
+    public static BroadcastReceiver sReceiver = new BroadcastReceiver() {
+            @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+                int state = intent.getIntExtra(
+                        WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+                logger.info("Wifi State changed: " + state);
 
-		WifiManager manager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-		if (manager == null)
-			return false;
-		
+                if (state == WifiManager.WIFI_STATE_ENABLED) {
+                    configureNetwork(context);
+                    context.unregisterReceiver(this);
+                }
+            }
+        }
+    };
+
+    public static void startConfiguration(Context context) {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        context.registerReceiver(sReceiver, filter);
+    }
+
+    public static boolean configureNetwork(Context context) {
+        logger.finest("Attempting to auto-configure network");
+
+        WifiManager manager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (manager == null)
+            return false;
+
         Resources res = context.getResources();
         WifiConfiguration config = new WifiConfiguration();
 
         try {
-        	boolean useDhcp = res.getBoolean(R.bool.network_use_dhcp);
-        	ContentResolver cr = context.getContentResolver();
-        	if (!useDhcp) {
-        		Settings.System.putString(cr, Settings.System.WIFI_STATIC_IP,
-                                      	  res.getString(R.string.network_static_ip));
-        		Settings.System.putString(cr, Settings.System.WIFI_STATIC_NETMASK, 
-                                          res.getString(R.string.network_static_netmask));
-        		Settings.System.putString(cr, Settings.System.WIFI_STATIC_GATEWAY,
-                                      	  res.getString(R.string.network_static_gateway));
-        		Settings.System.putString(cr, Settings.System.WIFI_STATIC_DNS1,
-                                      	  res.getString(R.string.network_static_dns_1));
-        	}
+            boolean useDhcp = res.getBoolean(R.bool.network_use_dhcp);
+            ContentResolver cr = context.getContentResolver();
+            if (!useDhcp) {
+                Settings.System.putString(cr, Settings.System.WIFI_STATIC_IP,
+                        res.getString(R.string.network_static_ip));
+                Settings.System.putString(cr, Settings.System.WIFI_STATIC_NETMASK,
+                        res.getString(R.string.network_static_netmask));
+                Settings.System.putString(cr, Settings.System.WIFI_STATIC_GATEWAY,
+                        res.getString(R.string.network_static_gateway));
+                Settings.System.putString(cr, Settings.System.WIFI_STATIC_DNS1,
+                        res.getString(R.string.network_static_dns_1));
+            }
             Settings.System.putInt(cr, Settings.System.WIFI_USE_STATIC_IP, useDhcp ? 0 : 1);
 
             config.SSID = res.getString(R.string.network_wifi_essid);
@@ -85,11 +86,11 @@ public class NetworkHelper {
             config.allowedProtocols.clear();
             config.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
             config.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-                
+
             config.preSharedKey = res.getString(R.string.network_wifi_wpa_Key);
             config.status = WifiConfiguration.Status.ENABLED;
 
-            if(!res.getString(R.string.network_wifi_bssid).equals("auto")) {
+            if (!res.getString(R.string.network_wifi_bssid).equals("auto")) {
                 config.BSSID = res.getString(R.string.network_wifi_bssid);
             }
         } catch (Resources.NotFoundException e) {
@@ -97,7 +98,8 @@ public class NetworkHelper {
             return false;
         }
 
-        // Remove all the other networks. (Go Highlander on this thing... THERE CAN BE ONLY ONE)
+        // Remove all the other networks. (Go Highlander on this thing... THERE
+        // CAN BE ONLY ONE)
         List<WifiConfiguration> networks = manager.getConfiguredNetworks();
         for (WifiConfiguration network : networks) {
             if (!manager.removeNetwork(network.networkId)) {
@@ -106,12 +108,15 @@ public class NetworkHelper {
         }
 
         int networkId = manager.addNetwork(config);
-        if (networkId == -1) {	
+        if (networkId == -1) {
             return false;
         }
-        manager.enableNetwork(networkId, true); /* Technically we are the only network */
+        manager.enableNetwork(networkId, true); /*
+                                                 * Technically we are the only
+                                                 * network
+                                                 */
         manager.saveConfiguration();
-        
+
         return true;
-	}
+    }
 }
