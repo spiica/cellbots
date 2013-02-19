@@ -19,7 +19,6 @@ package com.cellbots.logger;
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
-import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -32,7 +31,7 @@ import java.io.IOException;
 
 /**
  * View that handles the picture taking functionality.
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
@@ -64,10 +63,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
+    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         acquireCamera(holder);
     }
 
+    @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         mCamera.startPreview();
     }
@@ -90,7 +91,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     private void runPictureTakingLoop() {
         new Thread(new Runnable() {
-           // @Override
+            // @Override
+                @Override
             public void run() {
                 try {
                     if (!mTakingPictures) {
@@ -101,12 +103,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
                         return;
                     }
                     mCamera.takePicture(null, null, new PictureCallback() {
-                      //  @Override
+                        // @Override
+                            @Override
                         public void onPictureTaken(byte[] data, Camera camera) {
                             try {
                                 FileOutputStream outStream = new FileOutputStream(
                                         directory.getAbsoluteFile().toString() + "/"
-                                                + System.currentTimeMillis() + ".jpg");
+                                        + System.currentTimeMillis() + ".jpg");
                                 outStream.write(data);
                                 outStream.close();
                                 mPictureCount++;
@@ -128,6 +131,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         }).start();
     }
 
+    @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         stop();
         releaseCamera();

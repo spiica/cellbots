@@ -19,7 +19,9 @@ package com.cellbots.logger;
 import android.app.Application;
 import android.os.Environment;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.SimpleTimeZone;
 
 public class LoggerApplication extends Application {
     /**
@@ -35,7 +37,10 @@ public class LoggerApplication extends Application {
 
     public void generateNewFilePathUniqueIdentifier() {
         Date date = new Date();
-        filePathUniqueIdentifier = date.toGMTString().replaceAll(" ", "_").replaceAll(":", "-");
+        SimpleDateFormat sdf = new SimpleDateFormat();
+        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
+        sdf.applyPattern("dd MMM yyyy HH:mm:ss z");
+        filePathUniqueIdentifier = sdf.format(date).replaceAll(" ", "_").replaceAll(":", "-");
     }
 
     public void resetFilePathUniqueIdentifier() {
@@ -44,7 +49,7 @@ public class LoggerApplication extends Application {
 
     /**
      * Returns the filePathUniqueIdentifier that can be used for saving files.
-     *
+     * 
      * @throw IllegalStateException if the filePathUniqueIdentifier hasn't been
      *        initialized.
      */

@@ -30,7 +30,7 @@ import android.widget.Toast;
 
 /**
  * A simple Activity for choosing which mode to launch the data logger in.
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 public class LauncherActivity extends Activity {
@@ -46,14 +46,14 @@ public class LauncherActivity extends Activity {
         final Activity self = this;
         Button launchVideoFrontButton = (Button) findViewById(R.id.launchVideoFront);
         launchVideoFrontButton.setOnClickListener(new OnClickListener() {
-           // @Override
+                @Override
             public void onClick(View v) {
                 launchLoggingActivity(LoggerActivity.MODE_VIDEO_FRONT, useZipCheckbox.isChecked());
             }
         });
         Button launchVideoBackButton = (Button) findViewById(R.id.launchVideoBack);
         launchVideoBackButton.setOnClickListener(new OnClickListener() {
-           // @Override
+                @Override
             public void onClick(View v) {
                 launchLoggingActivity(LoggerActivity.MODE_VIDEO_BACK, useZipCheckbox.isChecked());
             }
@@ -61,7 +61,7 @@ public class LauncherActivity extends Activity {
         final EditText pictureDelayEditText = (EditText) findViewById(R.id.pictureDelay);
         Button launchPictureButton = (Button) findViewById(R.id.launchPicture);
         launchPictureButton.setOnClickListener(new OnClickListener() {
-            //@Override
+                @Override
             public void onClick(View v) {
                 Intent i = new Intent(self, LoggerActivity.class);
                 i.putExtra(LoggerActivity.EXTRA_MODE, LoggerActivity.MODE_PICTURES);
@@ -72,7 +72,7 @@ public class LauncherActivity extends Activity {
                 } catch (Exception e) {
                     Toast.makeText(self,
                             "Error parsing picture delay time. Using default delay of 30 seconds.",
-                            1).show();
+                            Toast.LENGTH_LONG).show();
                 }
                 i.putExtra(LoggerActivity.EXTRA_PICTURE_DELAY, delay);
                 startActivity(i);

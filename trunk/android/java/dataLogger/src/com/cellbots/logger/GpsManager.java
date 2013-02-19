@@ -28,7 +28,7 @@ import java.util.Iterator;
 
 /**
  * Simplifies handling of the GPS to only focus on what we want to log.
- *
+ * 
  * @author clchen@google.com (Charles L. Chen)
  */
 public class GpsManager {
@@ -86,23 +86,28 @@ public class GpsManager {
     }
 
     private class MyLocationListener implements LocationListener {
+        @Override
         public void onLocationChanged(Location location) {
             mCallbackListener.onGpsLocationUpdate(location.getTime(), location.getAccuracy(),
                     location.getLatitude(), location.getLongitude(), location.getAltitude(),
                     location.getBearing(), location.getSpeed());
         }
 
+        @Override
         public void onProviderDisabled(String provider) {
         }
 
+        @Override
         public void onProviderEnabled(String provider) {
         }
 
+        @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
         }
     }
 
     private class MyGpsStatusListener implements GpsStatus.Listener {
+        @Override
         public void onGpsStatusChanged(int event) {
             LocationManager locationManager = (LocationManager) parentCtx.getSystemService(
                     Context.LOCATION_SERVICE);
@@ -120,6 +125,7 @@ public class GpsManager {
     }
 
     private class MyNmeaListener implements GpsStatus.NmeaListener {
+        @Override
         public void onNmeaReceived(long timestamp, String nmea) {
             mCallbackListener.onGpsNmeaUpdate(timestamp, nmea);
         }

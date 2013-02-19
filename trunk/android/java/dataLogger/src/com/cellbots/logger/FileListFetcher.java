@@ -22,13 +22,13 @@ import java.util.List;
 
 /**
  * Gets the names of all the files in a directory.
- *
+ * 
  * @author birmiwal@google.com (Shishir Birmiwal)
  */
 public class FileListFetcher {
     /**
      * Returns all the files and directories in the directory.
-     *
+     * 
      * @param dirname the directory to look into
      * @return an list of file names
      */
