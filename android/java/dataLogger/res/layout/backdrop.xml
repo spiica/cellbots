@@ -4,9 +4,5 @@
   android:layout_height="fill_parent" android:orientation="vertical">
   <View android:layout_width="wrap_content" android:layout_height="wrap_content"
     android:layout_weight="1" />
-
-
-  <ImageButton android:layout_width="wrap_content"
-    android:layout_height="wrap_content" android:background="@android:color/transparent"
-    android:src="@drawable/ui_backplate" />
+  <ImageView android:layout_width="fill_parent" android:layout_height="wrap_content" android:background="@drawable/ui_backplate" />
 </LinearLayout>

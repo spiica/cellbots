@@ -946,13 +946,27 @@ public class LoggerActivity extends Activity {
             for (int i = 0; i < w.length; i++) {
                 w.clone();
             }
-            mBatteryTempWriter.close();
-            mBatteryLevelWriter.close();
-            mBatteryVoltageWriter.close();
-            mGpsLocationWriter.close();
-            mGpsStatusWriter.close();
-            mGpsNmeaWriter.close();
-            mWifiWriter.close();
+            if (mBatteryTempWriter != null) {
+                mBatteryTempWriter.close();
+            }
+            if (mBatteryLevelWriter != null) {
+                mBatteryLevelWriter.close();
+            }
+            if (mBatteryVoltageWriter != null) {
+                mBatteryVoltageWriter.close();
+            }
+            if (mGpsLocationWriter != null) {
+                mGpsLocationWriter.close();
+            }
+            if (mGpsStatusWriter != null) {
+                mGpsStatusWriter.close();
+            }
+            if (mGpsNmeaWriter != null) {
+                mGpsNmeaWriter.close();
+            }
+            if (mWifiWriter != null) {
+                mWifiWriter.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
