@@ -82,7 +82,7 @@ public class FrontCamcorderPreview extends AbstractCamcorderPreview implements
             // If the activity is paused and resumed, camera device has been
             // released and we need to open the camera.
             try {
-                camera = Camera.open(1);
+                camera = Camera.open(1);                
             } catch (NoSuchMethodError e) {
                 // Method call not available below API level 9. We can't access
                 // the front camera.
