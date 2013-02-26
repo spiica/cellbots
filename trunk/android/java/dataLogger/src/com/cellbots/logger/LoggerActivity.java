@@ -49,6 +49,9 @@ import com.cellbots.logger.GpsManager.GpsManagerListener;
 import com.cellbots.logger.RemoteControl.Command;
 import com.cellbots.logger.WapManager.ScanResults;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -58,9 +61,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.zip.Deflater;
-
-import org.json.JSONObject;
-import org.json.JSONException;
 
 /**
  * Main activity for a data gathering tool. This tool enables recording video
@@ -200,7 +200,6 @@ public class LoggerActivity extends Activity {
      * Event handlers
      */
     private SensorEventListener mSensorEventListener = new SensorEventListener() {
-        // @Override
             @Override
         public void onSensorChanged(SensorEvent event) {
             Sensor sensor = event.sensor;
@@ -232,7 +231,6 @@ public class LoggerActivity extends Activity {
             }
         }
 
-        // @Override
             @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }

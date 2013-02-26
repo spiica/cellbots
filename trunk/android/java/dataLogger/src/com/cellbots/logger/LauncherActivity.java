@@ -28,6 +28,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.cellbots.logger.localServer.ServerControlActivity;
+
 /**
  * A simple Activity for choosing which mode to launch the data logger in.
  * 
@@ -44,6 +46,15 @@ public class LauncherActivity extends Activity {
         useZipCheckbox = (CheckBox) findViewById(R.id.useZip);
 
         final Activity self = this;
+        Button launchLocalServerButton = (Button) findViewById(R.id.launchLocalServer);
+        launchLocalServerButton.setOnClickListener(new OnClickListener() {
+                @Override
+            public void onClick(View v) {
+                Intent i = new Intent(LauncherActivity.this, ServerControlActivity.class);
+                startActivity(i);
+                finish();
+            }
+        });
         Button launchVideoFrontButton = (Button) findViewById(R.id.launchVideoFront);
         launchVideoFrontButton.setOnClickListener(new OnClickListener() {
                 @Override
