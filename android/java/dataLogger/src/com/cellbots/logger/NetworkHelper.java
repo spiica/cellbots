@@ -1,19 +1,19 @@
 
 package com.cellbots.logger;
 
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.provider.Settings;
+
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NetworkHelper {
     private static final Logger logger = Logger.getLogger(NetworkHelper.class.getCanonicalName());
