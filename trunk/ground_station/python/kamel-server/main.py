@@ -10,7 +10,7 @@ from static import StaticHandler
 
 class MainHandler(webapp2.RequestHandler):
   def get(self):
-    self.response.out.write('<br><h1 align="center"><a href="/kml/rocket.kml">September 15, 2012 - Android Rocket Launch</a></h1>')
+    self.response.out.write('<br><h1 align="center"><a href="/kml/rocket.kml">February 2, 2013 - Android Rocket Launch</a></h1>')
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),

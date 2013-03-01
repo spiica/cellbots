@@ -63,24 +63,29 @@ class KmlStyleUtils:
   STYLE_PREFIX = 'style'
   DEFAULT_STYLE = 0
   CALLSIGN_TO_STYLE = {
-    'KC1C-4': 2,
-    'KC1C-5': 3,
-    'KJ6ORU': 1,
-    'Mock1': 2,
-    'Mock0': 3,
+  	'KC1C-11': 2,
+    'Mock0': 2,
+    #'KC1C-4': 2,
+    #'KC1C-5': 3,
+    #'KJ6ORU': 1,
+    #'Mock1': 2,
+    #'Mock0': 3,
   }
   CALLSIGN_INFO = {
-    'KC1C-4': 'sustainer',
-    'KC1C-5': 'booster',
-    'KJ6ORU': 'payload',
-    'KI6NKO-10': 'balloon primary',
-    'KC9NZJ-2': 'balloon backup',
-    'KC9NZJ-7': 'Tom',
-    'KC1C': 'Casey',
-    'Mock1': 'sustainer',
-    'Mock0': 'booster',
+	'KC1C-11': 'Lucky',
+    'Mock0': 'Fake',
+    #'KC1C-4': 'sustainer',
+    #'KC1C-5': 'booster',
+    #'KJ6ORU': 'payload',
+    #'KI6NKO-10': 'balloon primary',
+    #'KC9NZJ-2': 'balloon backup',
+    #'KC9NZJ-7': 'Tom',
+    #'KC1C': 'Casey',
+    #'Mock1': 'sustainer',
+    #'Mock0': 'booster',
   }
-  TOP_ALTITUDES_CALLSIGNS = ['KC1C-4', 'KC1C-5', 'KJ6ORU']
+  TOP_ALTITUDES_CALLSIGNS = ['KC1C-11', 'Mock0']
+  # TOP_ALTITUDES_CALLSIGNS = ['KC1C-4', 'KC1C-5', 'KJ6ORU']
   # , 'Mock0', 'Mock1'
 
   num_styles = 4
@@ -176,8 +181,8 @@ class KmlTelemetryPacket:
     return geo_url
 
   def append_telemetry_to(self, element):
-    if self.has_timestamp():
-      element.append(KML.when(self.get_nice_timestamp()))
+    #if self.has_timestamp():
+    #  element.append(KML.when(self.get_nice_timestamp()))
     if self.has_position():
       if self.packet.position[2] != 110001:
         element.append(GX.coord(self.get_nice_position()))
@@ -255,7 +260,8 @@ class GoogleEarthSession:
   _next_sid = 1
 
   # (longitude, latitude, altitude, heading, tilt, range)
-  CAMERA = (-119.122438, 40.853570, 2000, 0, 70, 20000)
+  #CAMERA = (-119.122438, 40.853570, 2000, 0, 70, 20000)
+  CAMERA = (-120.795486, 37.949329, 2000, 0, 70, 20000)
 
   @classmethod
   def get(cls, sid = 0):
@@ -291,7 +297,7 @@ class GoogleEarthSession:
         KML.range(self.camera[5]),
       )
 
-  def get_look_at_link(self, path, refresh = 1):
+  def get_network_link(self, path, refresh = 1):
     return \
       KML.NetworkLink(
         KML.Link(
@@ -304,8 +310,8 @@ class GoogleEarthSession:
   def init_kml(self, request, response):
     doc = KML.Document(id=KmlPlacemark.DOC_ID)
     KmlStyleUtils.append_all_styles_to(request.host_url, doc)
-    #doc.append(KML.Placemark(self.get_look_at(), id=KmlPlacemark.DUMMY_PM_ID))
-    #doc.append(self.get_network_link(request.path_url + '?sid=' + str(self.sid)))
+    doc.append(KML.Placemark(self.get_look_at(), id=KmlPlacemark.DUMMY_PM_ID))
+    doc.append(self.get_network_link(request.path_url + '?sid=' + str(self.sid)))
     for id_, kpm in self.placemarks.items():
       if kpm.is_new:
         style_url = KmlStyleUtils.get_style_url_for_callsign(kpm.callsign)
