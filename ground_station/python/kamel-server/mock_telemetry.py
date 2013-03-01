@@ -7,8 +7,11 @@ from datetime import datetime
 from telemetry import TelemetryPacket
 from tracking import TrackingManager
 
-MOCK_FILES = ['static/Beeline-154.kml', 'static/Beeline-157.kml']
+#MOCK_FILES = ['static/Beeline-154.kml', 'static/Beeline-157.kml']
+MOCK_FILES = ['static/Beeline-157.kml']
 LAUNCH_TIME = datetime(2012, 9, 11, 20, 38, 50)
+DELTA_LONG = -1.673048
+DELTA_LAT = -2.904241
 
 class MockTelemetry:
 
@@ -54,7 +57,7 @@ class MockTelemetry:
       timestamp = cls._datetime_to_timestamp(dt)
       if time_offset is not None:
         timestamp += time_offset
-      position = (float(rec[1]), float(rec[0]), float(rec[2]))
+      position = (float(rec[1])+DELTA_LAT, float(rec[0])+DELTA_LONG, float(rec[2]))
       packets.append(TelemetryPacket(callsign=callsign, timestamp=timestamp, position=position))
     return packets
 
