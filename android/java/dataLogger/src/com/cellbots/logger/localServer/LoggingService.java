@@ -11,6 +11,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.cellbots.logger.LoggerApplication;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -45,9 +47,9 @@ public class LoggingService extends Service implements HttpCommandServerListener
 
     // FLAGS
     // TODO: Make these configurable!
-    private boolean mWriteToFile = false; // Switch this to true to log to files
-                                          // in addition to displaying through
-                                          // HTTP.
+    private boolean mWriteToFile = true; // Switch this to true to log to files
+                                         // in addition to displaying through
+                                         // HTTP.
 
     private SensorManager mSensorManager;
     private List<Sensor> sensors;
@@ -62,20 +64,13 @@ public class LoggingService extends Service implements HttpCommandServerListener
 
     private LocalHttpServer httpServer;
 
-    /*
-     * (non-Javadoc)
-     * @see android.app.Service#onBind(android.content.Intent)
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
-        // TODO(clchen): Auto-generated method stub
-        return null;
-    }
+    private String mDirectoryName;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         application = (LoggerApplication) getApplication();
+        mDirectoryName = application.getDataLoggerPath();
         if (intent != null) {
             switch (intent.getIntExtra(EXTRA_COMMAND, EXTRA_COMMAND_STOP)) {
                 case EXTRA_COMMAND_START:
@@ -235,9 +230,8 @@ public class LoggingService extends Service implements HttpCommandServerListener
     private void initSensorLogFiles() {
         sensorLogFileWriters = new HashMap<String, BufferedWriter>();
 
-        String directoryName = application.getDataLoggerPath();
         if (mWriteToFile) {
-            File directory = new File(directoryName);
+            File directory = new File(mDirectoryName);
             if (!directory.exists() && !directory.mkdirs()) {
                 try {
                     throw new IOException(
@@ -251,7 +245,7 @@ public class LoggingService extends Service implements HttpCommandServerListener
         for (int i = 0; i < sensors.size(); i++) {
             Sensor s = sensors.get(i);
             if (mWriteToFile) {
-                String sensorFilename = directoryName + s.getName().replaceAll(" ", "_") + "_"
+                String sensorFilename = mDirectoryName + s.getName().replaceAll(" ", "_") + "_"
                         + application.getFilePathUniqueIdentifier() + ".txt";
                 File file = new File(sensorFilename);
                 try {
@@ -295,8 +289,9 @@ public class LoggingService extends Service implements HttpCommandServerListener
     @Override
     public String getLoggerStatus() {
         StringBuilder statusMessage = new StringBuilder();
-        for (int i = 0; i < sensors.size(); i++) {
-            final String name = sensors.get(i).getName();
+        Iterator<String> sensorNamesIt = lastSeenValues.keySet().iterator();
+        while (sensorNamesIt.hasNext()) {
+            final String name = sensorNamesIt.next();
             statusMessage.append(name);
             statusMessage.append(":");
             statusMessage.append(lastSeenValues.get(name));
@@ -305,4 +300,49 @@ public class LoggingService extends Service implements HttpCommandServerListener
         return statusMessage.toString();
     }
 
+    public void addLogEntryToCustomSensor(final String sensorName, final String sensorReadings) {
+        final String lastSeenValue = System.currentTimeMillis() + "," + sensorReadings;
+        lastSeenValues.put(sensorName, lastSeenValue);
+        BufferedWriter writer = sensorLogFileWriters.get(sensorName);
+        if (mWriteToFile && (writer == null)) {
+            String sensorFilename = mDirectoryName + sensorName + "_"
+                    + application.getFilePathUniqueIdentifier() + ".txt";
+            File file = new File(sensorFilename);
+            try {
+                writer = new BufferedWriter(new FileWriter(file));
+                sensorLogFileWriters.put(sensorName, writer);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (writer != null) {
+            try {
+                writer.write(lastSeenValue + "\n");
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see android.app.Service#onBind(android.content.Intent)
+     */
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+    public class Stub extends ILoggingService.Stub {
+        @Override
+        public void addLogEntry(String sensorName, String sensorReadings)
+                throws RemoteException {
+            addLogEntryToCustomSensor(sensorName, sensorReadings);
+        }
+    }
+
+    private final Stub mBinder = new Stub();
 }
