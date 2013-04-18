@@ -18,6 +18,7 @@ import com.cellbots.logger.LoggerApplication;
 import com.cellbots.logger.WapManager;
 import com.cellbots.logger.WapManager.ScanResults;
 import com.cellbots.logger.localServer.LocalHttpServer.HttpCommandServerListener;
+import com.cellbots.logger.localServer.XmppManager.XmppMessageListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +38,9 @@ import java.util.List;
  * @author clchen@google.com (Charles L. Chen)
  */
 public class LoggingService extends Service implements HttpCommandServerListener {
+    public static final String GMAIL_ACCOUNT = "";
+    public static final String GMAIL_PASSWORD = "";
+
     public static final String EXTRA_COMMAND = "COMMAND";
     public static final int EXTRA_COMMAND_STOP = 0;
     public static final int EXTRA_COMMAND_START = 1;
@@ -63,6 +67,7 @@ public class LoggingService extends Service implements HttpCommandServerListener
     private HashMap<String, String> lastSeenValues;
 
     private LocalHttpServer httpServer;
+    private XmppManager xmppHandler;
 
     private String mDirectoryName;
 
@@ -77,6 +82,11 @@ public class LoggingService extends Service implements HttpCommandServerListener
                     if (!mIsLoggerRunning) {
                         runLoggerService();
                         httpServer = new LocalHttpServer("cellbots/httpserver/files", 8080, this);
+                        if (GMAIL_ACCOUNT.length() > 0) {
+                            xmppHandler = new XmppManager(
+                                    this, mXmppMessageListener, GMAIL_ACCOUNT, GMAIL_PASSWORD);
+                            xmppHandler.connect();
+                        }
                     }
                     break;
                 default:
@@ -86,6 +96,13 @@ public class LoggingService extends Service implements HttpCommandServerListener
         }
         return START_STICKY;
     }
+
+    XmppMessageListener mXmppMessageListener = new XmppMessageListener() {
+            @Override
+        public void onMessageReceived(String from, String message) {
+            xmppHandler.sendMessage(from, getLoggerStatus());
+        }
+    };
 
     private void runLoggerService() {
         mIsLoggerRunning = true;
@@ -105,6 +122,9 @@ public class LoggingService extends Service implements HttpCommandServerListener
             for (Sensor s : sensors) {
                 mSensorManager.unregisterListener(mSensorEventListener, s);
             }
+        }
+        if (xmppHandler != null) {
+            xmppHandler.disconnect();
         }
     }
 
