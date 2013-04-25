@@ -12,12 +12,16 @@ import android.hardware.SensorManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Base64;
 import android.util.Log;
 
+import com.cellbots.logger.GpsManager;
 import com.cellbots.logger.LoggerApplication;
 import com.cellbots.logger.WapManager;
+import com.cellbots.logger.GpsManager.GpsManagerListener;
 import com.cellbots.logger.WapManager.ScanResults;
 import com.cellbots.logger.localServer.LocalHttpServer.HttpCommandServerListener;
+import com.cellbots.logger.localServer.Telemetry.DataPacket.Builder;
 import com.cellbots.logger.localServer.XmppManager.XmppMessageListener;
 
 import org.json.JSONException;
@@ -38,6 +42,8 @@ import java.util.List;
  * @author clchen@google.com (Charles L. Chen)
  */
 public class LoggingService extends Service implements HttpCommandServerListener {
+    // FILL THESE OUT TO USE XMPP!
+    private static final String XMPP_PROTOBUF_RECEIVER_BOT = "";    
     public static final String GMAIL_ACCOUNT = "";
     public static final String GMAIL_PASSWORD = "";
 
@@ -65,9 +71,14 @@ public class LoggingService extends Service implements HttpCommandServerListener
     private BufferedWriter mWifiWriter;
     private HashMap<String, BufferedWriter> sensorLogFileWriters;
     private HashMap<String, String> lastSeenValues;
+    private BufferedWriter mGpsLocationWriter;
+    private BufferedWriter mGpsStatusWriter;
+    private BufferedWriter mGpsNmeaWriter;
+    private GpsManager mGpsManager;
 
     private LocalHttpServer httpServer;
     private XmppManager xmppHandler;
+    private long mLastXmppUpdateTime = 0;
 
     private String mDirectoryName;
 
@@ -104,6 +115,25 @@ public class LoggingService extends Service implements HttpCommandServerListener
         }
     };
 
+    private Runnable sendUpdatesToXmppRunnable = new Runnable() {
+            @Override
+        public void run() {
+            while (mIsLoggerRunning && (GMAIL_ACCOUNT.length() > 0)) {
+                if (mLastXmppUpdateTime + 15000 < System.currentTimeMillis()) {
+                    // TODO (clchen): Make the protobuf data packet more interesting by putting in real content.
+                    Log.e("Message to bot", "Sending...");
+                    Telemetry.DataPacket dataPacket = Telemetry.DataPacket.newBuilder()
+                            .setTimestamp(System.currentTimeMillis()).build();                    
+                    byte[] dataBytes = dataPacket.toByteArray();
+                    String base64 = Base64.encodeToString(dataBytes, Base64.DEFAULT);
+                    xmppHandler.sendMessage(XMPP_PROTOBUF_RECEIVER_BOT, "/prot " + base64);
+                    mLastXmppUpdateTime = System.currentTimeMillis();
+                    Log.e("Message to bot", "OK");
+                }
+            }
+        }
+    };
+
     private void runLoggerService() {
         mIsLoggerRunning = true;
         lastSeenValues = new HashMap<String, String>();
@@ -111,6 +141,8 @@ public class LoggingService extends Service implements HttpCommandServerListener
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         initSensorLogFiles();
+        initGps();
+        new Thread(sendUpdatesToXmppRunnable).start();
     }
 
     @Override
@@ -122,6 +154,9 @@ public class LoggingService extends Service implements HttpCommandServerListener
             for (Sensor s : sensors) {
                 mSensorManager.unregisterListener(mSensorEventListener, s);
             }
+        }
+        if (mGpsManager != null){
+            mGpsManager.shutdown();
         }
         if (xmppHandler != null) {
             xmppHandler.disconnect();
@@ -274,6 +309,10 @@ public class LoggingService extends Service implements HttpCommandServerListener
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                // GPS is another special case since it is not a real sensor
+                mGpsLocationWriter = createBufferedWriter("/GpsLocation_", mDirectoryName);
+                mGpsStatusWriter = createBufferedWriter("/GpsStatus_", mDirectoryName);
+                mGpsNmeaWriter = createBufferedWriter("/GpsNmea_", mDirectoryName);
             }
             mSensorManager.registerListener(
                     mSensorEventListener, s, SensorManager.SENSOR_DELAY_GAME);
@@ -292,6 +331,70 @@ public class LoggingService extends Service implements HttpCommandServerListener
          * special case mWifiWriter = createBufferedWriter("/Wifi_",
          * directoryName);
          */
+    }
+
+    /**
+     * Creates a new BufferedWriter.
+     * 
+     * @param prefix The prefix for the file that we're writing to.
+     * @return A BufferedWriter for a file in the specified directory. Null if
+     *         creation failed.
+     */
+    private BufferedWriter createBufferedWriter(String prefix, String directoryName) {
+        String filename = directoryName + prefix + application.getFilePathUniqueIdentifier()
+                + ".txt";
+        File file = new File(filename);
+        BufferedWriter bufferedWriter = null;
+        try {
+            bufferedWriter = new BufferedWriter(new FileWriter(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bufferedWriter;
+    }
+
+    private void initGps() {
+        mGpsManager = new GpsManager(this, new GpsManagerListener() {
+                @Override
+            public void onGpsLocationUpdate(long time, float accuracy, double latitude,
+                    double longitude, double altitude, float bearing, float speed) {
+                try {
+                    if (mWriteToFile) {
+                        mGpsLocationWriter.write(
+                                time + "," + accuracy + "," + latitude + "," + longitude + ","
+                                + altitude + "," + bearing + "," + speed + "\n");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+                @Override
+            public void onGpsNmeaUpdate(long time, String nmeaString) {
+                try {
+                    if (mWriteToFile) {
+                        mGpsNmeaWriter.write(time + "," + nmeaString + "\n");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+                @Override
+            public void onGpsStatusUpdate(
+                    long time, int maxSatellites, int actualSatellites, int timeToFirstFix) {
+                try {
+                    if (mWriteToFile) {
+                        mGpsStatusWriter.write(
+                                time + "," + maxSatellites + "," + actualSatellites + ","
+                                + timeToFirstFix + "\n");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
     }
 
     /*
