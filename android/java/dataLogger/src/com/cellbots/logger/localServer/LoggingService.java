@@ -79,6 +79,7 @@ public class LoggingService extends Service implements HttpCommandServerListener
     private LocalHttpServer httpServer;
     private XmppManager xmppHandler;
     private long mLastXmppUpdateTime = 0;
+    private TelemetrySnapshot mTelemetrySnapshot;
 
     private String mDirectoryName;
 
@@ -119,14 +120,9 @@ public class LoggingService extends Service implements HttpCommandServerListener
             @Override
         public void run() {
             while (mIsLoggerRunning && (GMAIL_ACCOUNT.length() > 0)) {
-                if (mLastXmppUpdateTime + 15000 < System.currentTimeMillis()) {
-                    // TODO (clchen): Make the protobuf data packet more interesting by putting in real content.
+                if ((xmppHandler != null) && (mTelemetrySnapshot != null) && (mLastXmppUpdateTime + 15000 < System.currentTimeMillis())) {
                     Log.e("Message to bot", "Sending...");
-                    Telemetry.DataPacket dataPacket = Telemetry.DataPacket.newBuilder()
-                            .setTimestamp(System.currentTimeMillis()).build();                    
-                    byte[] dataBytes = dataPacket.toByteArray();
-                    String base64 = Base64.encodeToString(dataBytes, Base64.DEFAULT);
-                    xmppHandler.sendMessage(XMPP_PROTOBUF_RECEIVER_BOT, "/prot " + base64);
+                    xmppHandler.sendMessage(XMPP_PROTOBUF_RECEIVER_BOT, "/prot " + mTelemetrySnapshot.getBase64EncodedProtobufDataPacket());
                     mLastXmppUpdateTime = System.currentTimeMillis();
                     Log.e("Message to bot", "OK");
                 }
@@ -136,6 +132,7 @@ public class LoggingService extends Service implements HttpCommandServerListener
 
     private void runLoggerService() {
         mIsLoggerRunning = true;
+        mTelemetrySnapshot = new TelemetrySnapshot();
         lastSeenValues = new HashMap<String, String>();
         Log.e(TAG, "Starting logging service");
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -166,6 +163,7 @@ public class LoggingService extends Service implements HttpCommandServerListener
     private SensorEventListener mSensorEventListener = new SensorEventListener() {
             @Override
         public void onSensorChanged(SensorEvent event) {
+            mTelemetrySnapshot.updateSensor(event);
             Sensor sensor = event.sensor;
             if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
                 // Gyroscope doesn't really have a notion of accuracy.
@@ -359,6 +357,7 @@ public class LoggingService extends Service implements HttpCommandServerListener
             public void onGpsLocationUpdate(long time, float accuracy, double latitude,
                     double longitude, double altitude, float bearing, float speed) {
                 try {
+                    mTelemetrySnapshot.updateLocation(latitude, longitude, altitude);
                     if (mWriteToFile) {
                         mGpsLocationWriter.write(
                                 time + "," + accuracy + "," + latitude + "," + longitude + ","
