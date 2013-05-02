@@ -24,7 +24,7 @@ public class XmppManager {
     public interface XmppMessageListener {
         public void onMessageReceived(String from, String message);
     }
-    
+
     private static final String TAG = "XmppManager";
 
     // TODO: Make this configurable!
@@ -37,10 +37,11 @@ public class XmppManager {
     private Context mParent;
 
     private XMPPConnection mConnection;
-    
+
     private XmppMessageListener mMessageListener;
 
-    public XmppManager(Context parent, XmppMessageListener messageListener, String username, String password) {
+    public XmppManager(
+            Context parent, XmppMessageListener messageListener, String username, String password) {
         mParent = parent;
         int index = username.indexOf('@');
         mUsername = index >= 0 ? username.substring(0, index) : username;
@@ -53,7 +54,7 @@ public class XmppManager {
         // Create a connection
         SmackAndroid.init(mParent);
         int DNSSRV_TIMEOUT = 1000 * 30; // 30s
-        try {            
+        try {
             SASLAuthentication.supportSASLMechanism("PLAIN", 0);
             AndroidConnectionConfiguration conf = new AndroidConnectionConfiguration(
                     SERVICE, DNSSRV_TIMEOUT);
@@ -61,7 +62,7 @@ public class XmppManager {
             conf.setTruststorePassword(null);
             conf.setTruststorePath(null);
             mConnection = new XMPPConnection(conf);
-            
+
             new Thread(new Runnable() {
                     @Override
                 public void run() {
@@ -73,17 +74,18 @@ public class XmppManager {
                         // Set the status to available
                         Presence presence = new Presence(Presence.Type.available);
                         mConnection.sendPacket(presence);
-                        
+
                         mConnection.addPacketListener(new PacketListener() {
-                            @Override
+                                @Override
                             public void processPacket(Packet packet) {
                                 Message message = (Message) packet;
                                 if (message.getBody() != null) {
-                                    mMessageListener.onMessageReceived(message.getFrom(), message.getBody());
+                                    mMessageListener.onMessageReceived(
+                                            message.getFrom(), message.getBody());
                                 }
                             }
                         }, new MessageTypeFilter(Message.Type.chat));
-                        
+
                     } catch (XMPPException ex) {
                         Log.e(TAG, "Failed to connect/login as " + mUsername);
                         Log.e(TAG, ex.toString());
@@ -96,28 +98,31 @@ public class XmppManager {
             e.printStackTrace();
         }
     }
-    
+
     public void disconnect() {
         if (mConnection != null) {
             mConnection.disconnect();
         }
     }
-    
-    public void sendMessage(String to, String message){
+
+    public void sendMessage(String to, String message) {
         Log.e(TAG, "To:" + to + ", Message:" + message);
         if (to == null) {
             return;
         }
         int index = to.indexOf('/');
         to = index >= 0 ? to.substring(0, index) : to;
-        if (mConnection == null){
+        if (mConnection == null) {
             return;
         }
         Message msg = new Message(to, Message.Type.chat);
         msg.setBody(message);
-        mConnection.sendPacket(msg);
+        try {
+            mConnection.sendPacket(msg);
+        } catch (IllegalStateException e) {
+            // Got disconnected.
+            Log.e(TAG, "Disconnected. Failed to send: " + message);
+        }
     }
-    
-    
 
 }
